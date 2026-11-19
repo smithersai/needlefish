@@ -24,6 +24,11 @@ if long_fns=$(git ls-files -co --exclude-standard '*.zig' \
   echo "tidy: functions over 70 lines:"; echo "$long_fns"; fail=1
 fi
 
+# Package imports: no cycle outside etc/import-cycles.allow, which only shrinks.
+if ! python3 -I etc/scripts/packages.py check; then
+  echo "tidy: package import graph (etc/scripts/packages.py)"; fail=1
+fi
+
 # Secrets and private data. Patterns are assembled so this file does not match itself.
 p_home='/Us''ers/'
 p_internal='cb''hq|coinbase\.g''he|\.g''he\.com'

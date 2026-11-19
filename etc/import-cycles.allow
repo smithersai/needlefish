@@ -1,0 +1,23 @@
+# Package imports that close a cycle (from -> to): etc/scripts/packages.py check.
+# Delete a line when its cycle is gone. Never add one: break the cycle instead.
+batcher/source -> batcher/devnet
+batcher/txdata -> batcher/devnet
+common/genesis -> common/consensus
+common/primitives -> common/crypto
+consensus/p2p -> consensus/service
+consensus/protocol -> common/consensus
+consensus/sources -> consensus/engine
+consensus/sources -> execution/rpc
+execution/db -> execution/import
+execution/node -> builder/core
+execution/node -> execution/rpc
+infra/replay -> execution/node
+proof/client -> proof/host
+proof/client -> proof/tee
+proof/primitives -> proof/prover_service
+proof/proposer -> proof/client
+proof/proposer -> proof/host
+proof/prover_service -> proof/challenger
+proof/prover_service -> proof/client
+proof/prover_service -> proof/host
+testing/bench -> testing/sim
