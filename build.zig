@@ -9,6 +9,7 @@
 //! Steps:
 //!   zig build              install every binary into zig-out/bin
 //!   zig build test         run all unit tests, one binary per package (-Dtest-filter=...)
+//!   zig build test:common/rlp  run one package's tests (reruns only when its inputs change)
 //!   zig build fuzz         build fuzz smoke tests (use `zig build test --fuzz`)
 //!   zig build sim -- SEED  run the deterministic simulator (DST) for SEED
 //!   zig build bench        run micro benchmarks (ReleaseFast recommended)
@@ -150,7 +151,8 @@ fn package_index(name: []const u8) usize {
     std.debug.panic("packages.zon has no package named '{s}'", .{name});
 }
 
-/// One test binary per package, named after the package with `/` as `-`.
+/// One test binary per package, named after the package with `/` as `-`, and a
+/// `test:<package>` step that runs only it: `zig build test:common/rlp`.
 fn add_package_tests(
     b: *std.Build,
     modules: []const *std.Build.Module,
@@ -159,12 +161,20 @@ fn add_package_tests(
     check_step: *std.Build.Step,
 ) void {
     std.debug.assert(modules.len == packages.len);
+    // etc/scripts/test-times.sh runs each installed binary to time its tests.
+    const install_step = b.step("test-bins", "Install every package's test binary in zig-out/test");
     for (packages, modules) |package, module| {
         const name = b.allocator.dupe(u8, package.name) catch @panic("OOM");
         std.mem.replaceScalar(u8, name, '/', '-');
         const unit_tests = b.addTest(.{ .name = name, .root_module = module, .filters = filters });
-        test_step.dependOn(&b.addRunArtifact(unit_tests).step);
+        const run_tests = b.addRunArtifact(unit_tests);
+        test_step.dependOn(&run_tests.step);
+        const description = b.fmt("Run the {s} package's tests", .{package.name});
+        b.step(b.fmt("test:{s}", .{package.name}), description).dependOn(&run_tests.step);
         check_step.dependOn(&unit_tests.step);
+        install_step.dependOn(&b.addInstallArtifact(unit_tests, .{
+            .dest_dir = .{ .override = .{ .custom = "test" } },
+        }).step);
     }
 }
 
