@@ -9,6 +9,7 @@ pub const genesis = @import("genesis.zig");
 pub const init = @import("init.zig");
 pub const transfer = @import("transfer.zig");
 pub const inspect = @import("inspect.zig");
+pub const base_time_proxy_hex = @embedFile("base_time_proxy.hex");
 
 test {
     std.testing.refAllDecls(@This());

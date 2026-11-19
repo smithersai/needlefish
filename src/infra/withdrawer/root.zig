@@ -12,6 +12,9 @@ pub const status = @import("status.zig");
 pub const journal = @import("journal.zig");
 pub const reader = @import("reader.zig");
 pub const flow = @import("flow.zig");
+pub const base_sepolia_withdrawal_proof_json =
+    @embedFile("testdata/base_sepolia_withdrawal_proof.json");
+pub const fake_chain = @import("fake_chain.zig");
 
 test {
     std.testing.refAllDecls(@This());

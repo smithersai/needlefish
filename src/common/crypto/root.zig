@@ -21,6 +21,7 @@ pub const modexp = @import("modexp.zig");
 pub const p256 = @import("p256.zig");
 pub const precompile_p256verify = p256.precompile_p256verify;
 pub const bn254 = @import("bn254/root.zig");
+pub const wycheproof_ecdsa_secp256r1_txt = @embedFile("vectors/wycheproof_ecdsa_secp256r1.txt");
 
 test {
     _ = @import("wycheproof_tests.zig");

@@ -19,6 +19,7 @@ pub const hashed_state = @import("hashed_state.zig");
 pub const to_disk = @import("to_disk.zig");
 pub const run = @import("run.zig");
 pub const room = @import("room.zig");
+pub const to_disk_test = @import("to_disk_test.zig");
 
 test {
     std.testing.refAllDecls(@This());

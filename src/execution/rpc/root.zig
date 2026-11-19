@@ -18,6 +18,7 @@ pub const eth_proof = @import("eth_proof.zig");
 pub const eth_config = @import("eth_config.zig");
 pub const engine_json = @import("engine_json.zig");
 pub const engine = @import("engine.zig");
+pub const filters = @import("filters.zig");
 test {
     _ = @import("engine_test.zig");
 }

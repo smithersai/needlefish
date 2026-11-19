@@ -39,6 +39,8 @@ pub const record_cache = @import("record_cache.zig");
 pub const digest_table = @import("digest_table.zig");
 pub const database = @import("database.zig");
 pub const bench = @import("bench.zig");
+pub const branch_record_test = @import("branch_record_test.zig");
+pub const witness_header_chain = @import("witness_header_chain.zig");
 
 pub const Changeset = changeset.Changeset;
 pub const AccountInfo = changeset.AccountInfo;

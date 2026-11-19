@@ -11,6 +11,7 @@ pub const json = @import("json.zig");
 pub const eip8130 = @import("eip8130.zig");
 pub const request = @import("request.zig");
 pub const transaction = @import("transaction.zig");
+pub const request_eip8130 = @import("request_eip8130.zig");
 
 const Writer = std.Io.Writer;
 const Object = json.Object;

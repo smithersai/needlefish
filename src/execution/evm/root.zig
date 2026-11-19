@@ -32,6 +32,8 @@ pub const opcode_profile = @import("opcode_profile.zig");
 pub const coverage = @import("coverage.zig");
 pub const state_test = @import("state_test.zig");
 pub const tx_check = @import("tx_check.zig");
+pub const native_abi = @import("native_abi.zig");
+pub const native_activation = @import("native_activation.zig");
 
 test {
     _ = @import("evm_test.zig");

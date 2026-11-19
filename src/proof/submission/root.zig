@@ -6,6 +6,7 @@ const std = @import("std");
 
 pub const classifier = @import("classifier.zig");
 pub const sender = @import("sender.zig");
+pub const sender_test = @import("sender_test.zig");
 
 pub const KnownRevert = classifier.KnownRevert;
 pub const classify = classifier.classify;
