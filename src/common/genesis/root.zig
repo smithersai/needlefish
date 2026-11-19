@@ -7,9 +7,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const Header = @import("../consensus/header.zig").Header;
-const block = @import("../consensus/block.zig");
+const primitives = @import("common/primitives");
+const Header = @import("common/consensus").header.Header;
+const block = @import("common/consensus").block;
 pub const state = @import("state.zig");
 pub const feature = @import("feature.zig");
 pub const Upgrade = feature.Upgrade;

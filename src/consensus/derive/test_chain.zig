@@ -7,7 +7,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const errors = @import("errors.zig");
 const providers = @import("providers.zig");
 const blob = @import("blob.zig");
@@ -59,7 +59,7 @@ pub const TestChain = struct {
             const number = first_number + index;
             var hash_input: [8]u8 = undefined;
             std.mem.writeInt(u64, &hash_input, number, .big);
-            const hash = @import("../../common/primitives/root.zig").keccak256(&hash_input);
+            const hash = @import("common/primitives").keccak256(&hash_input);
             chain.blocks[index] = .{
                 .hash = hash,
                 .number = number,

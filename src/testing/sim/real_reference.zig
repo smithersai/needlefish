@@ -19,10 +19,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../../consensus/protocol/root.zig");
-const task = @import("../../consensus/engine/task.zig");
-const attributes_module = @import("../../consensus/derive/attributes.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const protocol = @import("consensus/protocol");
+const task = @import("consensus/engine").task;
+const attributes_module = @import("consensus/derive").attributes;
+const primitives = @import("common/primitives");
 const codec = @import("codec.zig");
 const nodes = @import("nodes.zig");
 const real_verifier = @import("real_verifier.zig");

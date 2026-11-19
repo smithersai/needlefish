@@ -7,7 +7,7 @@ const assert = std.debug.assert;
 const testing = std.testing;
 
 const status_module = @import("status.zig");
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 const Address = [20]u8;
 const Status = status_module.Status;

@@ -152,7 +152,7 @@ fn check_sequence(random: std.Random) !void {
 }
 
 test "head state: seeded fuzz invariants" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x51de);
+    var prng = @import("testing/prng").Prng.init(0x51de);
     for (0..300) |_| try check_sequence(prng.random());
 }
 

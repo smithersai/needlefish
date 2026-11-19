@@ -9,8 +9,8 @@ const assert = std.debug.assert;
 const testing = std.testing;
 
 const branch_record = @import("branch_record.zig");
-const trie = @import("../trie/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const trie = @import("execution/trie");
+const Prng = @import("testing/prng").Prng;
 
 const node = trie.node;
 const Hash = node.Hash;

@@ -11,11 +11,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const txdata = @import("../../batcher/txdata/root.zig");
-const driver_module = @import("../tx_manager/driver.zig");
-const manager = @import("../tx_manager/manager.zig");
-const evm = @import("../../execution/evm/evm.zig");
+const rpc = @import("batcher/rpc");
+const txdata = @import("batcher/txdata");
+const driver_module = @import("infra/tx_manager").driver;
+const manager = @import("infra/tx_manager").manager;
+const evm = @import("execution/evm").evm;
 const contracts = @import("contracts.zig");
 const workload = @import("workload.zig");
 const key_stream = @import("key_stream.zig");

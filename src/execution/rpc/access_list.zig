@@ -8,10 +8,10 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const evm = @import("../evm/root.zig");
-const node = @import("../node/root.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const evm = @import("execution/evm");
+const node = @import("execution/node");
 const eth = @import("eth.zig");
 
 const Api = eth.Api;

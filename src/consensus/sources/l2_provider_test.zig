@@ -5,12 +5,12 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const protocol = @import("../protocol/root.zig");
+const io = @import("utilities/io");
+const protocol = @import("consensus/protocol");
 const harness_module = @import("sim_harness.zig");
 const fixtures = @import("fixtures.zig");
 const l2_provider = @import("l2_provider.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const FakeRpc = harness_module.FakeRpc;
 const Harness = harness_module.Harness(*FakeRpc, FakeRpc.handle);
@@ -167,7 +167,7 @@ test "l2 provider: a pruned body surfaces once as Pruned with its header" {
     var fixture: Fixture = .{};
     try fixture.init(.{});
     defer fixture.deinit();
-    const Header = @import("../../common/consensus/root.zig").Header;
+    const Header = @import("common/consensus").Header;
     const header: Header = .{ .number = 10, .timestamp = 20, .gas_limit = 30_000_000 };
     var text: [4096]u8 = undefined;
     // No transactions: the body (and its L1 info deposit) was pruned.

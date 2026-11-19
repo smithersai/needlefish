@@ -277,7 +277,7 @@ fn sum_buckets(comptime C: type, buckets: []const C) C {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const g1 = @import("g1.zig");
 const g2 = @import("g2.zig");
 

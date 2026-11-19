@@ -4,9 +4,9 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const rpc = @import("utilities/rpc");
 const exporter_module = @import("root.zig");
 
 const Address = io.Address;

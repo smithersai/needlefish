@@ -11,10 +11,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../../preimage/root.zig");
-const host_store = @import("../../host/store.zig");
-const keccak = @import("../../../common/crypto/keccak.zig");
-const sha256 = @import("../../../common/crypto/sha256.zig");
+const preimage = @import("proof/preimage");
+const host_store = @import("proof/host").store;
+const keccak = @import("common/crypto").keccak;
+const sha256 = @import("common/crypto").sha256;
 const protocol = @import("protocol.zig");
 
 pub const Error = host_store.Error || error{InvalidPreimage};

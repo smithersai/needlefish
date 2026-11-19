@@ -136,7 +136,7 @@ pub fn encode(data: []const u8, blob: *Blob) error{DataTooLarge}!void {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 var test_blob: Blob = undefined;
 var test_output: [max_data_size]u8 = undefined;

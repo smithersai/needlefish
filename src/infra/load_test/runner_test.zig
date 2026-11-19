@@ -8,10 +8,10 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const evm = @import("../../execution/evm/evm.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
+const rpc = @import("batcher/rpc");
+const consensus = @import("common/consensus");
+const evm = @import("execution/evm").evm;
+const accounts = @import("batcher/devnet").accounts;
 const runner_module = @import("runner.zig");
 const workload = @import("workload.zig");
 const contracts = @import("contracts.zig");
@@ -319,7 +319,7 @@ test "load_test runner: offered load is confirmed with block-time latency" {
 test "load_test runner: tx_manager metrics aggregate every sender" {
     const setup = try create_setup(try test_config(44));
     defer destroy_setup(setup);
-    var tx_metrics: @import("../tx_manager/metrics.zig").Metrics = .{};
+    var tx_metrics: @import("infra/tx_manager").metrics.Metrics = .{};
     setup.runner.tx_metrics = &tx_metrics;
     _ = setup.run(2_000);
     const summary = setup.runner.recorder.summary();

@@ -8,7 +8,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const Prng = @import("../prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const cluster_module = @import("cluster.zig");
 const Config = cluster_module.Config;
 const Cluster = cluster_module.Cluster;

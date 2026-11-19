@@ -10,7 +10,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const errors = @import("errors.zig");
 const batch_stage = @import("batch_stage.zig");
 const BatchQueue = @import("batch_queue.zig").BatchQueue;

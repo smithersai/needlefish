@@ -17,9 +17,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../../utilities/json/root.zig");
-const rpc = @import("../../../utilities/rpc/root.zig");
-const http = @import("../../../utilities/http/root.zig");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const http = @import("utilities/http");
 const enclave = @import("../enclave/root.zig");
 const link_module = @import("link.zig");
 const health_module = @import("health.zig");
@@ -266,7 +266,7 @@ fn readyz(server: *Server, call: *Call) HandlerError!void {
 }
 
 const testing = std.testing;
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 const Fixture = struct {
     locals: [2]*link_module.LocalEnclave,

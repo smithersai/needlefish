@@ -5,14 +5,14 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const errors = @import("errors.zig");
 
 const BlockInfo = protocol.block.BlockInfo;
 const BlockId = protocol.block.BlockId;
 const RollupConfig = protocol.rollup_config.RollupConfig;
 const SystemConfig = protocol.system_config.SystemConfig;
-const Address = @import("../../common/primitives/root.zig").Address;
+const Address = @import("common/primitives").Address;
 const Error = errors.Error;
 
 pub const Traversal = struct {
@@ -87,7 +87,7 @@ pub const Traversal = struct {
 
 const testing = std.testing;
 const TestChain = @import("test_chain.zig").TestChain;
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 const Log = protocol.log.Log;
 const Receipt = protocol.log.Receipt;
 

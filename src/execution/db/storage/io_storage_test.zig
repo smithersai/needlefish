@@ -17,9 +17,9 @@ const storage = @import("storage.zig");
 const engine_module = @import("engine.zig");
 const checkpoint_module = @import("checkpoint.zig");
 const IoStorageType = @import("io_storage.zig").IoStorageType;
-const io_root = @import("../../../utilities/io/root.zig");
-const io_common = @import("../../../utilities/io/common.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const io_root = @import("utilities/io");
+const io_common = @import("utilities/io").common;
+const Prng = @import("testing/prng").Prng;
 
 const sector_size = storage.sector_size;
 const SimIo = io_root.SimIo;

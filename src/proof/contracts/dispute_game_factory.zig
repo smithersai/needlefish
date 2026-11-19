@@ -177,7 +177,7 @@ pub fn decode_game_at_index(data: []const u8) abi.DecodeError!GameAtIndex {
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "dispute game factory: extra data layout and lookup key" {
     var buffer: [extra_data_bytes_max]u8 = undefined;

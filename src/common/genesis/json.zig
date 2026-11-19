@@ -6,7 +6,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
+const primitives = @import("common/primitives");
 const genesis_module = @import("root.zig");
 const state = @import("state.zig");
 const Value = std.json.Value;
@@ -316,7 +316,7 @@ test "genesis json: OP header ignores Ethereum fork times and gas used (reth)" {
     try testing.expect(header.base_fee_per_gas != null);
 }
 
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn parse_and_root(input: []const u8) !void {
     const parsed = parse(testing.allocator, input) catch |err| switch (err) {

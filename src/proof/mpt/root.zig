@@ -15,7 +15,7 @@ pub const list_walker = @import("list_walker.zig");
 pub const key_reader = @import("key_reader.zig");
 
 pub const OracleResolver = oracle_resolver.OracleResolver;
-pub const SparseTrie = @import("../../execution/trie/root.zig").SparseTrie;
+pub const SparseTrie = @import("execution/trie").SparseTrie;
 
 test {
     std.testing.refAllDecls(@This());

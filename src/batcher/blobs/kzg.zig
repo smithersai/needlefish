@@ -4,7 +4,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const kzg = @import("../../common/crypto/kzg/root.zig");
+const kzg = @import("common/crypto").kzg;
 const blob_kzg = kzg.blob;
 
 pub const Blob = blob_kzg.Blob;
@@ -122,7 +122,7 @@ pub const Prover = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "kzg prover: proofs verify with verify_blob_kzg_proof; tampering fails" {
     var prover = try Prover.init(testing.allocator);

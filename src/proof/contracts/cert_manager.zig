@@ -125,7 +125,7 @@ test "cert manager: calls and the verified-cert return" {
 }
 
 test "cert manager: fuzz the verified-cert decoder" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             var data: [288]u8 = undefined;

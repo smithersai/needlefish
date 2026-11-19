@@ -12,11 +12,11 @@
 //! block, and are not undoable.
 
 const std = @import("std");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const assert = std.debug.assert;
-const evm = @import("../evm/root.zig");
-const state_trie = @import("../trie/state_trie.zig");
-const db_module = @import("../db/root.zig");
+const evm = @import("execution/evm");
+const state_trie = @import("execution/trie").state_trie;
+const db_module = @import("execution/db");
 
 const Address = evm.primitives.Address;
 const Hash = [32]u8;
@@ -339,7 +339,7 @@ fn test_address(n: u8) Address {
 test "state_db: empty root and genesis root are order independent" {
     var a = try StateDb.init(testing.allocator, small_config());
     defer a.deinit(testing.allocator);
-    try testing.expectEqualSlices(u8, &@import("../trie/node.zig").empty_root, &(try a.root()));
+    try testing.expectEqualSlices(u8, &@import("execution/trie").node.empty_root, &(try a.root()));
     var b = try StateDb.init(testing.allocator, small_config());
     defer b.deinit(testing.allocator);
     try a.put_account(test_address(1), 100, 0, &.{});
@@ -440,7 +440,7 @@ fn rollback_scenario(prng: *Prng) !void {
     try testing.expectError(error.UndoUnavailable, db.rollback());
 }
 
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "state_db: rollback restores previous roots" {
     var prng = Prng.init(0x5d);

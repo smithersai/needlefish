@@ -9,7 +9,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const native = @import("native.zig");
-const keccak256 = @import("../../common/crypto/root.zig").keccak256;
+const keccak256 = @import("common/crypto").keccak256;
 const Context = native.Context;
 const Error = native.Error;
 

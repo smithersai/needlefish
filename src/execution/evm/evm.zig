@@ -7,7 +7,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const KeccakMemo = @import("keccak_memo.zig").KeccakMemo;
 const primitives = @import("primitives.zig");
 const stack_module = @import("stack.zig");
@@ -19,7 +19,7 @@ const gas = @import("gas.zig");
 const interpreter = @import("interpreter.zig");
 const precompiles = @import("precompiles.zig");
 const coverage = @import("coverage.zig");
-const crypto = @import("../../common/crypto/root.zig");
+const crypto = @import("common/crypto");
 const native = @import("native.zig");
 const Fork = @import("fork.zig").Fork;
 const Address = primitives.Address;

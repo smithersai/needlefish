@@ -101,7 +101,7 @@ test "tee prover registry: selectors, calls and returns" {
 }
 
 test "tee prover registry: fuzz return decoders stay in bounds" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             var data: [160]u8 = undefined;

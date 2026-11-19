@@ -11,8 +11,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
 const eth = @import("eth.zig");
 
 const Hash = [32]u8;
@@ -235,7 +235,7 @@ pub fn write_timed_out(
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "send_sync: timeouts parse as numbers or quantities and never extend the maximum" {
     try testing.expectEqual(@as(?u64, null), try parse_timeout(null));

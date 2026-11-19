@@ -15,10 +15,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const balance_monitor = @import("../../utilities/balance_monitor/root.zig");
-const metrics = @import("../../utilities/metrics/root.zig");
-const health = @import("../../utilities/health/root.zig");
-const http = @import("../../utilities/http/root.zig");
+const balance_monitor = @import("utilities/balance_monitor");
+const metrics = @import("utilities/metrics");
+const health = @import("utilities/health");
+const http = @import("utilities/http");
 
 pub const Address = balance_monitor.Address;
 

@@ -5,9 +5,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../../utilities/rpc/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const node = @import("../node/root.zig");
+const rpc = @import("utilities/rpc");
+const primitives = @import("common/primitives");
+const node = @import("execution/node");
 const eth = @import("eth.zig");
 const format = @import("format.zig");
 

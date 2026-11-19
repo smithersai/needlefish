@@ -8,7 +8,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const primitives = @import("primitives.zig");
 const state_module = @import("state.zig");
-const l1_fees = @import("../../common/l1_fees/root.zig");
+const l1_fees = @import("common/l1_fees");
 const Address = primitives.Address;
 const State = state_module.State;
 

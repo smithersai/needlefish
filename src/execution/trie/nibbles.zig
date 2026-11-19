@@ -169,7 +169,7 @@ fn check_roundtrip(path: []const u8, leaf: bool) !void {
 }
 
 test "nibbles: seeded fuzz hex prefix roundtrip" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x1b);
+    var prng = @import("testing/prng").Prng.init(0x1b);
     var path: [nibbles_max]u8 = undefined;
     var iteration: u32 = 0;
     while (iteration < 2000) : (iteration += 1) {

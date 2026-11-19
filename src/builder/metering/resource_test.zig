@@ -8,7 +8,7 @@ const std = @import("std");
 const testing = std.testing;
 const assert = std.debug.assert;
 
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const metering = @import("root.zig");
 const schedule_module = @import("schedule.zig");
 const resource = @import("resource.zig");

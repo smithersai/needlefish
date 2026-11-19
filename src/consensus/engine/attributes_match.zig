@@ -8,12 +8,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const tx = @import("../../common/consensus/tx.zig");
-const basefee = @import("../../execution/chainspec/basefee.zig");
-const protocol = @import("../protocol/root.zig");
-const derive_attributes = @import("../derive/attributes.zig");
-const AttributesWithParent = @import("../derive/attributes_queue.zig").AttributesWithParent;
+const primitives = @import("common/primitives");
+const tx = @import("common/consensus").tx;
+const basefee = @import("execution/chainspec").basefee;
+const protocol = @import("consensus/protocol");
+const derive_attributes = @import("consensus/derive").attributes;
+const AttributesWithParent = @import("consensus/derive").attributes_queue.AttributesWithParent;
 
 const Address = primitives.Address;
 const B256 = primitives.B256;

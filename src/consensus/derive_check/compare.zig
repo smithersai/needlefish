@@ -13,16 +13,16 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const ordered = @import("../../execution/trie/ordered.zig");
-const protocol = @import("../protocol/root.zig");
-const object = @import("../sources/json_object.zig");
-const header_json = @import("../sources/header_json.zig");
-const engine_json = @import("../sources/engine_json.zig");
-const l2_system_config = @import("../protocol/l2_system_config.zig");
-const attributes_match = @import("../engine/attributes_match.zig");
-const AttributesWithParent = @import("../derive/attributes_queue.zig").AttributesWithParent;
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const ordered = @import("execution/trie").ordered;
+const protocol = @import("consensus/protocol");
+const object = @import("consensus/sources").json_object;
+const header_json = @import("consensus/sources").header_json;
+const engine_json = @import("consensus/sources").engine_json;
+const l2_system_config = @import("consensus/protocol").l2_system_config;
+const attributes_match = @import("consensus/engine").attributes_match;
+const AttributesWithParent = @import("consensus/derive").attributes_queue.AttributesWithParent;
 
 const B256 = primitives.B256;
 const L1BlockInfo = protocol.l1_info.L1BlockInfo;

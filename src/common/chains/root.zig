@@ -7,7 +7,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
+const primitives = @import("common/primitives");
 const Address = primitives.Address;
 const B256 = primitives.B256;
 

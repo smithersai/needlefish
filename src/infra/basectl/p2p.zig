@@ -7,7 +7,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const json = std.json;
-const rpc = @import("../../batcher/rpc/root.zig");
+const rpc = @import("batcher/rpc");
 const types = @import("types.zig");
 
 const Writer = types.Writer;

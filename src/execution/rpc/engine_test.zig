@@ -4,11 +4,11 @@
 
 const std = @import("std");
 const testing = std.testing;
-const json = @import("../../utilities/json/root.zig");
-const fixture = @import("../node/test_fixture.zig");
+const json = @import("utilities/json");
+const fixture = @import("execution/node").test_fixture;
 const eth = @import("eth.zig");
 const engine_rpc = @import("engine.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Peer = struct {
     node: *fixture.Node,

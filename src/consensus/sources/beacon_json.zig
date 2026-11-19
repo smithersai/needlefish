@@ -10,7 +10,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const object = @import("json_object.zig");
-const blob_module = @import("../derive/blob.zig");
+const blob_module = @import("consensus/derive").blob;
 
 pub const Blob = blob_module.Blob;
 pub const Commitment = [48]u8;

@@ -297,7 +297,7 @@ pub fn run(address: Address, input: []const u8, out: *[output_length_max]u8) Err
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Vector = struct {
     address: Address,

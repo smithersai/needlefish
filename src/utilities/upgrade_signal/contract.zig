@@ -168,7 +168,7 @@ fn decode_arbitrary(encoded: []const u8) !void {
 }
 
 test "upgrade_signal: seeded fuzz schedule decoding" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x5c4ed);
+    var prng = @import("testing/prng").Prng.init(0x5c4ed);
     var buffer: [64 + 32 * 8]u8 = undefined;
     var timestamps: [8]u64 = undefined;
     for (0..3000) |_| {

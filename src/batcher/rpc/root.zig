@@ -11,7 +11,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const json = std.json;
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 
 pub const TransportError = error{ TransportFailed, ResponseTooLarge };
 

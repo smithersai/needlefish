@@ -12,13 +12,13 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const keccak256 = @import("../../common/primitives/root.zig").keccak256;
-const block = @import("../protocol/block.zig");
-const safedb = @import("../safedb/root.zig");
-const rollup_json = @import("../protocol/rollup_json.zig");
-const RollupConfig = @import("../protocol/rollup_config.zig").RollupConfig;
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const keccak256 = @import("common/primitives").keccak256;
+const block = @import("consensus/protocol").block;
+const safedb = @import("consensus/safedb");
+const rollup_json = @import("consensus/protocol").rollup_json;
+const RollupConfig = @import("consensus/protocol").rollup_config.RollupConfig;
 
 const Call = rpc.Call;
 const HandlerError = rpc.HandlerError;
@@ -241,7 +241,7 @@ pub fn write_sync_status(writer: *json.Writer, status: SyncStatus) json.Writer.W
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const TestNode = struct {
     status: SyncStatus = .{},

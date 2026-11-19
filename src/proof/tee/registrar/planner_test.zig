@@ -6,8 +6,8 @@ const testing = std.testing;
 const cbor = @import("cbor.zig");
 const planner = @import("planner.zig");
 const types = @import("types.zig");
-const keccak256 = @import("../../../common/crypto/keccak.zig").keccak256;
-const fuzz = @import("../../../testing/fuzz.zig");
+const keccak256 = @import("common/crypto").keccak.keccak256;
+const fuzz = @import("testing/fuzz");
 
 const AttestationPlanner = planner.AttestationPlanner;
 const CertManagerKeys = planner.CertManagerKeys;

@@ -9,7 +9,7 @@ const proof_module = @import("proof.zig");
 const state = @import("state_trie.zig");
 const HashBuilder = @import("hash_builder.zig").HashBuilder;
 const Nibbles = @import("nibbles.zig").Nibbles;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const Hash = node.Hash;
 
 const slots_max = 16;

@@ -13,11 +13,11 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const Prng = @import("../prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const network_module = @import("network.zig");
 const NodeId = network_module.NodeId;
 const codec = @import("codec.zig");
-const B256 = @import("../../common/primitives/root.zig").B256;
+const B256 = @import("common/primitives").B256;
 
 pub const batch_blocks_max = 8;
 pub const l1_batches_max = 8;

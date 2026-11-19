@@ -20,8 +20,8 @@ const overlay_module = @import("overlay.zig");
 const changeset_module = @import("changeset.zig");
 const history = @import("history.zig");
 const proof_set = @import("proof_set.zig");
-const trie = @import("../trie/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const trie = @import("execution/trie");
+const Prng = @import("testing/prng").Prng;
 
 const Hash = database.Hash;
 const BlockInput = database.BlockInput;

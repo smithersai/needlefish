@@ -154,7 +154,7 @@ pub fn expect_signer_public_key(response: protocol.Response) LinkError!crypto.Pu
 
 /// The signer's Ethereum address from its public key.
 pub fn signer_address_of(public_key: *const crypto.PublicKey) LinkError!crypto.Address {
-    const secp256k1 = @import("../../../common/crypto/secp256k1/root.zig");
+    const secp256k1 = @import("common/crypto").secp256k1;
     const point = public_key[1..65].*;
     if (secp256k1.decode_public_key(&point) == null) return error.InvalidSignerKey;
     assert(public_key[0] == 0x04);

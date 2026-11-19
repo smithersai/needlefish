@@ -29,9 +29,9 @@ const header_chain = @import("witness_header_chain.zig");
 const evm_test = @import("witness_evm_test.zig");
 const witness_codec = @import("witness_codec.zig");
 const history = @import("history.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
-const evm = @import("../evm/root.zig");
-const trie = @import("../trie/root.zig");
+const Prng = @import("testing/prng").Prng;
+const evm = @import("execution/evm");
+const trie = @import("execution/trie");
 
 const Hash = database.Hash;
 const Address = state_module.Address;

@@ -10,7 +10,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const Prng = @import("../prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 pub const NodeId = u8;
 pub const node_count_max = 8;
@@ -287,5 +287,5 @@ fn fuzz_network(_: void, smith: *std.testing.Smith) anyerror!void {
 }
 
 test "network: fuzz ordering and accounting" {
-    try @import("../fuzz.zig").run({}, fuzz_network, .{ .iterations = 128 });
+    try @import("testing/fuzz").run({}, fuzz_network, .{ .iterations = 128 });
 }

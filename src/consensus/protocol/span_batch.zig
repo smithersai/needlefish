@@ -17,7 +17,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 const batch_module = @import("batch.zig");
 const block = @import("block.zig");
 const RollupConfig = @import("rollup_config.zig").RollupConfig;

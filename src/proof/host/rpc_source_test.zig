@@ -5,18 +5,18 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const fixture = @import("../../execution/node/test_fixture.zig");
-const db_module = @import("../../execution/db/root.zig");
-const eth = @import("../../execution/rpc/eth.zig");
-const eth_proof = @import("../../execution/rpc/eth_proof.zig");
-const engine_types = @import("../../execution/engine/root.zig").types;
-const preimage = @import("../preimage/root.zig");
-const mpt = @import("../mpt/root.zig");
-const program = @import("../program/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const fixture = @import("execution/node").test_fixture;
+const db_module = @import("execution/db");
+const eth = @import("execution/rpc").eth;
+const eth_proof = @import("execution/rpc").eth_proof;
+const engine_types = @import("execution/engine").types;
+const preimage = @import("proof/preimage");
+const mpt = @import("proof/mpt");
+const program = @import("proof/program");
 const handler_module = @import("handler.zig");
 const store_module = @import("store.zig");
 const rpc_source = @import("rpc_source.zig");
@@ -233,9 +233,9 @@ test "rpc source: L1 provider reads a mined block through hints served over HTTP
     try testing.expect(store.get(.keccak256(parent_root)) != null);
     // It also holds the L2ToL1MessagePasser's account in the parent state, which the block
     // never touches (the client reads the passer's storage root to seal the block).
-    const keccak = @import("../../common/crypto/keccak.zig");
+    const keccak = @import("common/crypto").keccak;
     const passer = consensus.predeploys.l2_to_l1_message_passer;
-    var scratch: @import("../../execution/trie/root.zig").RlpNode = .{};
+    var scratch: @import("execution/trie").RlpNode = .{};
     resolver.reset();
     const passer_key = keccak.keccak256(&passer.bytes);
     const trie_reader = resolver.resolver();

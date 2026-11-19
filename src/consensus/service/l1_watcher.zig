@@ -11,11 +11,11 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const http_client = @import("../../utilities/http/client.zig");
-const protocol = @import("../protocol/root.zig");
-const header_json = @import("../sources/header_json.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const http_client = @import("utilities/http").client;
+const protocol = @import("consensus/protocol");
+const header_json = @import("consensus/sources").header_json;
 
 const BlockInfo = protocol.block.BlockInfo;
 
@@ -152,9 +152,9 @@ pub fn L1Watcher(comptime IO: type) type {
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const sim = @import("../../utilities/io/root.zig");
-const harness_module = @import("../sources/sim_harness.zig");
-const fixtures = @import("../sources/fixtures.zig");
+const sim = @import("utilities/io");
+const harness_module = @import("consensus/sources").sim_harness;
+const fixtures = @import("consensus/sources").fixtures;
 
 const FakeRpc = harness_module.FakeRpc;
 const Harness = harness_module.Harness(*FakeRpc, FakeRpc.handle);

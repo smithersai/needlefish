@@ -11,7 +11,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const evm = @import("../evm/root.zig");
+const evm = @import("execution/evm");
 const state_module = @import("state.zig");
 const overlay_module = @import("overlay.zig");
 const State = state_module.State;

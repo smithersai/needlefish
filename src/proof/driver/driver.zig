@@ -10,13 +10,13 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const consensus = @import("../../common/consensus/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const derive = @import("../../consensus/derive/root.zig");
-const payload = @import("../../execution/payload/root.zig");
-const executor = @import("../executor/root.zig");
-const program = @import("../program/root.zig");
-const mpt = @import("../mpt/root.zig");
+const consensus = @import("common/consensus");
+const protocol = @import("consensus/protocol");
+const derive = @import("consensus/derive");
+const payload = @import("execution/payload");
+const executor = @import("proof/executor");
+const program = @import("proof/program");
+const mpt = @import("proof/mpt");
 
 const Hash = [32]u8;
 const L2BlockInfo = protocol.L2BlockInfo;

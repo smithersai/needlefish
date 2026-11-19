@@ -19,8 +19,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const tx_manager = @import("../tx_manager/root.zig");
+const rpc = @import("batcher/rpc");
+const tx_manager = @import("infra/tx_manager");
 
 pub const confirm = @import("confirm.zig");
 

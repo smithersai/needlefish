@@ -34,8 +34,8 @@ const SimStorage = @import("storage/sim_storage.zig").SimStorage;
 const state_module = @import("state.zig");
 const overlay_module = @import("overlay.zig");
 const code_store_module = @import("code_store.zig");
-const keccak256 = @import("../trie/node.zig").keccak256;
-const Prng = @import("../../testing/prng.zig").Prng;
+const keccak256 = @import("execution/trie").node.keccak256;
+const Prng = @import("testing/prng").Prng;
 
 const Hash = database.Hash;
 const HeadInfo = database.HeadInfo;

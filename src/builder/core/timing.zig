@@ -157,7 +157,7 @@ pub const Slot = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "timing: defaults match base/base" {
     const config: Config = .{};

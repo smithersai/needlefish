@@ -197,7 +197,7 @@ fn hex32(text: []const u8, prefix: []const u8) DecodeError!Hash {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn sample_header() Header {
     return .{

@@ -10,7 +10,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const trie = @import("../../execution/trie/root.zig");
+const trie = @import("execution/trie");
 const node = @import("node.zig");
 const Hash = trie.Hash;
 const RlpNode = trie.RlpNode;

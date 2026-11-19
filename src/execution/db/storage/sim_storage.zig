@@ -14,7 +14,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const storage = @import("storage.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const sector_size = storage.sector_size;
 const Completion = storage.Completion;

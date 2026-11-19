@@ -8,13 +8,13 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const rpc = @import("utilities/rpc");
 const eth = @import("eth.zig");
 const state_view = @import("state_view.zig");
 const format = @import("format.zig");
-const node = @import("../node/root.zig");
+const node = @import("execution/node");
 
 const Api = eth.Api;
 const Call = rpc.Call;

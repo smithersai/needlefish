@@ -6,10 +6,10 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const payload = @import("../payload/root.zig");
-const engine = @import("../engine/root.zig");
+const primitives = @import("common/primitives");
+const json = @import("utilities/json");
+const payload = @import("execution/payload");
+const engine = @import("execution/engine");
 
 const B256 = primitives.B256;
 const Address = primitives.Address;
@@ -549,7 +549,7 @@ test "engine json: fuzz decoders never crash" {
 }
 
 test "engine json: seeded fuzz of mutated payload objects" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xe791);
+    var prng = @import("testing/prng").Prng.init(0xe791);
     const seed_text = "{\"parentHash\":\"0x01\",\"transactions\":[\"0x02\"],\"withdrawals\":" ++
         "[{\"index\":\"0x1\"}],\"timestamp\":\"0x5\",\"headBlockHash\":null}";
     var input: [seed_text.len]u8 = undefined;

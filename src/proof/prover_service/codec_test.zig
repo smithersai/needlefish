@@ -5,8 +5,8 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const json = @import("../../utilities/json/root.zig");
-const fuzz = @import("../../testing/fuzz.zig");
+const json = @import("utilities/json");
+const fuzz = @import("testing/fuzz");
 const protocol = @import("protocol.zig");
 const codec = @import("codec.zig");
 

@@ -17,9 +17,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const txpool = @import("../txpool/root.zig");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const txpool = @import("execution/txpool");
 const eth = @import("eth.zig");
 
 const validity = txpool.validity;

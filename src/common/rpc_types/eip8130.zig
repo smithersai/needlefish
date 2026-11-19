@@ -4,7 +4,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const consensus = @import("../consensus/root.zig");
+const consensus = @import("common/consensus");
 const json = @import("json.zig");
 const Object = json.Object;
 const Error = json.Error;

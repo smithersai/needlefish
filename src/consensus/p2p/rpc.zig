@@ -12,8 +12,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
 const service_module = @import("service.zig");
 const enr = @import("peers/enr.zig");
 const ip = @import("peers/ip.zig");

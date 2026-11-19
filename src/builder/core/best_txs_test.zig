@@ -3,7 +3,7 @@
 const std = @import("std");
 const testing = std.testing;
 const best_txs = @import("best_txs.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Tx = best_txs.Tx;
 const B256 = best_txs.B256;

@@ -13,8 +13,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const safedb = @import("../safedb/root.zig");
-const store_file = @import("../p2p/peers/store_file.zig");
+const safedb = @import("consensus/safedb");
+const store_file = @import("consensus/p2p").peers.store_file;
 
 const SafeDB = safedb.SafeDB;
 const record_size_bytes = safedb.record_size_bytes;
@@ -152,8 +152,8 @@ pub fn SafeDbStore(comptime IO: type) type {
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const io_module = @import("../../utilities/io/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const io_module = @import("utilities/io");
+const Prng = @import("testing/prng").Prng;
 
 fn random_db(prng: *Prng, db: *SafeDB, entries: u32) void {
     var number: u64 = prng.below(1000);

@@ -8,7 +8,7 @@ const chain_module = @import("chain.zig");
 const state_module = @import("state.zig");
 const overlay_module = @import("overlay.zig");
 const changeset_module = @import("changeset.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const ChainStore = chain_module.ChainStore;
 const Hash = chain_module.Hash;

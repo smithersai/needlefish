@@ -15,10 +15,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Smith = std.testing.Smith;
-const fuzz = @import("fuzz.zig");
-const Prng = @import("prng.zig").Prng;
-const protocol = @import("../consensus/protocol/root.zig");
-const derive = @import("../consensus/derive/root.zig");
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
+const protocol = @import("consensus/protocol");
+const derive = @import("consensus/derive");
 
 const Frame = protocol.frame.Frame;
 const BlockInfo = protocol.block.BlockInfo;

@@ -8,8 +8,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../../utilities/rpc/root.zig");
-const trie_node = @import("../trie/node.zig");
+const rpc = @import("utilities/rpc");
+const trie_node = @import("execution/trie").node;
 const eth = @import("eth.zig");
 const eth_proof = @import("eth_proof.zig");
 

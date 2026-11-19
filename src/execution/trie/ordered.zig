@@ -68,7 +68,7 @@ pub fn ordered_trie_root_with_nodes(
 
 const testing = std.testing;
 const trie_module = @import("trie.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "ordered: empty list has the empty root" {
     try testing.expectEqual(node.empty_root, ordered_trie_root(&.{}));

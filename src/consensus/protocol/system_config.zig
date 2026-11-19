@@ -8,7 +8,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 const Address = primitives.Address;
 const B256 = primitives.B256;
 const rollup_config = @import("rollup_config.zig");
@@ -193,7 +193,7 @@ fn decode_address(word: *const [32]u8) UpdateError!Address {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn type_topic(kind: u64) B256 {
     var word: [32]u8 = @splat(0);

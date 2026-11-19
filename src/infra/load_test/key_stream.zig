@@ -11,8 +11,8 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Secp256k1 = std.crypto.ecc.Secp256k1;
 
-const primitives = @import("../../common/primitives/root.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
+const primitives = @import("common/primitives");
+const accounts = @import("batcher/devnet").accounts;
 
 pub const Account = accounts.Account;
 
@@ -66,7 +66,7 @@ pub const KeyStream = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "key_stream: deterministic, distinct, and offset-consistent" {
     var first = KeyStream.init(42, 0);

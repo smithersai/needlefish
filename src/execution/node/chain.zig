@@ -7,27 +7,27 @@
 //! [request...]])` with transactions and receipts as EIP-2718 byte strings.
 
 const std = @import("std");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const flz = @import("../../common/flz/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const chainspec = @import("../chainspec/root.zig");
-const payload = @import("../payload/root.zig");
-const txpool = @import("../txpool/root.zig");
-const evm = @import("../evm/root.zig");
-const engine = @import("../engine/root.zig");
-const ordered = @import("../trie/ordered.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const flz = @import("common/flz");
+const consensus = @import("common/consensus");
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
+const txpool = @import("execution/txpool");
+const evm = @import("execution/evm");
+const engine = @import("execution/engine");
+const ordered = @import("execution/trie").ordered;
 const executor_module = @import("executor.zig");
 const block_store = @import("block_store.zig");
 const base_time = @import("base_time.zig");
 const StateDb = @import("state_db.zig").StateDb;
-const witness_block = @import("../db/witness_block.zig");
-const db_database = @import("../db/database.zig");
-const db_history = @import("../db/history.zig");
+const witness_block = @import("execution/db").witness_block;
+const db_database = @import("execution/db").database;
+const db_history = @import("execution/db").history;
 const history_module = db_history;
-const StateTrie = @import("../trie/state_trie.zig").StateTrie;
+const StateTrie = @import("execution/trie").state_trie.StateTrie;
 
 const Hash = [32]u8;
 const B256 = primitives.B256;
@@ -1445,7 +1445,7 @@ test "chain: recent senders ring keeps the last blocks and skips oversized ones"
     try std.testing.expect(recent.get(@splat(1)) == null);
     const last: Hash = @splat(@intCast(1 + RecentSenders.blocks_max));
     try std.testing.expectEqualSlices(primitives.Address, &.{b}, recent.get(last).?);
-    var prng = @import("../../testing/prng.zig").Prng.init(7);
+    var prng = @import("testing/prng").Prng.init(7);
     for (0..256) |_| {
         const count = prng.below(5);
         var list: [4]primitives.Address = undefined;

@@ -3,10 +3,10 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const metrics = @import("../../utilities/metrics/root.zig");
-const tx_manager = @import("../tx_manager/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const metrics = @import("utilities/metrics");
+const tx_manager = @import("infra/tx_manager");
 const endpoint_module = @import("root.zig");
 
 const Address = io.Address;

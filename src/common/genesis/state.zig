@@ -6,9 +6,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const rlp = @import("../rlp/root.zig");
-const trie = @import("../../execution/trie/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const trie = @import("execution/trie");
 const B256 = primitives.B256;
 const Address = primitives.Address;
 

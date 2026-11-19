@@ -5,7 +5,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
+const primitives = @import("common/primitives");
 const tx = @import("tx.zig");
 const signature_module = @import("signature.zig");
 const Address = primitives.Address;
@@ -139,7 +139,7 @@ pub fn run_file(
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "tx vectors: curated ethereum/tests TransactionTests" {
     const files = [_][]const u8{

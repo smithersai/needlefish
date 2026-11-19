@@ -3,16 +3,16 @@
 
 const std = @import("std");
 
-pub const protocol = @import("protocol/root.zig");
-pub const p2p = @import("p2p/root.zig");
-pub const derive = @import("derive/root.zig");
-pub const derive_check = @import("derive_check/root.zig");
-pub const safedb = @import("safedb/root.zig");
-pub const engine = @import("engine/root.zig");
-pub const rpc = @import("rpc/root.zig");
-pub const sequencer = @import("sequencer/root.zig");
-pub const sources = @import("sources/root.zig");
-pub const service = @import("service/root.zig");
+pub const protocol = @import("consensus/protocol");
+pub const p2p = @import("consensus/p2p");
+pub const derive = @import("consensus/derive");
+pub const derive_check = @import("consensus/derive_check");
+pub const safedb = @import("consensus/safedb");
+pub const engine = @import("consensus/engine");
+pub const rpc = @import("consensus/rpc");
+pub const sequencer = @import("consensus/sequencer");
+pub const sources = @import("consensus/sources");
+pub const service = @import("consensus/service");
 
 test {
     std.testing.refAllDecls(@This());

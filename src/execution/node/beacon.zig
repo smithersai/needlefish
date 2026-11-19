@@ -9,11 +9,11 @@
 //! proofs are zero: nothing on a dev chain verifies them.
 
 const std = @import("std");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const assert = std.debug.assert;
-const rlp = @import("../../common/rlp/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const http = @import("../../utilities/http/root.zig");
+const rlp = @import("common/rlp");
+const json = @import("utilities/json");
+const http = @import("utilities/http");
 const block_store = @import("block_store.zig");
 
 pub const bytes_per_blob = 131_072;
@@ -461,7 +461,7 @@ test "beacon: blobs endpoint filters by versioned hash" {
 }
 
 test "beacon: seeded fuzz of versioned hash queries" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xb10b5);
+    var prng = @import("testing/prng").Prng.init(0xb10b5);
     var out: [blobs_per_block_max][32]u8 = undefined;
     const alphabet = "0x1f,=&versioned_hashes";
     for (0..2000) |_| {
@@ -539,7 +539,7 @@ test "beacon: seeded fuzz capture of random bytes" {
         .bytes_max = 1 << 16,
     });
     defer beacon.deinit(testing.allocator);
-    var prng = @import("../../testing/prng.zig").Prng.init(0xbea);
+    var prng = @import("testing/prng").Prng.init(0xbea);
     var bytes: [256]u8 = undefined;
     for (0..2000) |_| {
         const len = prng.below(bytes.len);

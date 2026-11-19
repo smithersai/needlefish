@@ -99,7 +99,7 @@ test "ring_buffer: eviction and lookups" {
 }
 
 test "ring_buffer: seeded fuzz against a model" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x41b6);
+    var prng = @import("testing/prng").Prng.init(0x41b6);
     var ring: RingBuffer(u32, u32, 7) = .{};
     var model: [4096]u32 = undefined;
     var model_count: usize = 0;

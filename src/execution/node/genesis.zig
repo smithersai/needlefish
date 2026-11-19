@@ -3,9 +3,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const genesis = @import("../../common/genesis/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const chainspec = @import("../chainspec/root.zig");
+const genesis = @import("common/genesis");
+const consensus = @import("common/consensus");
+const chainspec = @import("execution/chainspec");
 const StateDb = @import("state_db.zig").StateDb;
 
 pub const Error = error{StateRootMismatch} || chainspec.from_genesis_module.Error ||
@@ -37,7 +37,7 @@ pub fn load(
 }
 
 const testing = std.testing;
-const devnet = @import("../../batcher/devnet/root.zig");
+const devnet = @import("batcher/devnet");
 
 fn load_and_hash(text: []const u8) ![32]u8 {
     const parsed = try genesis.parse(testing.allocator, text);

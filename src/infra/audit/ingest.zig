@@ -17,7 +17,7 @@ const assert = std.debug.assert;
 const event_module = @import("event.zig");
 const store_module = @import("store.zig");
 const segment = @import("segment.zig");
-const json = @import("../../utilities/json/root.zig");
+const json = @import("utilities/json");
 
 /// base/base `DEFAULT_TRANSACTION_EVENT_BATCH_PATH`.
 pub const default_path = "/v1/transaction-events/batch";

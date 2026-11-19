@@ -35,7 +35,7 @@ pub fn next_block(current_block: u64, block_interval: u64) ?u64 {
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "proposer target: next block handles interval cases" {
     // Ported from `next_block_handles_interval_cases`.

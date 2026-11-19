@@ -3,14 +3,14 @@
 
 const std = @import("std");
 const testing = std.testing;
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const chainspec = @import("../chainspec/root.zig");
-const evm = @import("../evm/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const chainspec = @import("execution/chainspec");
+const evm = @import("execution/evm");
 const executor_module = @import("executor.zig");
 const state_db = @import("state_db.zig");
 const test_fixture = @import("test_fixture.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Executor = executor_module.Executor;
 const StateDb = state_db.StateDb;
@@ -189,7 +189,7 @@ test "executor: withdrawals credit gwei" {
     try f.init();
     defer f.deinit();
     const to: primitives.Address = .{ .bytes = @splat(0x77) };
-    const withdrawals = [_]@import("../payload/root.zig").Withdrawal{
+    const withdrawals = [_]@import("execution/payload").Withdrawal{
         .{ .index = 0, .validator_index = 1, .address = to, .amount_gwei = 5 },
         .{
             .index = 1,
@@ -831,7 +831,7 @@ test "executor: the ActivationRegistry admin falls back to the chain's Beryl adm
     defer f.deinit();
     var block = block_env(1);
     block.timestamp = mainnet.upgrades[@backingInt(chainspec.Upgrade.beryl)].?;
-    const native_activation = @import("../evm/native_activation.zig");
+    const native_activation = @import("execution/evm").native_activation;
     const result = try f.executor.simulate(&block, .{
         .to = native_activation.address,
         .data = &native_activation.selector_admin,

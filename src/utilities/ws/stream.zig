@@ -15,7 +15,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const io_common = @import("../io/common.zig");
+const io_common = @import("utilities/io").common;
 const frame = @import("frame.zig");
 
 pub const Opcode = frame.Opcode;

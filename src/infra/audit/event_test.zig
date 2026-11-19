@@ -5,8 +5,8 @@ const testing = std.testing;
 
 const event = @import("event.zig");
 const time = @import("time.zig");
-const json = @import("../../utilities/json/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const json = @import("utilities/json");
+const Prng = @import("testing/prng").Prng;
 
 const limits: event.Limits = .{ .event_bytes_max = 4096, .data_bytes_max = 1024 };
 const tx_hex = "0x1111111111111111111111111111111111111111111111111111111111111111";

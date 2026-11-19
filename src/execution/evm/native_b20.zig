@@ -495,7 +495,7 @@ pub fn revoke_role_unchecked(
 }
 
 const testing = std.testing;
-const keccak256 = @import("../../common/crypto/root.zig").keccak256;
+const keccak256 = @import("common/crypto").keccak256;
 
 test "b20: roots, roles, scopes, errors, and events match their definitions" {
     const roots = .{.{ "base.b20", root }};

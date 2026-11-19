@@ -8,9 +8,9 @@ const fixtures = @import("fixtures.zig");
 const header_json = @import("header_json.zig");
 const transaction_json = @import("transaction_json.zig");
 const receipt_json = @import("receipt_json.zig");
-const json = @import("../../utilities/json/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const json = @import("utilities/json");
+const primitives = @import("common/primitives");
+const Prng = @import("testing/prng").Prng;
 
 fn transaction_text(buffer: []u8, index: usize) ![]const u8 {
     const transactions = fixtures.signed_transactions();

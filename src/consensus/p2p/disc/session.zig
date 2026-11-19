@@ -113,7 +113,7 @@ pub fn next_nonce(session: *Session, random: std.Random, now_ns: u64) ?packet.No
     return nonce;
 }
 
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "session: put, get by endpoint, LRU eviction" {
     var cache = try Cache.init(std.testing.allocator, 2);

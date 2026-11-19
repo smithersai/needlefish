@@ -11,7 +11,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const contracts = @import("../contracts/root.zig");
+const contracts = @import("proof/contracts");
 
 pub const Address = contracts.abi.Address;
 pub const Hash = [32]u8;

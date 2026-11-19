@@ -124,7 +124,7 @@ fn check_parse(text: []const u8) !void {
 }
 
 test "routes: seeded fuzz of the text form" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x2077e5);
+    var prng = @import("testing/prng").Prng.init(0x2077e5);
     const random = prng.random();
     const alphabet = "ab_=;,|0123 x";
     var buffer: [96]u8 = undefined;

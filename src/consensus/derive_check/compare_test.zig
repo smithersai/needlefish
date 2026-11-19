@@ -7,10 +7,10 @@ const std = @import("std");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 
-const chains = @import("../../common/chains/root.zig");
-const l2_block = @import("../sources/l2_block.zig");
-const l2_block_full = @import("../sources/l2_block_full.zig");
-const AttributesWithParent = @import("../derive/attributes_queue.zig").AttributesWithParent;
+const chains = @import("common/chains");
+const l2_block = @import("consensus/sources").l2_block;
+const l2_block_full = @import("consensus/sources").l2_block_full;
+const AttributesWithParent = @import("consensus/derive").attributes_queue.AttributesWithParent;
 const compare = @import("compare.zig");
 const start = @import("start.zig");
 
@@ -20,7 +20,7 @@ const number: u64 = 56_060_011;
 
 const Fixture = struct {
     arena: std.heap.ArenaAllocator,
-    rollup: @import("../protocol/root.zig").RollupConfig,
+    rollup: @import("consensus/protocol").RollupConfig,
     block: compare.L2Block,
     attributes: AttributesWithParent,
 
@@ -196,7 +196,7 @@ test "derive check compare: a block that is not the parent's child is rejected" 
 }
 
 test "derive check compare: seeded fuzz of the header decoder" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x4844_5243);
+    var prng = @import("testing/prng").Prng.init(0x4844_5243);
     var fixture: Fixture = undefined;
     try fixture.init();
     defer fixture.deinit();

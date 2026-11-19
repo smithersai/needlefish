@@ -6,9 +6,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const consensus = @import("../consensus/root.zig");
-const rpc_types = @import("../rpc_types/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const rpc_types = @import("common/rpc_types");
 const json = rpc_types.json;
 const hex = primitives.hex;
 const Address = primitives.Address;
@@ -169,10 +169,10 @@ pub fn verify_signed(raw: []const u8, unsigned: Envelope, expected: Address) Ver
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const zero_signature: Signature = .{ .y_parity = false, .r = 0, .s = 0 };
-const rlp = @import("../rlp/root.zig");
+const rlp = @import("common/rlp");
 
 const dev_key = primitives.hex.decode_array(
     32,

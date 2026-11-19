@@ -7,7 +7,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const op = @import("opcode.zig");
 
 /// Enough zero bytes for a PUSH32 on the last byte plus a trailing STOP.
@@ -446,7 +446,7 @@ test "bytecode: delegation designator" {
 }
 
 test "bytecode: fuzz analysis never reads out of bounds" {
-    const Prng = @import("../../testing/prng.zig").Prng;
+    const Prng = @import("testing/prng").Prng;
     var prng = Prng.init(0x5eed);
     var code: [512]u8 = undefined;
     var out: [analysis_bytes(512)]u8 = undefined;

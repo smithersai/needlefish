@@ -2,8 +2,8 @@
 
 const std = @import("std");
 
-const io = @import("../io/root.zig");
-const io_common = @import("../io/common.zig");
+const io = @import("utilities/io");
+const io_common = @import("utilities/io").common;
 const parser = @import("parser.zig");
 const client_module = @import("client.zig");
 

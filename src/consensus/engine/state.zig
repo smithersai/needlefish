@@ -5,7 +5,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const attributes_match = @import("attributes_match.zig");
 
 const L2BlockInfo = protocol.block.L2BlockInfo;

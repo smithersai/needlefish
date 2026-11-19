@@ -91,7 +91,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 
 const engine_module = @import("storage/engine.zig");
 const journal_module = @import("storage/journal.zig");
@@ -104,7 +104,7 @@ const history_module = @import("history.zig");
 const code_store_module = @import("code_store.zig");
 const flat_trees_module = @import("flat_trees.zig");
 const disk_state_module = @import("disk_state.zig");
-const trie_module = @import("../trie/root.zig");
+const trie_module = @import("execution/trie");
 
 const StateTrie = trie_module.StateTrie;
 const keccak256 = trie_module.node.keccak256;

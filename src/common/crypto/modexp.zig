@@ -19,8 +19,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const bigint = @import("bigint.zig");
-const hex = @import("../primitives/hex.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const hex = @import("common/primitives").hex;
+const Prng = @import("testing/prng").Prng;
 
 const Limb = bigint.Limb;
 const Padded = bigint.Padded;

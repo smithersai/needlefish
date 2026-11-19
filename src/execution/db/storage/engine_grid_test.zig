@@ -16,7 +16,7 @@ const engine_module = @import("engine.zig");
 const grid_module = @import("grid.zig");
 const checkpoint_module = @import("checkpoint.zig");
 const SimStorage = @import("sim_storage.zig").SimStorage;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const sector_size = storage.sector_size;
 const Engine = engine_module.EngineType(SimStorage);

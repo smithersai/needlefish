@@ -9,7 +9,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
+const json = @import("utilities/json");
 
 pub const Address = [20]u8;
 
@@ -285,7 +285,7 @@ fn parse_word(token: json.Token) error{InvalidParams}!u256 {
 // ---- Tests ------------------------------------------------------------------------
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn block_bound(operator: Operator, value: u256) Predicate {
     return .{ .kind = .block_number, .operator = operator, .value = value };

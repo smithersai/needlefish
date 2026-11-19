@@ -158,7 +158,7 @@ pub fn decode_quantity(comptime T: type, input: []const u8) QuantityError!T {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "hex: encode and decode known values" {
     var out: [8]u8 = undefined;

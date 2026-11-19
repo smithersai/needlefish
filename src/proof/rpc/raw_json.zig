@@ -9,9 +9,9 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const endpoint_module = @import("endpoint.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const sources = @import("../../consensus/sources/root.zig");
+const rlp = @import("common/rlp");
+const primitives = @import("common/primitives");
+const sources = @import("consensus/sources");
 
 const header_json = sources.header_json;
 const transaction_json = sources.transaction_json;

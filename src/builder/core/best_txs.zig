@@ -20,7 +20,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const txpool = @import("../../execution/txpool/root.zig");
+const txpool = @import("execution/txpool");
 
 pub const Tx = txpool.Tx;
 pub const B256 = txpool.B256;

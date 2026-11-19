@@ -9,8 +9,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const json = @import("utilities/json");
+const primitives = @import("common/primitives");
 
 const Address = primitives.Address;
 const B256 = primitives.B256;

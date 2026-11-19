@@ -15,8 +15,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../protocol/root.zig");
-const store_file = @import("../p2p/peers/store_file.zig");
+const protocol = @import("consensus/protocol");
+const store_file = @import("consensus/p2p").peers.store_file;
 
 const L2BlockInfo = protocol.block.L2BlockInfo;
 const Hash = protocol.block.Hash;
@@ -231,8 +231,8 @@ pub fn CheckpointStore(comptime IO: type) type {
 }
 
 const testing = std.testing;
-const io_module = @import("../../utilities/io/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const io_module = @import("utilities/io");
+const Prng = @import("testing/prng").Prng;
 const ns_per_ms = std.time.ns_per_ms;
 
 fn random_block(prng: *Prng) L2BlockInfo {

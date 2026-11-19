@@ -8,8 +8,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../rpc/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const rpc = @import("batcher/rpc");
+const Prng = @import("testing/prng").Prng;
 
 pub const blocks_per_step_max = 25;
 

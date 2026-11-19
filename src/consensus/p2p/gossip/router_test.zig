@@ -6,8 +6,8 @@ const router_module = @import("router.zig");
 const rpc = @import("rpc.zig");
 const score = @import("../peers/score.zig");
 const peer_id = @import("../peers/peer_id.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
-const fuzz = @import("../../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 
 const Router = router_module.Router;
 const Id = router_module.Id;

@@ -8,15 +8,15 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const fixture = @import("../node/test_fixture.zig");
-const db_module = @import("../db/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const json = @import("utilities/json");
+const primitives = @import("common/primitives");
+const fixture = @import("execution/node").test_fixture;
+const db_module = @import("execution/db");
 const eth = @import("eth.zig");
 const debug = @import("debug.zig");
-const engine_types = @import("../engine/root.zig").types;
+const engine_types = @import("execution/engine").types;
 
 const send_buffer_size = 2048;
 const large_send_buffer_size = 64 * 1024;

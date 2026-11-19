@@ -5,10 +5,10 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const json = @import("../../utilities/json/root.zig");
-const trie = @import("../trie/root.zig");
+const json = @import("utilities/json");
+const trie = @import("execution/trie");
 const witness_diff = @import("witness_diff.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const rlp = trie.rlp;
 const node = trie.node;

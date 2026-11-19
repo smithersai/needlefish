@@ -13,12 +13,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const host = @import("../../host/root.zig");
-const preimage = @import("../../preimage/root.zig");
-const proof_client = @import("../../client/root.zig");
-const service_protocol = @import("../../prover_service/protocol.zig");
-const keccak = @import("../../../common/crypto/keccak.zig");
-const kzg = @import("../../../common/crypto/kzg/root.zig");
+const host = @import("proof/host");
+const preimage = @import("proof/preimage");
+const proof_client = @import("proof/client");
+const service_protocol = @import("proof/prover_service").protocol;
+const keccak = @import("common/crypto").keccak;
+const kzg = @import("common/crypto").kzg;
 const enclave = @import("../enclave/root.zig");
 
 const Allocator = std.mem.Allocator;
@@ -138,8 +138,8 @@ pub fn request_bytes_bound(preimages: []const Preimage) u64 {
 }
 
 const testing = std.testing;
-const rlp = @import("../../../common/rlp/root.zig");
-const consensus = @import("../../../common/consensus/root.zig");
+const rlp = @import("common/rlp");
+const consensus = @import("common/consensus");
 const SourceError = host.handler.SourceError;
 const Chain = host.handler.Chain;
 

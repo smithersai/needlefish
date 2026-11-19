@@ -16,7 +16,7 @@ const conductor = @import("conductor.zig");
 const proofs = @import("proofs.zig");
 const upgrade_readiness = @import("upgrade_readiness.zig");
 const doctor = @import("doctor.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Writer = types.Writer;
 

@@ -97,7 +97,7 @@ pub fn mul(point: G1, scalar: u256) G1 {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "g1: generator on curve, order r, endomorphism eigenvalue" {
     const g = G1.from_affine(generator);

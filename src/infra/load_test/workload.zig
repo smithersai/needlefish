@@ -12,10 +12,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const txdata = @import("../../batcher/txdata/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const secp256k1 = @import("../../common/crypto/secp256k1/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const txdata = @import("batcher/txdata");
+const primitives = @import("common/primitives");
+const secp256k1 = @import("common/crypto").secp256k1;
+const Prng = @import("testing/prng").Prng;
 const contracts = @import("contracts.zig");
 const key_stream = @import("key_stream.zig");
 

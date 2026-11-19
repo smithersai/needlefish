@@ -16,17 +16,17 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rlp = @import("../../common/rlp/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const node = @import("../node/root.zig");
+const rlp = @import("common/rlp");
+const rpc = @import("utilities/rpc");
+const node = @import("execution/node");
 const eth = @import("eth.zig");
-const json = @import("../../utilities/json/root.zig");
-const witness_module = @import("../db/witness.zig");
+const json = @import("utilities/json");
+const witness_module = @import("execution/db").witness;
 const ByteList = witness_module.ByteList;
-const witness_json = @import("../db/witness_json.zig");
+const witness_json = @import("execution/db").witness_json;
 const engine_json = @import("engine_json.zig");
-const payload = @import("../payload/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const payload = @import("execution/payload");
+const primitives = @import("common/primitives");
 
 const Hash = [32]u8;
 const Call = rpc.Call;

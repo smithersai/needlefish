@@ -5,7 +5,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const genesis = @import("../../common/genesis/root.zig");
+const genesis = @import("common/genesis");
 const root = @import("root.zig");
 
 const ChainSpec = root.ChainSpec;

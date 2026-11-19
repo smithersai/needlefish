@@ -8,7 +8,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const task = @import("task.zig");
-const AttributesWithParent = @import("../derive/attributes_queue.zig").AttributesWithParent;
+const AttributesWithParent = @import("consensus/derive").attributes_queue.AttributesWithParent;
 
 const EngineState = task.EngineState;
 const PayloadId = task.PayloadId;

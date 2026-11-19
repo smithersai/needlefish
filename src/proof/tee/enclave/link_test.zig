@@ -4,7 +4,7 @@
 const std = @import("std");
 const testing = std.testing;
 
-const proof_client = @import("../../client/root.zig");
+const proof_client = @import("proof/client");
 const crypto = @import("crypto.zig");
 const protocol = @import("protocol.zig");
 const transport = @import("transport.zig");

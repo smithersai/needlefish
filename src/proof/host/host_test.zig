@@ -5,16 +5,16 @@
 const std = @import("std");
 const testing = std.testing;
 
-const preimage = @import("../preimage/root.zig");
-const mpt = @import("../mpt/root.zig");
-const program = @import("../program/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
+const preimage = @import("proof/preimage");
+const mpt = @import("proof/mpt");
+const program = @import("proof/program");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const kzg = @import("common/crypto").kzg;
 const handler_module = @import("handler.zig");
-const trie = @import("../../execution/trie/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
+const trie = @import("execution/trie");
+const protocol = @import("consensus/protocol");
 const store_module = @import("store.zig");
 
 const Hash = [32]u8;
@@ -221,7 +221,7 @@ test "host: a source header that does not match its hash is refused" {
     try testing.expectEqual(@as(u32, 0), store.count());
 }
 
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 fn fuzz_route(handler: *handler_module.Handler, smith: *std.testing.Smith) anyerror!void {
     var text: [200]u8 = undefined;

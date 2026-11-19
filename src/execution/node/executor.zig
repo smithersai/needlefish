@@ -10,17 +10,17 @@
 //! Memory: one scratch arena sized at init and reset per block; no other allocation.
 
 const std = @import("std");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const assert = std.debug.assert;
-const evm = @import("../evm/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const flz = @import("../../common/flz/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const ordered = @import("../trie/ordered.zig");
-const chainspec = @import("../chainspec/root.zig");
-const payload = @import("../payload/root.zig");
+const evm = @import("execution/evm");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const keccak = @import("common/crypto").keccak;
+const flz = @import("common/flz");
+const consensus = @import("common/consensus");
+const ordered = @import("execution/trie").ordered;
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
 const StateDb = @import("state_db.zig").StateDb;
 const op_rules = @import("executor_op.zig");
 const base_time = @import("base_time.zig");

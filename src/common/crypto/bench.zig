@@ -31,7 +31,7 @@ fn bench_kzg_point_evaluation(iterations: u32) u64 {
     }
     return accumulator;
 }
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Bn254Fp = montgomery.Field(
     4,

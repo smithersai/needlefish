@@ -10,11 +10,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const clients = @import("../rpc/clients.zig");
-const endpoint_module = @import("../rpc/endpoint.zig");
-const abi = @import("../contracts/abi.zig");
-const factory = @import("../contracts/dispute_game_factory.zig");
-const registry = @import("../contracts/anchor_state_registry.zig");
+const clients = @import("proof/rpc").clients;
+const endpoint_module = @import("proof/rpc").endpoint;
+const abi = @import("proof/contracts").abi;
+const factory = @import("proof/contracts").dispute_game_factory;
+const registry = @import("proof/contracts").anchor_state_registry;
 const interfaces = @import("interfaces.zig");
 const intervals_module = @import("intervals.zig");
 

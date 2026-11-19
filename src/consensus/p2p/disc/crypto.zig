@@ -91,7 +91,7 @@ pub fn id_verify(
     return secp256k1.verify_digest(public_key, digest, signature);
 }
 
-const hex = @import("../../../common/primitives/hex.zig");
+const hex = @import("common/primitives").hex;
 
 // Vectors from devp2p `discv5-wire-test-vectors.md`. The spec's private keys are not
 // committed (AGENTS rule 3); only public keys and derived values appear below.

@@ -232,7 +232,7 @@ pub fn coset_shift(settings: *const Settings, cell_index: u32) Fr {
 
 const testing = std.testing;
 const builtin = @import("builtin");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// Proof computation and the FK20 setup take minutes unoptimised; Debug covers cells,
 /// recovery of cells, and the cheap verification paths only.

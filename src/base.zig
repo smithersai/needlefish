@@ -6,15 +6,15 @@
 
 const std = @import("std");
 
-pub const common = @import("common/root.zig");
-pub const utilities = @import("utilities/root.zig");
-pub const execution = @import("execution/root.zig");
-pub const consensus = @import("consensus/root.zig");
-pub const batcher = @import("batcher/root.zig");
-pub const proof = @import("proof/root.zig");
-pub const builder = @import("builder/root.zig");
-pub const infra = @import("infra/root.zig");
-pub const testing = @import("testing/root.zig");
+pub const common = @import("common");
+pub const utilities = @import("utilities");
+pub const execution = @import("execution");
+pub const consensus = @import("consensus");
+pub const batcher = @import("batcher");
+pub const proof = @import("proof");
+pub const builder = @import("builder");
+pub const infra = @import("infra");
+pub const testing = @import("testing");
 
 pub const build_options = @import("build_options");
 

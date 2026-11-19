@@ -14,7 +14,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
+const json = @import("utilities/json");
 const methods = @import("methods.zig");
 
 /// Longest replacement text: `,"0x` + 16 hex digits + `"`.
@@ -283,7 +283,7 @@ fn check_arbitrary(body: []const u8, head: u64) !void {
 }
 
 test "tags: seeded fuzz" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x7a65);
+    var prng = @import("testing/prng").Prng.init(0x7a65);
     const pieces = [_][]const u8{
         "{",                "}",                  "[",          "]",        ",",
         ":",                "\"method\"",         "\"params\"", "\"id\"",   "\"latest\"",

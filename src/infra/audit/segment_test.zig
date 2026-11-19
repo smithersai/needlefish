@@ -5,7 +5,7 @@ const testing = std.testing;
 
 const segment = @import("segment.zig");
 const store_module = @import("store.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Record = store_module.Record;
 const payload_max = segment.payload_size_max(4096);

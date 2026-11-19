@@ -143,7 +143,7 @@ pub const LocalEnclave = struct {
     pub const Options = struct {
         request_bytes_max: u32,
         response_bytes_max: u32 = 256 * 1024,
-        client_options: @import("../../client/root.zig").client.Options,
+        client_options: @import("proof/client").client.Options,
     };
 
     /// Creates the enclave at a stable address (the handler points into it).
@@ -186,8 +186,8 @@ pub const LocalEnclave = struct {
 const testing = std.testing;
 
 /// Options for requests that never reach the client (no KZG settings needed).
-pub const unused_client_options: @import("../../client/root.zig").client.Options = .{
-    .builder = @import("../../client/root.zig").client.default_builder_config,
+pub const unused_client_options: @import("proof/client").client.Options = .{
+    .builder = @import("proof/client").client.default_builder_config,
     .kzg_settings = undefined,
     .kzg_workspace = undefined,
 };

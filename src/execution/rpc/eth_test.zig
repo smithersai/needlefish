@@ -4,23 +4,23 @@
 
 const std = @import("std");
 const testing = std.testing;
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const txpool = @import("../txpool/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const trie_proof = @import("../trie/proof.zig");
-const fixture = @import("../node/test_fixture.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const txpool = @import("execution/txpool");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const trie_proof = @import("execution/trie").proof;
+const fixture = @import("execution/node").test_fixture;
 const filters_module = @import("filters.zig");
 const eth_config = @import("eth_config.zig");
-const chainspec = @import("../chainspec/root.zig");
-const history_module = @import("../db/history.zig");
+const chainspec = @import("execution/chainspec");
+const history_module = @import("execution/db").history;
 const eth = @import("eth.zig");
 const send_sync = @import("send_sync.zig");
-const chain_module = @import("../node/chain.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const chain_module = @import("execution/node").chain;
+const Prng = @import("testing/prng").Prng;
 
-const engine_types = @import("../engine/root.zig").types;
+const engine_types = @import("execution/engine").types;
 const request_prefix = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"";
 const request_prefix_format = "{{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"";
 const address_one = "\"0x0000000000000000000000000000000000000001\"";
@@ -1102,7 +1102,7 @@ test "eth: pre-Osaka calls without gas default to the block gas limit" {
 test "eth: getTransactionCount reads EIP-8130 channel nonces by nonce key" {
     const h = try Harness.create();
     defer h.destroy();
-    const native = @import("../evm/native.zig");
+    const native = @import("execution/evm").native;
     const owner = fixture.address_of(1).bytes;
     const slot = native.nonce_slot(owner, 5);
     try h.node.db.put_account(native.nonce_manager_address, 0, 0, &.{0x00});

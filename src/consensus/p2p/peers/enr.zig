@@ -9,7 +9,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rlp = @import("../../../common/rlp/root.zig");
+const rlp = @import("common/rlp");
 const secp256k1 = @import("secp256k1.zig");
 const varint = @import("varint.zig");
 
@@ -318,9 +318,9 @@ pub fn validate_chain(record: *const Record, chain_id: u64) Validation {
     return .valid;
 }
 
-const hex = @import("../../../common/primitives/hex.zig");
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const hex = @import("common/primitives").hex;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 /// EIP-778 example record.
 const eip778_text = "enr:-IS4QHCYrYZbAKWCBRlAy5zzaDZXJBGkcnh4MHcBFZntXNFrdvJjX04jRzjzCBOon" ++

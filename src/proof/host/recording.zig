@@ -7,7 +7,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
+const preimage = @import("proof/preimage");
 const store_module = @import("store.zig");
 
 pub const Recording = struct {

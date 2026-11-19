@@ -7,8 +7,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../../consensus/protocol/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
+const protocol = @import("consensus/protocol");
+const keccak = @import("common/crypto").keccak;
 
 const Hash = [32]u8;
 const RollupConfig = protocol.RollupConfig;

@@ -3,22 +3,22 @@
 
 const std = @import("std");
 
-pub const frame = @import("frame/root.zig");
-pub const blobs = @import("blobs/root.zig");
-pub const comp = @import("comp/root.zig");
-pub const channel = @import("channel/root.zig");
-pub const devnet = @import("devnet/root.zig");
-pub const txdata = @import("txdata/root.zig");
-pub const rpc = @import("rpc/root.zig");
-pub const source = @import("source/root.zig");
-pub const txmgr = @import("txmgr/root.zig");
-pub const service = @import("service/root.zig");
-pub const metrics = @import("metrics/root.zig");
-pub const throttle = @import("throttle/root.zig");
-pub const admin = @import("admin/root.zig");
-pub const sync = @import("sync/root.zig");
-pub const sequencers = @import("sequencers/root.zig");
-pub const parity = @import("parity/root.zig");
+pub const frame = @import("batcher/frame");
+pub const blobs = @import("batcher/blobs");
+pub const comp = @import("batcher/comp");
+pub const channel = @import("batcher/channel");
+pub const devnet = @import("batcher/devnet");
+pub const txdata = @import("batcher/txdata");
+pub const rpc = @import("batcher/rpc");
+pub const source = @import("batcher/source");
+pub const txmgr = @import("batcher/txmgr");
+pub const service = @import("batcher/service");
+pub const metrics = @import("batcher/metrics");
+pub const throttle = @import("batcher/throttle");
+pub const admin = @import("batcher/admin");
+pub const sync = @import("batcher/sync");
+pub const sequencers = @import("batcher/sequencers");
+pub const parity = @import("batcher/parity");
 
 test {
     std.testing.refAllDecls(@This());

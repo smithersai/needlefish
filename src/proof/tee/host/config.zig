@@ -5,8 +5,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../../prover_service/protocol.zig");
-const worker_module = @import("../../prover_service/worker.zig");
+const protocol = @import("proof/prover_service").protocol;
+const worker_module = @import("proof/prover_service").worker;
 
 pub const Error = error{
     /// The endpoint is not an http:// or https:// URL (base/base `InvalidEndpointScheme`).

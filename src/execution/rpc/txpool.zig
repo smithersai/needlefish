@@ -12,12 +12,12 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const txpool = @import("../txpool/root.zig");
-const node = @import("../node/root.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const txpool = @import("execution/txpool");
+const node = @import("execution/node");
 const eth = @import("eth.zig");
 const format = @import("format.zig");
 

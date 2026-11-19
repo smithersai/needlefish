@@ -3,18 +3,18 @@
 
 const std = @import("std");
 
-pub const chainspec = @import("chainspec/root.zig");
-pub const txpool = @import("txpool/root.zig");
-pub const payload = @import("payload/root.zig");
-pub const trie = @import("trie/root.zig");
-pub const db = @import("db/root.zig");
-pub const archive = @import("archive/root.zig");
-pub const engine = @import("engine/root.zig");
-pub const node = @import("node/root.zig");
-pub const rpc = @import("rpc/root.zig");
-pub const evm = @import("evm/root.zig");
-pub const import = @import("import/root.zig");
-pub const p2p = @import("p2p/root.zig");
+pub const chainspec = @import("execution/chainspec");
+pub const txpool = @import("execution/txpool");
+pub const payload = @import("execution/payload");
+pub const trie = @import("execution/trie");
+pub const db = @import("execution/db");
+pub const archive = @import("execution/archive");
+pub const engine = @import("execution/engine");
+pub const node = @import("execution/node");
+pub const rpc = @import("execution/rpc");
+pub const evm = @import("execution/evm");
+pub const import = @import("execution/import");
+pub const p2p = @import("execution/p2p");
 
 test {
     std.testing.refAllDecls(@This());

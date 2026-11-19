@@ -21,8 +21,8 @@
 //! `keccak256_batch`; `root_hash_serial` (the post-order reference) is fuzzed against it.
 
 const std = @import("std");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
+const lazy = @import("utilities/lazy_alloc");
+const keccak = @import("common/crypto").keccak;
 const assert = std.debug.assert;
 
 const rlp = @import("rlp.zig");
@@ -1319,7 +1319,7 @@ pub const SparseTrie = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// The one-pass branch decoder accepts exactly what the item decoder accepts as a branch.
 fn check_branch_fast(bytes: []const u8) !void {

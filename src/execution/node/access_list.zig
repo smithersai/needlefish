@@ -10,8 +10,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const evm = @import("../evm/root.zig");
-const chainspec = @import("../chainspec/root.zig");
+const evm = @import("execution/evm");
+const chainspec = @import("execution/chainspec");
 const executor_op = @import("executor_op.zig");
 
 const Address = [20]u8;
@@ -160,7 +160,7 @@ pub fn to_items(
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn entry_of(byte: u8, slot: ?u256) Entry {
     return .{ .address = @splat(byte), .slot = slot };

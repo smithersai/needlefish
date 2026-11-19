@@ -13,9 +13,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const tx_manager = @import("../tx_manager/root.zig");
+const rpc = @import("batcher/rpc");
+const primitives = @import("common/primitives");
+const tx_manager = @import("infra/tx_manager");
 const calldata = @import("calldata.zig");
 const journal_module = @import("journal.zig");
 const reader_module = @import("reader.zig");

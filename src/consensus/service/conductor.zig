@@ -14,12 +14,12 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const http_client = @import("../../utilities/http/client.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const engine_json = @import("../sources/engine_json.zig");
-const task = @import("../engine/task.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const http_client = @import("utilities/http").client;
+const primitives = @import("common/primitives");
+const engine_json = @import("consensus/sources").engine_json;
+const task = @import("consensus/engine").task;
 
 const B256 = primitives.B256;
 const ExecutionPayload = task.ExecutionPayload;
@@ -232,9 +232,9 @@ fn write_commit(params: *const Commit, writer: *json.Writer) json.Writer.WriteEr
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const sim_harness = @import("../sources/sim_harness.zig");
+const sim_harness = @import("consensus/sources").sim_harness;
 const FakeRpc = sim_harness.FakeRpc;
-const SimConductor = Conductor(@import("../../utilities/io/root.zig").SimIo);
+const SimConductor = Conductor(@import("utilities/io").SimIo);
 
 const test_http_options: http_client.Options = .{
     .send_buffer_size = request_size_max + 4096,

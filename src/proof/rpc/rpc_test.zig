@@ -4,20 +4,18 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const json = @import("../../utilities/json/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const json = @import("utilities/json");
 const endpoint_module = @import("endpoint.zig");
 const clients = @import("clients.zig");
-const contracts = @import("../contracts/root.zig");
-const keccak256 = @import("../../common/primitives/root.zig").keccak256;
+const contracts = @import("proof/contracts");
+const keccak256 = @import("common/primitives").keccak256;
 
 const Endpoint = endpoint_module.Endpoint(io.SimIo);
 
 /// A public Sepolia block (number 12090253) as `eth_getBlockByHash` returns it.
-const sepolia_header = @embedFile(
-    "../../consensus/sources/testdata/sepolia_l1_12090253_header.json",
-);
+const sepolia_header = @import("consensus/sources").sepolia_l1_12090253_header_json;
 const sepolia_hash = "bb528dde0066f2187e97eddaba129037d4421843720843ab3ddb961729c13b0b";
 
 const hash_a = "\"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"";

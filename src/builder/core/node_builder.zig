@@ -23,15 +23,15 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const payload = @import("../../execution/payload/root.zig");
-const engine = @import("../../execution/engine/root.zig");
-const chain_module = @import("../../execution/node/chain.zig");
-const io_module = @import("../../utilities/io/root.zig");
+const payload = @import("execution/payload");
+const engine = @import("execution/engine");
+const chain_module = @import("execution/node").chain;
+const io_module = @import("utilities/io");
 const best_txs = @import("best_txs.zig");
 const builder_module = @import("builder.zig");
 const service_module = @import("service.zig");
 const timing = @import("timing.zig");
-const builder_metering = @import("../metering/builder_metering.zig");
+const builder_metering = @import("builder/metering").builder_metering;
 
 const Chain = chain_module.Chain;
 const BlockBuilder = builder_module.BlockBuilder;

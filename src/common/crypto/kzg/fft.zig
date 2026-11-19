@@ -150,7 +150,7 @@ pub fn ifft_g1_unscaled(roots: *const Roots, values: []G1) void {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 var test_roots: Roots = undefined;
 var test_roots_ready = false;

@@ -13,7 +13,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const errors = @import("errors.zig");
 
 const batch_reader = protocol.batch_reader;
@@ -222,8 +222,8 @@ pub fn Upstream(comptime Channels: type, comptime Prev: type) type {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
-const rlp = @import("../../common/rlp/root.zig");
+const Prng = @import("testing/prng").Prng;
+const rlp = @import("common/rlp");
 /// Builds a decompressed batch stream: each entry is RLP-string-wrapped.
 const StreamBuilder = struct {
     bytes: std.ArrayList(u8) = .empty,

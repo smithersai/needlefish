@@ -172,7 +172,7 @@ fn draw_wei(random: std.Random) u128 {
 }
 
 test "fees: seeded fuzz update_fees invariants" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x7f_ee5);
+    var prng = @import("testing/prng").Prng.init(0x7f_ee5);
     const random = prng.random();
     for (0..20_000) |_| {
         try check_update_fees(

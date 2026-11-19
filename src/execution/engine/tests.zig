@@ -5,10 +5,10 @@ const std = @import("std");
 const testing = std.testing;
 const engine_module = @import("root.zig");
 const types = engine_module.types;
-const primitives = @import("../../common/primitives/root.zig");
-const chainspec = @import("../chainspec/root.zig");
-const payload = @import("../payload/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const primitives = @import("common/primitives");
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
+const Prng = @import("testing/prng").Prng;
 
 const B256 = primitives.B256;
 const Address = primitives.Address;

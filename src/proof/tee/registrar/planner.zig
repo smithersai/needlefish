@@ -13,7 +13,7 @@ const nitro_errors = @import("../nitro/errors.zig");
 const nitro_types = @import("../nitro/types.zig");
 const verify = @import("../nitro/verify.zig");
 const x509 = @import("../nitro/x509.zig");
-const keccak256 = @import("../../../common/crypto/keccak.zig").keccak256;
+const keccak256 = @import("common/crypto").keccak.keccak256;
 
 const Ecdsa = std.crypto.sign.ecdsa.EcdsaP384Sha384;
 const Secp256k1 = std.crypto.ecc.Secp256k1;

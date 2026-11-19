@@ -8,14 +8,14 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const trie = @import("../trie/root.zig");
+const primitives = @import("common/primitives");
+const rpc = @import("utilities/rpc");
+const trie = @import("execution/trie");
 const eth = @import("eth.zig");
 const eth_proof = @import("eth_proof.zig");
 const state_view = @import("state_view.zig");
 const format = @import("format.zig");
-const node = @import("../node/root.zig");
+const node = @import("execution/node");
 
 const Api = eth.Api;
 const Call = rpc.Call;

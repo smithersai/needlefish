@@ -5,7 +5,7 @@ const testing = std.testing;
 
 const store_module = @import("store.zig");
 const event_module = @import("event.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Store = store_module.Store;
 const Record = store_module.Record;

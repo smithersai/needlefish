@@ -8,8 +8,8 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const task_queue = @import("../engine/task_queue.zig");
-const Envelope = @import("../engine/insert_task.zig").Envelope;
+const task_queue = @import("consensus/engine").task_queue;
+const Envelope = @import("consensus/engine").insert_task.Envelope;
 
 pub const PutResult = enum { stored, replaced, evicted_other, dropped, out_of_memory };
 
@@ -150,7 +150,7 @@ pub const UnsafeBuffer = struct {
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn envelope_at(number: u64, transactions: []const []const u8) Envelope {
     return .{ .payload = .{

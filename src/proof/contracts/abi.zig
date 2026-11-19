@@ -116,7 +116,7 @@ pub const Decoder = struct {
 };
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "abi: well-known selectors" {
     const transfer = selector("transfer(address,uint256)");

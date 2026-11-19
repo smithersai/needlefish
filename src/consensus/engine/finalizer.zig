@@ -9,7 +9,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const BlockInfo = @import("../protocol/root.zig").block.BlockInfo;
+const BlockInfo = @import("consensus/protocol").block.BlockInfo;
 
 const Pending = struct { l1_number: u64, l2_number: u64 };
 
@@ -97,7 +97,7 @@ pub const Finalizer = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "finalizer: base/base behavior" {
     var finalizer = try Finalizer.init(testing.allocator, 8);

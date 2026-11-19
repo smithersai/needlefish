@@ -17,9 +17,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const chainspec = @import("../chainspec/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const chainspec = @import("execution/chainspec");
 const txpool = @import("root.zig");
 const validate_module = @import("validate.zig");
 
@@ -120,7 +120,7 @@ pub fn admit(
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// Every upgrade through Everest active at genesis.
 const everest_spec: chainspec.ChainSpec = blk: {

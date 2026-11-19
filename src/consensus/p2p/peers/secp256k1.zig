@@ -9,7 +9,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const curve = @import("../../../common/crypto/secp256k1/root.zig");
+const curve = @import("common/crypto").secp256k1;
 const Keccak256 = std.crypto.hash.sha3.Keccak256;
 
 pub const secret_key_length = 32;
@@ -110,7 +110,7 @@ pub fn keccak256(parts: []const []const u8) Digest {
     return digest;
 }
 
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "secp256k1: sign and verify round trip with low-s" {
     var prng = Prng.init(0x736563);

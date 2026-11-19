@@ -225,7 +225,7 @@ pub const Checker = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const G1 = g1.G1;
 const G2 = g2.G2;
 

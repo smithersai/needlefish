@@ -138,7 +138,7 @@ pub const Fp6 = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const random_fp2 = @import("fp2.zig").random_fp2;
 
 pub fn random_fp6(prng: *Prng) Fp6 {

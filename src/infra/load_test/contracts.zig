@@ -17,7 +17,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const txdata = @import("../../batcher/txdata/root.zig");
+const txdata = @import("batcher/txdata");
 
 // Opcodes used below (Ethereum yellow paper numbering).
 const STOP = 0x00;

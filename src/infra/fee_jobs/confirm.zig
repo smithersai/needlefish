@@ -16,10 +16,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const abi = @import("../../proof/contracts/abi.zig");
-const predeploys = @import("../../common/consensus/predeploys.zig");
-const withdrawer = @import("../withdrawer/root.zig");
+const rpc = @import("batcher/rpc");
+const abi = @import("proof/contracts").abi;
+const predeploys = @import("common/consensus").predeploys;
+const withdrawer = @import("infra/withdrawer");
 
 const flow_module = withdrawer.flow;
 const withdrawal_module = withdrawer.withdrawal;

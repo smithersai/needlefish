@@ -119,7 +119,7 @@ pub fn precompile_bn254_pairing(input: []const u8) Error![32]u8 {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const vectors = @import("vectors.zig");
 
 fn decode_hex(comptime hex: []const u8, buffer: []u8) []u8 {

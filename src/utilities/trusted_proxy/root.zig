@@ -10,8 +10,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const Address = @import("../io/common.zig").Address;
-const http_parser = @import("../http/parser.zig");
+const Address = @import("utilities/io").common.Address;
+const http_parser = @import("utilities/http").parser;
 
 pub const Cidr = struct {
     address: Address,
@@ -227,7 +227,7 @@ fn resolve_arbitrary(config: *const Config, value: []const u8) !void {
 test "trusted_proxy: seeded fuzz" {
     var cidrs: [test_cidrs.len]Cidr = undefined;
     const config = test_config(&cidrs);
-    var prng = @import("../../testing/prng.zig").Prng.init(0x7a1);
+    var prng = @import("testing/prng").Prng.init(0x7a1);
     const pieces = [_][]const u8{
         "10.0.0.1", "203.0.113.5", ",", " ", "::1", "::ffff:10.2.3.4", "x", "1.2.3",
     };

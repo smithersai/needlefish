@@ -3,7 +3,7 @@
 
 const std = @import("std");
 const parser = @import("parser.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;

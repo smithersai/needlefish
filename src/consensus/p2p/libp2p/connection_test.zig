@@ -14,8 +14,8 @@ const multiaddr = @import("../peers/multiaddr.zig");
 const secp256k1 = @import("../peers/secp256k1.zig");
 const rpc = @import("../gossip/rpc.zig");
 const yamux = @import("yamux.zig");
-const fuzz = @import("../../../testing/fuzz.zig");
-pub const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+pub const Prng = @import("testing/prng").Prng;
 
 const Connection = connection_module.Connection;
 const Config = connection_module.Config;

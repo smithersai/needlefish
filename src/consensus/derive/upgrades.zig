@@ -10,8 +10,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const protocol = @import("../protocol/root.zig");
+const primitives = @import("common/primitives");
+const protocol = @import("consensus/protocol");
 const deposits = protocol.deposits;
 const Address = primitives.Address;
 const B256 = primitives.B256;

@@ -337,7 +337,7 @@ fn bits_at(padded: *const [5]u64, bit: u32, comptime count: u4) u32 {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn random_scalar(prng: *Prng) Scalar {
     const value: u256 = switch (prng.below(6)) {

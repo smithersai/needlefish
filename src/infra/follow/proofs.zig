@@ -49,7 +49,7 @@ pub fn collect_nodes(
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "proofs: collect_nodes walks account and storage proofs in order" {
     var arena_state = std.heap.ArenaAllocator.init(testing.allocator);

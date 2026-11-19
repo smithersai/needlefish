@@ -11,10 +11,10 @@ const types = @import("types.zig");
 const l1 = @import("l1.zig");
 const crl = @import("crl.zig");
 const cbor = @import("cbor.zig");
-const abi = @import("../../contracts/abi.zig");
-const registry_abi = @import("../../contracts/tee_prover_registry.zig");
-const cert_manager_abi = @import("../../contracts/cert_manager.zig");
-const keccak256 = @import("../../../common/crypto/keccak.zig").keccak256;
+const abi = @import("proof/contracts").abi;
+const registry_abi = @import("proof/contracts").tee_prover_registry;
+const cert_manager_abi = @import("proof/contracts").cert_manager;
+const keccak256 = @import("common/crypto").keccak.keccak256;
 
 const Address = types.Address;
 const Hash = types.Hash;

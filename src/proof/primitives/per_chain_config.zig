@@ -9,10 +9,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const keccak = @import("../../common/crypto/keccak.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const chains = @import("../../common/chains/root.zig");
+const keccak = @import("common/crypto").keccak;
+const primitives = @import("common/primitives");
+const protocol = @import("consensus/protocol");
+const chains = @import("common/chains");
 
 pub const Hash = [32]u8;
 pub const Address = [20]u8;

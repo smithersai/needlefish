@@ -30,10 +30,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../../consensus/protocol/root.zig");
-const driver_module = @import("../../consensus/service/driver.zig");
-const SafeDB = @import("../../consensus/safedb/root.zig").SafeDB;
-const Prng = @import("../prng.zig").Prng;
+const protocol = @import("consensus/protocol");
+const driver_module = @import("consensus/service").driver;
+const SafeDB = @import("consensus/safedb").SafeDB;
+const Prng = @import("testing/prng").Prng;
 const codec = @import("codec.zig");
 const nodes = @import("nodes.zig");
 const real_verifier = @import("real_verifier.zig");

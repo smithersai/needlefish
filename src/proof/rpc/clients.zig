@@ -58,7 +58,7 @@ pub fn Execution(comptime EndpointType: type) type {
                 block.param(),
             });
             if (raw.len < 2 or raw[0] != '"') return error.CallFailed;
-            const json = @import("../../utilities/json/root.zig");
+            const json = @import("utilities/json");
             return json.parse_quantity(u256, raw[1 .. raw.len - 1]) catch error.CallFailed;
         }
     };

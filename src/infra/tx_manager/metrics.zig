@@ -8,7 +8,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const metrics = @import("../../utilities/metrics/root.zig");
+const metrics = @import("utilities/metrics");
 const manager = @import("manager.zig");
 
 const Failure = manager.Failure;

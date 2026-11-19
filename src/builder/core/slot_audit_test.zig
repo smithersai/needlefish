@@ -7,8 +7,8 @@ const std = @import("std");
 const testing = std.testing;
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const primitives = @import("common/primitives");
+const Prng = @import("testing/prng").Prng;
 const service_module = @import("service.zig");
 const slot_audit = @import("slot_audit.zig");
 const timing = @import("timing.zig");

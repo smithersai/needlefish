@@ -16,7 +16,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const node = @import("../trie/node.zig");
+const node = @import("execution/trie").node;
 
 pub const Error = error{Malformed};
 pub const Hash = [32]u8;
@@ -109,7 +109,7 @@ pub fn decode_stage_block(value: []const u8) Error!u64 {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn hex(comptime text: []const u8) [text.len / 2]u8 {
     var out: [text.len / 2]u8 = undefined;

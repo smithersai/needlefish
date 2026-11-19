@@ -7,7 +7,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const io_module = @import("../../utilities/io/root.zig");
+const io_module = @import("utilities/io");
 const network_module = @import("network.zig");
 const options_module = @import("options.zig");
 const enr = @import("peers/enr.zig");
@@ -15,12 +15,12 @@ const secp256k1 = @import("peers/secp256k1.zig");
 const block = @import("gossip/block.zig");
 const ssz = @import("gossip/ssz_payload.zig");
 const validity = @import("gossip/validity.zig");
-const gossip_bridge = @import("../service/gossip_bridge.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const common_secp256k1 = @import("../../common/crypto/secp256k1/root.zig");
-const consensus_types = @import("../../common/consensus/root.zig");
-const rollup_config = @import("../protocol/rollup_config.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const gossip_bridge = @import("consensus/service").gossip_bridge;
+const primitives = @import("common/primitives");
+const common_secp256k1 = @import("common/crypto").secp256k1;
+const consensus_types = @import("common/consensus");
+const rollup_config = @import("consensus/protocol").rollup_config;
+const Prng = @import("testing/prng").Prng;
 
 const testing = std.testing;
 const Network = network_module.Network(io_module.SimIo);

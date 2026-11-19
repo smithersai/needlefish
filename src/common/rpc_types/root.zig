@@ -5,8 +5,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const consensus = @import("../consensus/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
 pub const json = @import("json.zig");
 pub const eip8130 = @import("eip8130.zig");
 pub const request = @import("request.zig");

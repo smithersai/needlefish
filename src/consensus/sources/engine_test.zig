@@ -4,22 +4,22 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const jwt = @import("../../utilities/jwt/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const format = @import("../../execution/rpc/format.zig");
-const protocol = @import("../protocol/root.zig");
+const io = @import("utilities/io");
+const json = @import("utilities/json");
+const jwt = @import("utilities/jwt");
+const primitives = @import("common/primitives");
+const format = @import("execution/rpc").format;
+const protocol = @import("consensus/protocol");
 const harness_module = @import("sim_harness.zig");
 const engine_json = @import("engine_json.zig");
 const engine_client = @import("engine_client.zig");
 const l2_block = @import("l2_block.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const FakeRpc = harness_module.FakeRpc;
 const Harness = harness_module.Harness(*FakeRpc, FakeRpc.handle);
 const Engine = engine_client.EngineClient(io.SimIo);
-const Header = @import("../../common/consensus/root.zig").Header;
+const Header = @import("common/consensus").Header;
 
 fn contains(text: []const u8, needle: []const u8) bool {
     return std.mem.indexOf(u8, text, needle) != null;

@@ -12,7 +12,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const lazy_alloc = @import("../../utilities/lazy_alloc/root.zig");
+const lazy_alloc = @import("utilities/lazy_alloc");
 
 pub const none: u32 = std.math.maxInt(u32);
 
@@ -149,7 +149,7 @@ pub const PathIndex = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// Keys are `u64`s in `keys[id]`; hashes are deliberately weak to force long runs.
 const Model = struct {

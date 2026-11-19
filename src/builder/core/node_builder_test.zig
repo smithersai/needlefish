@@ -8,13 +8,13 @@ const std = @import("std");
 const testing = std.testing;
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const chainspec = @import("../../execution/chainspec/root.zig");
-const payload = @import("../../execution/payload/root.zig");
-const engine = @import("../../execution/engine/root.zig");
-const fixture = @import("../../execution/node/test_fixture.zig");
-const io = @import("../../utilities/io/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const primitives = @import("common/primitives");
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
+const engine = @import("execution/engine");
+const fixture = @import("execution/node").test_fixture;
+const io = @import("utilities/io");
+const Prng = @import("testing/prng").Prng;
 const node_builder_module = @import("node_builder.zig");
 
 const types = engine.types;

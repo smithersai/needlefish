@@ -130,8 +130,8 @@ pub fn format(output: []u8, address: Address) []const u8 {
     };
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 test "ip: ipv4 parse and format" {
     try std.testing.expectEqual([4]u8{ 34, 65, 205, 244 }, try parse4("34.65.205.244"));

@@ -10,7 +10,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 
 const BlockId = protocol.block.BlockId;
 const BlockInfo = protocol.block.BlockInfo;
@@ -152,7 +152,7 @@ pub const SafeDB = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn hash_of(byte: u8) Hash {
     return .{ .bytes = @splat(byte) };

@@ -18,16 +18,16 @@ const service_module = @import("service.zig");
 const enr = @import("peers/enr.zig");
 const ssz = @import("gossip/ssz_payload.zig");
 const validity = @import("gossip/validity.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const consensus_types = @import("../../common/consensus/root.zig");
-const common_secp256k1 = @import("../../common/crypto/secp256k1/root.zig");
-const rollup_config = @import("../protocol/rollup_config.zig");
+const primitives = @import("common/primitives");
+const consensus_types = @import("common/consensus");
+const common_secp256k1 = @import("common/crypto").secp256k1;
+const rollup_config = @import("consensus/protocol").rollup_config;
 const Direction = @import("libp2p/connections.zig").Direction;
 const block = @import("gossip/block.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const sha256 = @import("../../common/crypto/sha256.zig");
+const keccak = @import("common/crypto").keccak;
+const sha256 = @import("common/crypto").sha256;
 const IpAddress = @import("peers/ip.zig").Address;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 pub const Case = struct {
     name: []const u8,

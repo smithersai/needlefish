@@ -9,8 +9,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const secp256k1 = @import("../../../common/crypto/secp256k1/root.zig");
-const keccak = @import("../../../common/crypto/keccak.zig");
+const secp256k1 = @import("common/crypto").secp256k1;
+const keccak = @import("common/crypto").keccak;
 
 pub const Address = [20]u8;
 pub const Hash = [32]u8;
@@ -135,8 +135,8 @@ fn decode_public_key(bytes: []const u8) Error!secp256k1.PublicKey {
 }
 
 const testing = std.testing;
-const proposal = @import("../../primitives/proposal.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const proposal = @import("proof/primitives").proposal;
+const Prng = @import("testing/prng").Prng;
 
 const anvil_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 

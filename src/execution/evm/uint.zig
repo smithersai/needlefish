@@ -11,8 +11,8 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const assert = std.debug.assert;
-const fuzz = @import("../../testing/fuzz.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 const limb_bits = 64;
 const divisor_limbs_max = 256 / limb_bits;

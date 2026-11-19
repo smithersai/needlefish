@@ -4,16 +4,16 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const chainspec = @import("../chainspec/root.zig");
-const txpool = @import("../txpool/root.zig");
-const node = @import("../node/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const chainspec = @import("execution/chainspec");
+const txpool = @import("execution/txpool");
+const node = @import("execution/node");
 const format = @import("format.zig");
 const debug = @import("debug.zig");
-const native = @import("../evm/native.zig");
+const native = @import("execution/evm").native;
 const eip8130_call = @import("eip8130_call.zig");
 
 const Hash = [32]u8;
@@ -63,7 +63,7 @@ const filters_module = @import("filters.zig");
 const state_view = @import("state_view.zig");
 const eth_proof = @import("eth_proof.zig");
 const simulate_module = @import("simulate.zig");
-const evm = @import("../evm/root.zig");
+const evm = @import("execution/evm");
 
 const core_methods = [_]rpc.Method(*Api){
     .{ .name = "web3_clientVersion", .handler = client_version },

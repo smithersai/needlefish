@@ -14,10 +14,10 @@
 //!   codes: length u32, bytes (their hashes are recomputed on decode).
 
 const std = @import("std");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const assert = std.debug.assert;
 
-const keccak256 = @import("../trie/node.zig").keccak256;
+const keccak256 = @import("execution/trie").node.keccak256;
 
 pub const Address = [20]u8;
 pub const Hash = [32]u8;
@@ -25,7 +25,7 @@ pub const Hash = [32]u8;
 pub const AccountInfo = struct {
     nonce: u64 = 0,
     balance: u256 = 0,
-    code_hash: Hash = @import("../trie/node.zig").empty_code_hash,
+    code_hash: Hash = @import("execution/trie").node.empty_code_hash,
 
     pub fn eql(a: AccountInfo, b: AccountInfo) bool {
         return a.nonce == b.nonce and a.balance == b.balance and
@@ -453,7 +453,7 @@ pub fn code_hash(changeset: *const Changeset, index: u32) Hash {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const test_config: Config = .{
     .accounts_max = 64,

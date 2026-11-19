@@ -10,10 +10,10 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const chainspec = @import("../chainspec/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const consensus = @import("common/consensus");
+const chainspec = @import("execution/chainspec");
 const txpool = @import("root.zig");
 const eip8130_pool = @import("eip8130.zig");
 
@@ -385,7 +385,7 @@ test "validate: fuzz" {
 }
 
 test "validate: seeded fuzz mutations of a valid tx" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x7a11d);
+    var prng = @import("testing/prng").Prng.init(0x7a11d);
     var buffer: [256]u8 = undefined;
     var scratch: [256]u8 = undefined;
     const spec = &chainspec.ChainSpec.presets.base_devnet;
@@ -400,7 +400,7 @@ test "validate: seeded fuzz mutations of a valid tx" {
     }
 }
 
-const kzg_blob = @import("../../common/crypto/kzg/root.zig").blob;
+const kzg_blob = @import("common/crypto").kzg.blob;
 var test_kzg_storage: kzg_blob.Settings.Storage = undefined;
 var test_kzg_workspace: kzg_blob.Workspace = undefined;
 var test_kzg_batch: kzg_blob.BatchStorage(consensus.sidecar.blobs_per_tx_max) = .{};
@@ -463,7 +463,7 @@ test "validate: blob proofs verified with KZG" {
     }
 }
 
-const kzg_cells = @import("../../common/crypto/kzg/root.zig").cells;
+const kzg_cells = @import("common/crypto").kzg.cells;
 const cells_per_blob = consensus.sidecar.cells_per_ext_blob;
 var test_cell_storage: kzg_cells.Settings.Storage = undefined;
 var test_cell_workspace: kzg_cells.Workspace = undefined;

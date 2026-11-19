@@ -11,12 +11,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const clients = @import("../rpc/clients.zig");
-const endpoint_module = @import("../rpc/endpoint.zig");
-const abi = @import("../contracts/abi.zig");
-const factory = @import("../contracts/dispute_game_factory.zig");
-const aggregate_verifier = @import("../contracts/aggregate_verifier.zig");
-const submission = @import("../submission/root.zig");
+const clients = @import("proof/rpc").clients;
+const endpoint_module = @import("proof/rpc").endpoint;
+const abi = @import("proof/contracts").abi;
+const factory = @import("proof/contracts").dispute_game_factory;
+const aggregate_verifier = @import("proof/contracts").aggregate_verifier;
+const submission = @import("proof/submission");
 const interfaces = @import("interfaces.zig");
 
 const Address = interfaces.Address;
@@ -180,7 +180,7 @@ test "tx submitter: classifies reverts by data, selector text and name" {
 }
 
 test "tx submitter: fuzz the classifier" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             var message: [96]u8 = undefined;

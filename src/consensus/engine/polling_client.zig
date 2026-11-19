@@ -21,10 +21,10 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const task = @import("task.zig");
-const protocol = @import("../protocol/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const engine_client = @import("../sources/engine_client.zig");
-const l2_block_full = @import("../sources/l2_block_full.zig");
+const protocol = @import("consensus/protocol");
+const rpc = @import("utilities/rpc");
+const engine_client = @import("consensus/sources").engine_client;
+const l2_block_full = @import("consensus/sources").l2_block_full;
 
 const ClientError = task.ClientError;
 const L2BlockInfo = protocol.block.L2BlockInfo;

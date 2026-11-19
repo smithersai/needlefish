@@ -23,7 +23,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const to_disk = @import("to_disk.zig");
-const executor_module = @import("../node/executor.zig");
+const executor_module = @import("execution/node").executor;
 
 pub const Clock = executor_module.Executor.Clock;
 

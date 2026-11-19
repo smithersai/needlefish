@@ -6,7 +6,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const evm_root = @import("../../execution/evm/root.zig");
+const evm_root = @import("execution/evm");
 const contracts = @import("contracts.zig");
 
 const primitives = evm_root.primitives;
@@ -92,7 +92,7 @@ const Result = struct { outcome: evm_root.evm.Outcome, gas_used: u64 };
 /// The intrinsic part of `deploy_gas` that a bare `execute` does not charge.
 fn evm_root_calldata_floor(code: []const u8) u64 {
     const words: u64 = (code.len + 31) / 32;
-    return @import("../../batcher/txdata/root.zig").calldata_gas(code) + 32_000 + 2 * words;
+    return @import("batcher/txdata").calldata_gas(code) + 32_000 + 2 * words;
 }
 
 fn word(value: u256) [32]u8 {
@@ -212,7 +212,7 @@ test "contracts: looper burns exactly the computed gas" {
 
 test "contracts: generated payloads succeed within their local gas limits" {
     const workload = @import("workload.zig");
-    const txdata = @import("../../batcher/txdata/root.zig");
+    const txdata = @import("batcher/txdata");
     const key_stream = @import("key_stream.zig");
     var h: Harness = undefined;
     try h.init();

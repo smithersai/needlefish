@@ -6,7 +6,7 @@ const assert = std.debug.assert;
 const testing = std.testing;
 const crl = @import("crl.zig");
 const types = @import("types.zig");
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 const CertCrlInfo = crl.CertCrlInfo;
 

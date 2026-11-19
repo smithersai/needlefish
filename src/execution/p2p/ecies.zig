@@ -10,7 +10,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const curve = @import("../../common/crypto/secp256k1/root.zig");
+const curve = @import("common/crypto").secp256k1;
 
 const Aes128 = std.crypto.core.aes.Aes128;
 const Sha256 = std.crypto.hash.sha2.Sha256;
@@ -110,7 +110,7 @@ pub fn decrypt(
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn random_secret(prng: *Prng) [32]u8 {
     while (true) {

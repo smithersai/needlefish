@@ -104,7 +104,7 @@ test "derive check cadence: jumps and gaps" {
 }
 
 test "derive check cadence: seeded fuzz keeps the counters consistent" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x4341_4445);
+    var prng = @import("testing/prng").Prng.init(0x4341_4445);
     for (0..100) |_| {
         var cadence: Cadence = .{};
         var l1: u64 = prng.below(1000);

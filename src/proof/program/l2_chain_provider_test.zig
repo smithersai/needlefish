@@ -4,13 +4,13 @@
 const std = @import("std");
 const testing = std.testing;
 
-const preimage = @import("../preimage/root.zig");
-const mpt = @import("../mpt/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const test_oracle = @import("../test_oracle.zig");
+const preimage = @import("proof/preimage");
+const mpt = @import("proof/mpt");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const protocol = @import("consensus/protocol");
+const test_oracle = @import("proof/test_oracle");
 const l2_chain_provider = @import("l2_chain_provider.zig");
 const L2ChainProvider = l2_chain_provider.L2ChainProvider;
 

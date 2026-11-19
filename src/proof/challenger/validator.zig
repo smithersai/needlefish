@@ -11,8 +11,8 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const chain = @import("chain.zig");
-const native = @import("../host/native.zig");
-const crypto = @import("../../common/crypto/root.zig");
+const native = @import("proof/host").native;
+const crypto = @import("common/crypto");
 
 const Hash = chain.Hash;
 

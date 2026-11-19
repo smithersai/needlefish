@@ -4,7 +4,7 @@
 const std = @import("std");
 const testing = std.testing;
 const secp = @import("root.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Scalar = secp.scalar.Scalar;
 const Fe = secp.field.Fe;

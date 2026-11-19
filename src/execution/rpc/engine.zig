@@ -3,15 +3,15 @@
 //! consensus clients query the execution client through the engine endpoint.
 
 const std = @import("std");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const chainspec = @import("../chainspec/root.zig");
-const payload = @import("../payload/root.zig");
-const engine_module = @import("../engine/root.zig");
-const node = @import("../node/root.zig");
+const primitives = @import("common/primitives");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
+const engine_module = @import("execution/engine");
+const node = @import("execution/node");
 const eth = @import("eth.zig");
 const codec = @import("engine_json.zig");
 

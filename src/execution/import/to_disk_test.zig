@@ -13,17 +13,17 @@ const std = @import("std");
 const builtin = @import("builtin");
 const assert = std.debug.assert;
 const testing = std.testing;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 
 const to_disk = @import("to_disk.zig");
 const hashed_state = @import("hashed_state.zig");
 const state_root = @import("state_root.zig");
 const reth = @import("reth.zig");
-const storage = @import("../db/storage/storage.zig");
-const SimStorage = @import("../db/storage/sim_storage.zig").SimStorage;
-const branch_record = @import("../db/branch_record.zig");
-const node = @import("../trie/node.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const storage = @import("execution/db").storage.storage;
+const SimStorage = @import("execution/db").storage.sim_storage.SimStorage;
+const branch_record = @import("execution/db").branch_record;
+const node = @import("execution/trie").node;
+const Prng = @import("testing/prng").Prng;
 
 const Hash = node.Hash;
 const Entry = hashed_state.Entry;
@@ -325,7 +325,7 @@ pub fn encode_tables(arena: std.mem.Allocator, accounts: []Account, source: *Sou
 pub const Run = struct {
     sim: *SimStorage,
     db: *Database,
-    config: @import("../db/database.zig").Config,
+    config: @import("execution/db").database.Config,
 
     pub fn init(source: *const Source, seed: u64) !Run {
         return init_shaped(source, seed, shape_test);
@@ -940,7 +940,7 @@ fn growth_settled(db: *const Database) bool {
 /// `length` bytes, onto the head; returns `error.CodeFull` from the state when refused.
 fn commit_codes(run: *Run, prng: *Prng, hashes: []Hash, length: u32) !void {
     const db = run.db;
-    var overlay = try @import("../db/overlay.zig").Overlay.init(testing.allocator, &db.state, .{
+    var overlay = try @import("execution/db").overlay.Overlay.init(testing.allocator, &db.state, .{
         .accounts_max = 4,
         .slots_max = 4,
         .codes_max = 1,
@@ -952,7 +952,7 @@ fn commit_codes(run: *Run, prng: *Prng, hashes: []Hash, length: u32) !void {
         hash.* = try overlay.insert_code(code[0..length]);
         var block_hash: Hash = undefined;
         prng.fill(&block_hash);
-        const input: @import("../db/database.zig").BlockInput = .{
+        const input: @import("execution/db").database.BlockInput = .{
             .hash = block_hash,
             .parent_hash = db.head_info.hash,
             .number = db.head_info.number + 1,

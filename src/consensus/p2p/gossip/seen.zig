@@ -101,7 +101,7 @@ pub fn SeenCache(comptime capacity: u32) type {
     };
 }
 
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "seen: insert, duplicate, expiry, eviction" {
     const Cache = SeenCache(8);

@@ -14,10 +14,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Smith = std.testing.Smith;
-const fuzz = @import("fuzz.zig");
-const Prng = @import("prng.zig").Prng;
-const http = @import("../utilities/http/parser.zig");
-const ws = @import("../utilities/ws/frame.zig");
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
+const http = @import("utilities/http").parser;
+const ws = @import("utilities/ws").frame;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;

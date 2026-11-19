@@ -6,7 +6,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
+const json = @import("utilities/json");
 
 pub const Address = [20]u8;
 
@@ -312,7 +312,7 @@ test "proposer config: durations" {
 }
 
 test "proposer config: fuzz flag parsing" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     const names = [_][]const u8{
         "--dry-run",
         "--game-type",

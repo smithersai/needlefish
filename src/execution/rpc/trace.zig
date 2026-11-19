@@ -15,13 +15,13 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const evm = @import("../evm/root.zig");
-const node = @import("../node/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const evm = @import("execution/evm");
+const node = @import("execution/node");
 const eth = @import("eth.zig");
 const eth_proof = @import("eth_proof.zig");
 const prestate = @import("prestate.zig");
@@ -666,7 +666,7 @@ fn write_one(
 // ---- Tests ------------------------------------------------------------------------
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "trace: revert reasons decode Error(string) only when well formed" {
     var payload: [4 + 96]u8 = @splat(0);

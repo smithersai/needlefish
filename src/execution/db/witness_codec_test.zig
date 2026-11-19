@@ -10,8 +10,8 @@ const testing = std.testing;
 const codec = @import("witness_codec.zig");
 const witness = @import("witness.zig");
 const witness_test = @import("witness_test.zig");
-const trie = @import("../trie/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const trie = @import("execution/trie");
+const Prng = @import("testing/prng").Prng;
 
 const Hash = witness_test.Hash;
 const Witness = witness.Witness;

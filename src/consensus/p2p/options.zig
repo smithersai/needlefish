@@ -10,7 +10,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const ip = @import("peers/ip.zig");
 const score = @import("peers/score.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 
 pub const bootnodes_max = 64;
 
@@ -299,8 +299,8 @@ fn eql(a: []const u8, b: []const u8) bool {
 // --------------------------------------------------------------------------- tests
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
-const fuzz = @import("../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 
 test "options: defaults match base/base" {
     const options = try parse(&.{});

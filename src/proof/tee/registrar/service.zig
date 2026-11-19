@@ -11,8 +11,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../../utilities/json/root.zig");
-const proposer_config = @import("../../proposer/config.zig");
+const json = @import("utilities/json");
+const proposer_config = @import("proof/proposer").config;
 const types = @import("types.zig");
 const driver_module = @import("driver.zig");
 const discovery_module = @import("discovery.zig");
@@ -281,6 +281,6 @@ test "registrar config: the signer key may come from the environment" {
 }
 
 test "registrar config: fuzz parse" {
-    const fuzz = @import("../../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, fuzz_parse, .{ .iterations = 2000 });
 }

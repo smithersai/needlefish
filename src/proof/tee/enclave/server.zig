@@ -11,12 +11,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../../preimage/root.zig");
-const program = @import("../../program/root.zig");
-const proof_client = @import("../../client/root.zig");
-const host_store = @import("../../host/store.zig");
-const primitives = @import("../../primitives/root.zig");
-const keccak = @import("../../../common/crypto/keccak.zig");
+const preimage = @import("proof/preimage");
+const program = @import("proof/program");
+const proof_client = @import("proof/client");
+const host_store = @import("proof/host").store;
+const primitives = @import("proof/primitives");
+const keccak = @import("common/crypto").keccak;
 const crypto = @import("crypto.zig");
 const nsm_module = @import("nsm.zig");
 const oracle = @import("oracle.zig");
@@ -253,7 +253,7 @@ test "enclave server: local mode" {
 }
 
 test "enclave server: unknown chains need the local-mode opt in" {
-    const chains = @import("../../../common/chains/root.zig");
+    const chains = @import("common/chains");
     const signer = try crypto.Signer.from_bytes(&@as([32]u8, @splat(0x11)));
     var server: Server = .init_local(signer);
     var boot: program.BootInfo = undefined;

@@ -3,20 +3,20 @@
 
 const std = @import("std");
 
-pub const tx_manager = @import("tx_manager/root.zig");
-pub const balance_monitor = @import("balance_monitor/root.zig");
-pub const load_test = @import("load_test/root.zig");
-pub const snapshotter = @import("snapshotter/root.zig");
-pub const sidecrush = @import("sidecrush/root.zig");
-pub const fee_jobs = @import("fee_jobs/root.zig");
-pub const roxy = @import("roxy/root.zig");
-pub const basectl = @import("basectl/root.zig");
-pub const withdrawer = @import("withdrawer/root.zig");
-pub const replay = @import("replay/root.zig");
-pub const diff_adapter = @import("diff_adapter/root.zig");
-pub const follow = @import("follow/root.zig");
-pub const audit = @import("audit/root.zig");
-pub const metrics_endpoint = @import("metrics_endpoint/root.zig");
+pub const tx_manager = @import("infra/tx_manager");
+pub const balance_monitor = @import("infra/balance_monitor");
+pub const load_test = @import("infra/load_test");
+pub const snapshotter = @import("infra/snapshotter");
+pub const sidecrush = @import("infra/sidecrush");
+pub const fee_jobs = @import("infra/fee_jobs");
+pub const roxy = @import("infra/roxy");
+pub const basectl = @import("infra/basectl");
+pub const withdrawer = @import("infra/withdrawer");
+pub const replay = @import("infra/replay");
+pub const diff_adapter = @import("infra/diff_adapter");
+pub const follow = @import("infra/follow");
+pub const audit = @import("infra/audit");
+pub const metrics_endpoint = @import("infra/metrics_endpoint");
 
 test {
     std.testing.refAllDecls(@This());

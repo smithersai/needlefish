@@ -9,7 +9,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const elf = std.elf;
 
-const evm = @import("../../execution/evm/root.zig");
+const evm = @import("execution/evm");
 
 /// Functions whose edges are reported: the EVM (interpreter, precompiles, native
 /// precompiles, transaction processing) and the crypto behind the precompiles. Zig names a

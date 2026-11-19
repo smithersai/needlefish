@@ -14,7 +14,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const io_common = @import("../io/common.zig");
+const io_common = @import("utilities/io").common;
 const parser = @import("parser.zig");
 
 pub const Address = io_common.Address;

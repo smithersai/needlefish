@@ -38,9 +38,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
-const storage_module = @import("../db/storage/storage.zig");
-const checksum_module = @import("../db/storage/checksum.zig");
+const lazy = @import("utilities/lazy_alloc");
+const storage_module = @import("execution/db").storage.storage;
+const checksum_module = @import("execution/db").storage.checksum;
 
 pub const sector_size = storage_module.sector_size;
 const sector_alignment = std.mem.Alignment.fromByteUnits(sector_size);

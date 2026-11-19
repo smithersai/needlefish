@@ -392,7 +392,7 @@ pub fn CheckpointType(comptime Storage: type) type {
 
 const testing = std.testing;
 const SimStorage = @import("sim_storage.zig").SimStorage;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const TestCheckpoint = CheckpointType(SimStorage);
 const test_block_size = 2 * sector_size;

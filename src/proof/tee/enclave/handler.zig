@@ -12,7 +12,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const log = std.log.scoped(.enclave);
 
-const proof_client = @import("../../client/root.zig");
+const proof_client = @import("proof/client");
 const protocol = @import("protocol.zig");
 const server_module = @import("server.zig");
 const transport = @import("transport.zig");

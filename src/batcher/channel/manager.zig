@@ -12,12 +12,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const channel_module = @import("root.zig");
-const frame_module = @import("../frame/root.zig");
-const source = @import("../source/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const batch_module = @import("../../consensus/protocol/batch.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
+const frame_module = @import("batcher/frame");
+const source = @import("batcher/source");
+const protocol = @import("consensus/protocol");
+const batch_module = @import("consensus/protocol").batch;
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 
 const ChannelOut = channel_module.ChannelOut;
 const B256 = primitives.B256;
@@ -212,7 +212,7 @@ pub fn encode_batch_item(block: *const source.L2Block, out: []u8) error{BatchToo
 }
 
 const testing = std.testing;
-const comp = @import("../comp/root.zig");
+const comp = @import("batcher/comp");
 
 fn test_block(number: u64, parent: B256, transactions: []const []const u8) source.L2Block {
     var hash: B256 = .zero;

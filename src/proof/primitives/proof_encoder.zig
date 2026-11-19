@@ -93,7 +93,7 @@ pub fn encode_zk_dispute_proof_bytes(out: []u8, proof: []const u8) error{NoSpace
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 fn test_signature(v: u8) [ecdsa_signature_length]u8 {
     var signature: [ecdsa_signature_length]u8 = @splat(0xab);

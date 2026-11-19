@@ -8,9 +8,9 @@ const packet = @import("packet.zig");
 const crypto = @import("crypto.zig");
 const messages = @import("messages.zig");
 const enr = @import("../peers/enr.zig");
-const hex = @import("../../../common/primitives/hex.zig");
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const hex = @import("common/primitives").hex;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 const node_id_a = "aaaa8419e9f49d0083561b48287df592939a8d19947d8c0ef88f2a4856a69fbb";
 const node_id_b = "bbbb9d047f0488c0b5a93c1c3f2d8bafc7c8ff337024a55434a0d0555de64db9";

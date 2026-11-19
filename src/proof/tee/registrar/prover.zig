@@ -7,10 +7,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../../utilities/json/root.zig");
-const keccak = @import("../../../common/crypto/keccak.zig");
+const json = @import("utilities/json");
+const keccak = @import("common/crypto").keccak;
 const reconciler = @import("reconciler.zig");
-const rpc_endpoint = @import("../../rpc/endpoint.zig");
+const rpc_endpoint = @import("proof/rpc").endpoint;
 
 const Secp256k1 = std.crypto.ecc.Secp256k1;
 
@@ -240,7 +240,7 @@ test "registrar prover: derive_address matches hardhat account zero" {
 }
 
 test "registrar prover: fuzz byte-list parsing and round trips" {
-    const fuzz = @import("../../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             var arena: std.heap.ArenaAllocator = .init(testing.allocator);

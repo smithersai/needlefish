@@ -5,11 +5,11 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
+const io = @import("utilities/io");
 const fixtures = @import("fixtures.zig");
 const harness_module = @import("sim_harness.zig");
 const l1_provider = @import("l1_provider.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 
 const FakeRpc = harness_module.FakeRpc;
 const Harness = harness_module.Harness(*FakeRpc, FakeRpc.handle);
@@ -167,8 +167,8 @@ test "l1 provider: by-number results expire, the queue stays bounded" {
 }
 
 test "l1 provider: drives the derive data source" {
-    const derive = @import("../derive/root.zig");
-    const protocol = @import("../protocol/root.zig");
+    const derive = @import("consensus/derive");
+    const protocol = @import("consensus/protocol");
     var fake: FakeRpc = .{};
     var chain: Chain = .{};
     try chain.init(&fake);

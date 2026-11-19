@@ -16,11 +16,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const node = @import("../node/root.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const node = @import("execution/node");
 const eth = @import("eth.zig");
 const eth_proof = @import("eth_proof.zig");
 

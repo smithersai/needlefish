@@ -15,7 +15,7 @@ const evm_module = @import("evm.zig");
 const precompiles = @import("precompiles.zig");
 const Fork = @import("fork.zig").Fork;
 const eip8130_execute = @import("eip8130_execute.zig");
-const eip8130 = @import("../../common/consensus/eip8130.zig");
+const eip8130 = @import("common/consensus").eip8130;
 const op = @import("op.zig");
 const native = @import("native.zig");
 const Address = primitives.Address;
@@ -174,7 +174,7 @@ fn count_zero_bytes(data: []const u8) u64 {
 }
 
 test "transaction: vector zero-byte count matches the byte loop" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x2e20_0001);
+    var prng = @import("testing/prng").Prng.init(0x2e20_0001);
     var buffer: [300]u8 = undefined;
     var round: u32 = 0;
     while (round < 500) : (round += 1) {

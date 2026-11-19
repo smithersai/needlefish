@@ -21,12 +21,12 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const http_client = @import("../../utilities/http/client.zig");
-const parser = @import("../../utilities/http/parser.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
-const protocol = @import("../protocol/root.zig");
-const errors = @import("../derive/errors.zig");
+const http_client = @import("utilities/http").client;
+const parser = @import("utilities/http").parser;
+const primitives = @import("common/primitives");
+const kzg = @import("common/crypto").kzg;
+const protocol = @import("consensus/protocol");
+const errors = @import("consensus/derive").errors;
 const beacon_json = @import("beacon_json.zig");
 
 const B256 = primitives.B256;

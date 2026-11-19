@@ -26,8 +26,8 @@ const state_module = @import("state.zig");
 const overlay_module = @import("overlay.zig");
 const flat_trees_module = @import("flat_trees.zig");
 const branch_record = @import("branch_record.zig");
-const keccak256 = @import("../trie/node.zig").keccak256;
-const Prng = @import("../../testing/prng.zig").Prng;
+const keccak256 = @import("execution/trie").node.keccak256;
+const Prng = @import("testing/prng").Prng;
 
 const Hash = database.Hash;
 const HeadInfo = database.HeadInfo;

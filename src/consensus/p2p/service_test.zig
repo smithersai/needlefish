@@ -14,11 +14,11 @@ const secp256k1 = @import("peers/secp256k1.zig");
 const rpc = @import("gossip/rpc.zig");
 const ssz = @import("gossip/ssz_payload.zig");
 const validity = @import("gossip/validity.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const consensus_types = @import("../../common/consensus/root.zig");
-const rollup_config = @import("../protocol/rollup_config.zig");
-const common_secp256k1 = @import("../../common/crypto/secp256k1/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const primitives = @import("common/primitives");
+const consensus_types = @import("common/consensus");
+const rollup_config = @import("consensus/protocol").rollup_config;
+const common_secp256k1 = @import("common/crypto").secp256k1;
+const Prng = @import("testing/prng").Prng;
 
 const Service = service_module.Service;
 const Slot = service_module.Slot;

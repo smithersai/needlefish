@@ -8,7 +8,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const keccak = @import("../../common/crypto/keccak.zig");
+const keccak = @import("common/crypto").keccak;
 
 const rlp = @import("rlp.zig");
 const nibbles = @import("nibbles.zig");

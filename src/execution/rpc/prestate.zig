@@ -20,8 +20,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
-const evm = @import("../evm/root.zig");
+const json = @import("utilities/json");
+const evm = @import("execution/evm");
 
 const Address = [20]u8;
 
@@ -239,7 +239,7 @@ pub const Collected = struct {
     fn on_log(_: *anyopaque, _: Address, _: []const [32]u8, _: []const u8) void {}
 
     /// The `Executor.Inspect` hook (debug_traceCall).
-    pub fn inspect(collected: *Collected) @import("../node/root.zig").executor.Executor.Inspect {
+    pub fn inspect(collected: *Collected) @import("execution/node").executor.Executor.Inspect {
         return .{ .context = collected, .run = run_inspect };
     }
 
@@ -374,7 +374,7 @@ pub fn write(w: *json.Writer, collected: *const Collected, diff: bool) json.Writ
 // ---- Tests ------------------------------------------------------------------------
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// Random collections (sorted, as `collect` leaves them) write valid JSON in both modes.
 fn random_collection(seed: u64) !void {

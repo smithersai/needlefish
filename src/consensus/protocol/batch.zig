@@ -9,8 +9,8 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 const B256 = primitives.B256;
 const block = @import("block.zig");
 const BlockId = block.BlockId;
@@ -267,7 +267,7 @@ pub fn check_transactions(
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn sample_batch(transactions: []const []const u8) SingleBatch {
     return .{

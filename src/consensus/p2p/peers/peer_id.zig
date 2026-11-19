@@ -91,8 +91,8 @@ pub fn parse(text: []const u8) Error!PeerId {
     return peer;
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 test "peer_id: secp256k1 round trip and text prefix" {
     var prng = Prng.init(0x7065_6572);

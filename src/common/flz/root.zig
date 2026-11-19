@@ -113,8 +113,8 @@ pub fn data_gas_fjord(input: []const u8) u64 {
 }
 
 const testing = std.testing;
-const hex = @import("../primitives/hex.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const hex = @import("common/primitives").hex;
+const Prng = @import("testing/prng").Prng;
 
 // Vectors from base/base `crates/common/flz` tests (public chain data).
 const short_hex_hex =

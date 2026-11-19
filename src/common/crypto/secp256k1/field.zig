@@ -279,7 +279,7 @@ pub const Fe = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn random_fe(prng: *Prng) Fe {
     // Mix in edge values near 0, p and 2^256 to exercise the weak representation.

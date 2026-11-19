@@ -7,7 +7,7 @@ const testing = std.testing;
 const reconciler_module = @import("reconciler.zig");
 const registration_tasks = @import("registration_tasks.zig");
 const types = @import("types.zig");
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 const Address = types.Address;
 const Observation = reconciler_module.Observation;

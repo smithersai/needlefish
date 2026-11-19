@@ -276,7 +276,7 @@ fn divsteps_var(delta: *i64, f_low: u64, g_low: u64) Matrix {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn check_modulus(comptime Int: type, comptime modulus: Int, seed: u64) !void {
     const Inverse = Modulus(Int, modulus);

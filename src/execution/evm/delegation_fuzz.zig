@@ -13,8 +13,8 @@ const assert = std.debug.assert;
 const primitives = @import("primitives.zig");
 const bytecode = @import("bytecode.zig");
 const transaction = @import("transaction.zig");
-const fuzz = @import("../../testing/fuzz.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 const Harness = @import("evm_test.zig").Harness;
 const Address = primitives.Address;
 

@@ -21,7 +21,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const io_module = @import("../../utilities/io/root.zig");
+const io_module = @import("utilities/io");
 const service_module = @import("service.zig");
 const connection_module = @import("libp2p/connection.zig");
 const multiaddr = @import("peers/multiaddr.zig");

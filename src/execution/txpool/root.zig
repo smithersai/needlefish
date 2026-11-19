@@ -11,7 +11,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 pub const slab = @import("slab.zig");
 pub const validate = @import("validate.zig");
 pub const validity = @import("validity.zig");

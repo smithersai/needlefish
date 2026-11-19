@@ -17,7 +17,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 
 const branch_record = @import("branch_record.zig");
 
@@ -202,7 +202,7 @@ pub const RecordCache = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "record cache: hits need the hash and the hang, CLOCK keeps referenced entries" {
     var cache = try RecordCache.init(testing.allocator, 2 * ways);

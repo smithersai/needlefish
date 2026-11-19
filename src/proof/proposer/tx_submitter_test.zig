@@ -5,14 +5,14 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const harness_module = @import("../../consensus/sources/sim_harness.zig");
-const factory = @import("../contracts/dispute_game_factory.zig");
-const endpoint_module = @import("../rpc/endpoint.zig");
-const txdata = @import("../../batcher/txdata/root.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
+const io = @import("utilities/io");
+const harness_module = @import("consensus/sources").sim_harness;
+const factory = @import("proof/contracts").dispute_game_factory;
+const endpoint_module = @import("proof/rpc").endpoint;
+const txdata = @import("batcher/txdata");
+const accounts = @import("batcher/devnet").accounts;
 const tx_submitter = @import("tx_submitter.zig");
-const sender_test = @import("../submission/sender_test.zig");
+const sender_test = @import("proof/submission").sender_test;
 const revert_error = sender_test.revert_error;
 const interfaces = @import("interfaces.zig");
 

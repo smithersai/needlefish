@@ -15,7 +15,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const errors = @import("errors.zig");
 const attributes = @import("attributes.zig");
 

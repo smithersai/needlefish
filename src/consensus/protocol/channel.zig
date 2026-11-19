@@ -145,7 +145,7 @@ pub const Channel = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Case = struct {
     frames: []const Frame,

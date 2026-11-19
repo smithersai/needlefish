@@ -16,8 +16,8 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const bincode = @import("bincode.zig");
-const preimage = @import("../../preimage/root.zig");
-const service_protocol = @import("../../prover_service/protocol.zig");
+const preimage = @import("proof/preimage");
+const service_protocol = @import("proof/prover_service").protocol;
 
 pub const Hash = [32]u8;
 pub const TeeProofResult = service_protocol.TeeProofResult;
@@ -289,7 +289,7 @@ fn decode_proof_result(
 }
 
 const testing = std.testing;
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 fn encode_to(buffer: []u8, value: anytype) ![]const u8 {
     var writer: std.Io.Writer = .fixed(buffer);

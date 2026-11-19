@@ -12,9 +12,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const http = @import("../../utilities/http/root.zig");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const http = @import("utilities/http");
 const protocol = @import("protocol.zig");
 const codec = @import("codec.zig");
 const store_module = @import("store.zig");

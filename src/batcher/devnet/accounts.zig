@@ -9,7 +9,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Secp256k1 = std.crypto.ecc.Secp256k1;
 const HmacSha512 = std.crypto.auth.hmac.sha2.HmacSha512;
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 
 pub const dev_mnemonic = "test test test test test test test test test test test junk";
 

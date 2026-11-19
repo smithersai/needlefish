@@ -2,11 +2,11 @@
 
 const std = @import("std");
 
-pub const prng = @import("prng.zig");
+pub const prng = @import("testing/prng");
 pub const Prng = prng.Prng;
-pub const fuzz = @import("fuzz.zig");
-pub const sim = @import("sim/root.zig");
-pub const bench = @import("bench.zig");
+pub const fuzz = @import("testing/fuzz");
+pub const sim = @import("testing/sim");
+pub const bench = @import("testing/bench");
 pub const fuzz_targets = @import("fuzz_targets.zig");
 pub const fuzz_targets_p2p = @import("fuzz_targets_p2p.zig");
 pub const fuzz_targets_net = @import("fuzz_targets_net.zig");

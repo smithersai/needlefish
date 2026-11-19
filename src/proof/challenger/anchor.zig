@@ -8,7 +8,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const chain = @import("chain.zig");
-const contracts = @import("../contracts/root.zig");
+const contracts = @import("proof/contracts");
 const validator = @import("validator.zig");
 
 const Address = chain.Address;

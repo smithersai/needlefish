@@ -6,7 +6,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// Exact length of the precompile input: 4 + 64 + 128 + 8 + 8 + 1 bytes.
 pub const input_length = 213;

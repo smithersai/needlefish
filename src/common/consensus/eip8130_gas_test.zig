@@ -2,11 +2,11 @@
 
 const std = @import("std");
 const testing = std.testing;
-const primitives = @import("../primitives/root.zig");
-const rlp = @import("../rlp/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 const eip8130 = @import("eip8130.zig");
 const gas_module = @import("eip8130_gas.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const Address = primitives.Address;
 const B256 = primitives.B256;
 const schedule = gas_module.schedule;

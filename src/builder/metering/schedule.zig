@@ -19,7 +19,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
+const json = @import("utilities/json");
 
 pub const version_current: u32 = 1;
 /// base/base `MAX_DIMENSIONS`, `MAX_DIMENSION_NAME_LENGTH`, `MAX_OPERATIONS_PER_DIMENSION`,

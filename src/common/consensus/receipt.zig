@@ -6,8 +6,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const rlp = @import("../rlp/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 const fields = @import("tx_fields.zig");
 const tx_module = @import("tx.zig");
 const Address = primitives.Address;
@@ -212,7 +212,7 @@ pub const Receipt = struct {
 
 const testing = std.testing;
 const hex = primitives.hex;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn zero_bloom_hex() [512]u8 {
     return @splat('0');

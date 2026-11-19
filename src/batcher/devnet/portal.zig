@@ -77,7 +77,7 @@ comptime {
 }
 
 const testing = std.testing;
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 
 test "portal: topic is keccak of the event signature" {
     const hash = primitives.keccak256("TransactionDeposited(address,address,uint256,bytes)");
@@ -105,7 +105,7 @@ test "portal: bytecode shape" {
 
 test "portal: consensus decodes the log this code emits" {
     // Log emitted by `code` for a 1 ETH call from dev account 1 (captured on a dev node).
-    const deposits = @import("../../consensus/protocol/deposits.zig");
+    const deposits = @import("consensus/protocol").deposits;
     var sender_word: [32]u8 = @splat(0);
     _ = try std.fmt.hexToBytes(sender_word[12..], "70997970c51812dc3a010c7d01b50e0d17dc79c8");
     const topics = [_]primitives.B256{

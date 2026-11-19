@@ -12,8 +12,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const rlp = @import("../rlp/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 const signature_module = @import("signature.zig");
 const item_list = @import("item_list.zig");
 const hashing = @import("hashing.zig");

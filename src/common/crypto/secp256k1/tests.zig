@@ -7,7 +7,7 @@ const assert = std.debug.assert;
 const testing = std.testing;
 const secp = @import("root.zig");
 const keccak = @import("../keccak.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Scalar = secp.scalar.Scalar;
 const Fe = secp.field.Fe;

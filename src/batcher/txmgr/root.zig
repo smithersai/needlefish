@@ -9,10 +9,10 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../rpc/root.zig");
-const txdata = @import("../txdata/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const blobs = @import("../blobs/root.zig");
+const rpc = @import("batcher/rpc");
+const txdata = @import("batcher/txdata");
+const primitives = @import("common/primitives");
+const blobs = @import("batcher/blobs");
 const kzg = blobs.kzg;
 const blob_tx = txdata.blob;
 
@@ -714,9 +714,9 @@ fn benign_send_error(message: []const u8) bool {
 }
 
 const testing = std.testing;
-const consensus = @import("../../common/consensus/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
-const accounts = @import("../devnet/accounts.zig");
+const consensus = @import("common/consensus");
+const Prng = @import("testing/prng").Prng;
+const accounts = @import("batcher/devnet").accounts;
 
 /// Scripted L1: tracks the mined nonce and records sent transactions.
 const FakeL1 = struct {
@@ -1122,7 +1122,7 @@ test "txmgr: nonces, confirmation, resubmission with bumped fees" {
 }
 
 test "txmgr: blob mode sends a 4844 tx committing to the frame and doubles fees on bump" {
-    const rlp = @import("../../common/rlp/root.zig");
+    const rlp = @import("common/rlp");
     const batcher = accounts.derive_dev(@backingInt(accounts.Role.batcher));
     var l1: FakeL1 = .{ .mined_nonce = 0 };
     var client = try rpc.Client.init(testing.allocator, l1.transport(), .{
@@ -1194,7 +1194,7 @@ const ListFrames = struct {
 
 test "txmgr: sidecar version 1 sends 128 verified-shape cell proofs per blob" {
     if (!kzg_cells_heavy) return error.SkipZigTest; // FK20 setup takes minutes in Debug.
-    const rlp = @import("../../common/rlp/root.zig");
+    const rlp = @import("common/rlp");
     const batcher = accounts.derive_dev(@backingInt(accounts.Role.batcher));
     var l1: FakeL1 = .{ .mined_nonce = 0 };
     var client = try rpc.Client.init(testing.allocator, l1.transport(), .{
@@ -1235,7 +1235,7 @@ test "txmgr: sidecar version 1 sends 128 verified-shape cell proofs per blob" {
     try testing.expectEqualSlices(u8, &first_proof, &slot.cell_proofs.?[1][127]);
 }
 
-const kzg_cells_heavy = @import("../../common/crypto/kzg/root.zig").cells.heavy_tests;
+const kzg_cells_heavy = @import("common/crypto").kzg.cells.heavy_tests;
 
 test "txmgr: blob mode packs up to blobs_per_tx frames per transaction" {
     const batcher = accounts.derive_dev(@backingInt(accounts.Role.batcher));

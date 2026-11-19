@@ -9,7 +9,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const http = @import("../http/root.zig");
+const http = @import("utilities/http");
 
 /// Handles health-check requests. Returns `true` when `response` has been filled.
 pub fn respond(
@@ -34,7 +34,7 @@ pub fn respond(
 
 /// The `healthz` JSON-RPC method result.
 pub fn write_healthz(version: []const u8, out: *std.Io.Writer) !void {
-    var writer = @import("../json/root.zig").Writer.init(out);
+    var writer = @import("utilities/json").Writer.init(out);
     try writer.begin_object();
     try writer.key("version");
     try writer.string(version);

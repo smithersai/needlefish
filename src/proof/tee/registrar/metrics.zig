@@ -8,7 +8,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const telemetry = @import("../../telemetry/root.zig");
+const telemetry = @import("proof/telemetry");
 const types = @import("types.zig");
 
 pub const Stage = enum {

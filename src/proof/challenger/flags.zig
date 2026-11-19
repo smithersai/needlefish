@@ -5,8 +5,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
-const proposer_config = @import("../proposer/config.zig");
+const json = @import("utilities/json");
+const proposer_config = @import("proof/proposer").config;
 const bond = @import("bond.zig");
 const chain = @import("chain.zig");
 const config_module = @import("config.zig");
@@ -242,7 +242,7 @@ test "challenger flags: defaults, lists and validation" {
 }
 
 test "challenger flags: fuzz" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             const names = [_][]const u8{

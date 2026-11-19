@@ -18,11 +18,11 @@ const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
 const object = @import("json_object.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const ordered = @import("../../execution/trie/ordered.zig");
-const providers = @import("../derive/providers.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
+const ordered = @import("execution/trie").ordered;
+const providers = @import("consensus/derive").providers;
 
 const Address = primitives.Address;
 const B256 = primitives.B256;

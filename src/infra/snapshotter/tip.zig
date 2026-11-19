@@ -5,7 +5,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../batcher/rpc/root.zig");
+const rpc = @import("batcher/rpc");
 
 /// base/base default freshness window.
 pub const freshness_default_s: u64 = 10;

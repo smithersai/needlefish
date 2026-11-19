@@ -13,12 +13,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const derive = @import("../../consensus/derive/root.zig");
+const preimage = @import("proof/preimage");
+const kzg = @import("common/crypto").kzg;
+const keccak = @import("common/crypto").keccak;
+const primitives = @import("common/primitives");
+const protocol = @import("consensus/protocol");
+const derive = @import("consensus/derive");
 const hint = @import("hint.zig");
 
 const B256 = primitives.B256;
@@ -136,7 +136,7 @@ pub fn root_bytes(settings: *const kzg.blob.Settings, index: u32) [32]u8 {
 
 const testing = std.testing;
 const builtin = @import("builtin");
-const test_oracle = @import("../test_oracle.zig");
+const test_oracle = @import("proof/test_oracle");
 
 var test_storage: kzg.blob.Settings.Storage = undefined;
 var test_workspace: kzg.blob.Workspace = undefined;

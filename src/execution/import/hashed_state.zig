@@ -95,8 +95,8 @@ pub fn compute(
 }
 
 const testing = std.testing;
-const trie = @import("../trie/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const trie = @import("execution/trie");
+const Prng = @import("testing/prng").Prng;
 
 const SliceEntries = struct {
     entries: []const Entry,

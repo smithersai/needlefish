@@ -6,8 +6,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const manager = @import("../tx_manager/manager.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const manager = @import("infra/tx_manager").manager;
+const Prng = @import("testing/prng").Prng;
 
 const failure_count = std.enums.values(manager.Failure).len;
 

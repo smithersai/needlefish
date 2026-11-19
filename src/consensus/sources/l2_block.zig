@@ -9,13 +9,13 @@ const assert = std.debug.assert;
 
 const object = @import("json_object.zig");
 const header_json = @import("header_json.zig");
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 
 const L2BlockInfo = protocol.block.L2BlockInfo;
-const B256 = @import("../../common/primitives/root.zig").B256;
+const B256 = @import("common/primitives").B256;
 const RollupConfig = protocol.rollup_config.RollupConfig;
 const SystemConfig = protocol.system_config.SystemConfig;
-const l2_system_config = @import("../protocol/l2_system_config.zig");
+const l2_system_config = @import("consensus/protocol").l2_system_config;
 const ChainGenesis = protocol.rollup_config.ChainGenesis;
 const L1BlockInfo = protocol.l1_info.L1BlockInfo;
 

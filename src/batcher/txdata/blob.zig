@@ -7,10 +7,10 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const consensus = @import("../../common/consensus/root.zig");
+const consensus = @import("common/consensus");
 const signature = consensus.signature;
-const rlp = @import("../../common/rlp/root.zig");
-const kzg = @import("../blobs/kzg.zig");
+const rlp = @import("common/rlp");
+const kzg = @import("batcher/blobs").kzg;
 const root = @import("root.zig");
 
 pub const blob_gas_per_blob: u64 = 1 << 17;
@@ -148,7 +148,7 @@ pub fn blob_base_fee(excess_blob_gas: u64) u128 {
 }
 
 const testing = std.testing;
-const accounts = @import("../devnet/accounts.zig");
+const accounts = @import("batcher/devnet").accounts;
 
 test "blob tx: base fee matches the EIP-4844 reference points" {
     try testing.expectEqual(@as(u128, 1), blob_base_fee(0));
@@ -157,7 +157,7 @@ test "blob tx: base fee matches the EIP-4844 reference points" {
     try testing.expectEqual(@as(u128, 2), blob_base_fee(blob_base_fee_update_fraction));
     try testing.expectEqual(@as(u128, 7), blob_base_fee(2 * blob_base_fee_update_fraction));
     var previous: u128 = 0;
-    var prng = @import("../../testing/prng.zig").Prng.init(0xb10b);
+    var prng = @import("testing/prng").Prng.init(0xb10b);
     for (0..64) |_| {
         const fee = blob_base_fee(prng.below(200_000_000));
         try testing.expect(fee >= 1);
@@ -210,7 +210,7 @@ test "blob tx: version 1 sidecar carries the wrapper version and 128 cell proofs
 }
 
 test "blob tx: seeded fuzz of sidecar lengths across versions and blob counts" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x7594);
+    var prng = @import("testing/prng").Prng.init(0x7594);
     for (0..32) |_| try check_sidecar_length(&prng);
 }
 
@@ -221,7 +221,7 @@ test "blob tx: fuzz sidecar lengths" {
 fn fuzz_sidecar_length(_: void, smith: *testing.Smith) anyerror!void {
     var bytes: [8]u8 = @splat(0);
     _ = smith.slice(&bytes);
-    var prng = @import("../../testing/prng.zig").Prng.init(std.mem.readInt(u64, &bytes, .little));
+    var prng = @import("testing/prng").Prng.init(std.mem.readInt(u64, &bytes, .little));
     try check_sidecar_length(&prng);
 }
 

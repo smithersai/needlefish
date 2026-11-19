@@ -14,8 +14,8 @@ const secp256k1 = @import("../peers/secp256k1.zig");
 const packet = @import("packet.zig");
 const messages = @import("messages.zig");
 const session_module = @import("session.zig");
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 const chain_id = 8453;
 const node_count_max = 24;

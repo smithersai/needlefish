@@ -7,7 +7,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 pub const Limb = u64;
 pub const limb_bits = 64;

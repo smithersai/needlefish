@@ -101,7 +101,7 @@ pub fn Peerstore(comptime Info: type) type {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn test_peer(value: u8) peer_id.PeerId {
     var key: [33]u8 = @splat(value);
@@ -188,7 +188,7 @@ fn reference_victim(touched: []const u64, connected: []const bool) usize {
 }
 
 test "peerstore: fuzz bytes drive put and set_connected without breaking bounds" {
-    const fuzz = @import("../../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run_bytes({}, fuzz_operations, .{});
 }
 

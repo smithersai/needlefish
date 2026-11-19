@@ -223,8 +223,8 @@ pub fn decrypt(
 
 const testing = std.testing;
 const StdAead = std.crypto.aead.chacha_poly.ChaCha20Poly1305;
-const Prng = @import("../../../testing/prng.zig").Prng;
-const fuzz = @import("../../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 
 test "chacha_poly: RFC 8439 section 2.8.2 vector" {
     const plaintext = "Ladies and Gentlemen of the class of '99: If I could offer you only one " ++

@@ -6,8 +6,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
 
 pub const Address = [20]u8;
 pub const Hash = [32]u8;
@@ -274,7 +274,7 @@ test "endpoint: JSON value helpers" {
 }
 
 test "endpoint: fuzz the JSON value helpers" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             var text: [80]u8 = undefined;

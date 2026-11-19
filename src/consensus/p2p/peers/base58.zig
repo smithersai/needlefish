@@ -87,8 +87,8 @@ pub fn decode(output: []u8, input: []const u8) Error![]u8 {
     return output[0..length];
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 test "base58: known vectors" {
     // From the IETF base58 draft.

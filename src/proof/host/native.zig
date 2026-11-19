@@ -6,12 +6,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
-const client = @import("../client/root.zig");
-const program = @import("../program/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const crypto = @import("../../common/crypto/root.zig");
+const preimage = @import("proof/preimage");
+const client = @import("proof/client");
+const program = @import("proof/program");
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
+const crypto = @import("common/crypto");
 const handler_module = @import("handler.zig");
 const offline = @import("offline.zig");
 const store_module = @import("store.zig");
@@ -52,7 +52,7 @@ pub fn run(
     allocator: std.mem.Allocator,
     store: *store_module.Store,
     source: handler_module.Source,
-    roots_brp: ?*const [@import("../../common/crypto/kzg/root.zig").field_elements_per_blob][32]u8,
+    roots_brp: ?*const [@import("common/crypto").kzg.field_elements_per_blob][32]u8,
     options: client.client.Options,
     witness: ?*store_module.Store,
 ) Error!offline.Verdict {

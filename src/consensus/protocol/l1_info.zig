@@ -14,8 +14,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const chains = @import("../../common/chains/root.zig");
+const primitives = @import("common/primitives");
+const chains = @import("common/chains");
 const Address = primitives.Address;
 const B256 = primitives.B256;
 const rollup_config = @import("rollup_config.zig");
@@ -331,7 +331,7 @@ pub fn build(
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn from_hex(comptime text: []const u8) [text.len / 2]u8 {
     return primitives.hex.decode_array(text.len / 2, text) catch unreachable;

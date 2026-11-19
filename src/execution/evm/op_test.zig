@@ -207,7 +207,7 @@ test "op: Canyon and Everest state transitions" {
     const deployer = try h.state.load(op_stack.create2_deployer);
     const code = try h.state.code(deployer);
     try testing.expectEqual(@as(usize, 1584), code.len);
-    const keccak = @import("../../common/crypto/root.zig").keccak256;
+    const keccak = @import("common/crypto").keccak256;
     const expected = primitives.hex_to_b256(
         "b0550b5b431e30d38000efb7107aaa0ade03d48a7198a140edda9d27134468b2",
     );
@@ -225,8 +225,8 @@ test "op: Canyon and Everest state transitions" {
 }
 
 const native = @import("native.zig");
-const fuzz = @import("../../testing/fuzz.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 fn native_call(h: *Harness, to: Address, data: []const u8, value: u256) !transaction.Executed {
     return native_call_gas(h, to, data, value, 200_000);
@@ -949,7 +949,7 @@ test "op: B-20 permit meters base/base's second, warm nonce read" {
     try token_setup(&h);
     defer h.deinit(testing.allocator);
     h.evm.block.op = .{ .upgrade = .cobalt, .activation_admin = sender_address };
-    const secp256k1 = @import("../../common/crypto/root.zig").secp256k1;
+    const secp256k1 = @import("common/crypto").secp256k1;
     const key: [32]u8 = @splat(0x42);
     const owner = try secp256k1.address(key);
     const deadline: u256 = 1 << 40;

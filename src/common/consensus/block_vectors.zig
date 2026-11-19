@@ -5,8 +5,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const rlp = @import("../rlp/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 const block_module = @import("block.zig");
 const Block = block_module.Block;
 const B256 = primitives.B256;
@@ -176,7 +176,7 @@ fn record(
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "block vectors: curated ethereum/tests BlockchainTests" {
     const text = @embedFile("testdata/block_vectors.json");

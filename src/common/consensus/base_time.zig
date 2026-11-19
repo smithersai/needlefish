@@ -6,7 +6,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
+const primitives = @import("common/primitives");
 const tx_module = @import("tx.zig");
 const predeploys = @import("predeploys.zig");
 const B256 = primitives.B256;
@@ -134,7 +134,7 @@ pub fn validate_block_timestamp(
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "base time: calldata" {
     const calldata = encode_calldata(600);
@@ -180,7 +180,7 @@ test "base time: deposit round trip and validation" {
 }
 
 test "base time: source hash matches consensus deposits" {
-    const deposits = @import("../../consensus/protocol/deposits.zig");
+    const deposits = @import("consensus/protocol").deposits;
     for ([_]u64{ 0, 1, 1_000_000, std.math.maxInt(u64) }) |number| {
         try testing.expect(source_hash(number).eql(deposits.base_time_source_hash(number)));
     }

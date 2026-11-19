@@ -18,11 +18,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const endpoint_module = @import("../rpc/endpoint.zig");
-const raw_json = @import("../rpc/raw_json.zig");
-const json = @import("../../utilities/json/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
+const endpoint_module = @import("proof/rpc").endpoint;
+const raw_json = @import("proof/rpc").raw_json;
+const json = @import("utilities/json");
+const rlp = @import("common/rlp");
+const consensus = @import("common/consensus");
 const handler_module = @import("handler.zig");
 
 const Hash = [32]u8;

@@ -7,25 +7,25 @@
 //! path a consensus client uses, then immediately made head, safe and finalized.
 
 const std = @import("std");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const genesis_types = @import("../../common/genesis/root.zig");
-const chainspec = @import("../chainspec/root.zig");
-const payload = @import("../payload/root.zig");
-const txpool = @import("../txpool/root.zig");
-const engine_module = @import("../engine/root.zig");
-const eth = @import("../rpc/eth.zig");
-const send_sync = @import("../rpc/send_sync.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const filters_module = @import("../rpc/filters.zig");
-const engine_rpc = @import("../rpc/engine.zig");
-const jwt = @import("../../utilities/jwt/root.zig");
-const http = @import("../../utilities/http/root.zig");
+const primitives = @import("common/primitives");
+const genesis_types = @import("common/genesis");
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
+const txpool = @import("execution/txpool");
+const engine_module = @import("execution/engine");
+const eth = @import("execution/rpc").eth;
+const send_sync = @import("execution/rpc").eth.send_sync;
+const rpc = @import("utilities/rpc");
+const filters_module = @import("execution/rpc").filters;
+const engine_rpc = @import("execution/rpc").engine;
+const jwt = @import("utilities/jwt");
+const http = @import("utilities/http");
 /// Parked eth_sendRawTransactionSync calls (each holds an HTTP connection).
 const sync_waiters_max = 64;
-const io_module = @import("../../utilities/io/root.zig");
-const log = @import("../../utilities/log/root.zig");
+const io_module = @import("utilities/io");
+const log = @import("utilities/log");
 const Executor = @import("executor.zig").Executor;
 const executor_module = @import("executor.zig");
 const StateDb = @import("state_db.zig").StateDb;
@@ -34,12 +34,12 @@ const chain_module = @import("chain.zig");
 const genesis_loader = @import("genesis.zig");
 const beacon_module = @import("beacon.zig");
 const durable_module = @import("durable.zig");
-const db_module = @import("../db/root.zig");
-const io_storage = @import("../db/storage/io_storage.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const kzg_blob = @import("../../common/crypto/kzg/root.zig").blob;
-const kzg_cells = @import("../../common/crypto/kzg/root.zig").cells;
-const node_builder_module = @import("../../builder/core/node_builder.zig");
+const db_module = @import("execution/db");
+const io_storage = @import("execution/db").storage.io_storage;
+const consensus = @import("common/consensus");
+const kzg_blob = @import("common/crypto").kzg.blob;
+const kzg_cells = @import("common/crypto").kzg.cells;
+const node_builder_module = @import("builder/core").node_builder;
 
 pub const NodeBuilderConfig = node_builder_module.Config;
 

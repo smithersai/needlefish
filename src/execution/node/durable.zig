@@ -19,13 +19,13 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const db_module = @import("../db/root.zig");
-const genesis_module = @import("../../common/genesis/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const evm = @import("../evm/root.zig");
+const db_module = @import("execution/db");
+const genesis_module = @import("common/genesis");
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
+const evm = @import("execution/evm");
 const chain_module = @import("chain.zig");
-const StateTrie = @import("../trie/state_trie.zig").StateTrie;
+const StateTrie = @import("execution/trie").state_trie.StateTrie;
 
 const Hash = [32]u8;
 const BlockInput = db_module.database.BlockInput;

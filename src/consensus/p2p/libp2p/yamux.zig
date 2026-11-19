@@ -583,8 +583,8 @@ pub fn Session(comptime stream_count_max: u16) type {
     };
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 const testing = std.testing;
 
 const TestSession = Session(4);

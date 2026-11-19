@@ -294,8 +294,8 @@ fn check_transaction(
 
 const testing = std.testing;
 const Harness = @import("evm_test.zig").Harness;
-const fuzz = @import("../../testing/fuzz.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 /// One EIP-1559 call to a contract that runs `MSTORE(0, 0x2a); LOG1(0, 32, 7)`:
 /// 21000 intrinsic + 15 (five PUSH1) + 6 (MSTORE and one word) + 1006 (LOG1) = 22027 gas.

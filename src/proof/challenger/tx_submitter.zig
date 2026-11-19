@@ -13,7 +13,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const submission = @import("../submission/root.zig");
+const submission = @import("proof/submission");
 const chain = @import("chain.zig");
 
 const Failure = submission.sender.Failure;

@@ -9,12 +9,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const json = std.json;
-const rpc = @import("../rpc/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const l1_info = @import("../../consensus/protocol/l1_info.zig");
-const rlp = @import("../../common/rlp/root.zig");
+const rpc = @import("batcher/rpc");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const protocol = @import("consensus/protocol");
+const l1_info = @import("consensus/protocol").l1_info;
+const rlp = @import("common/rlp");
 
 const B256 = primitives.B256;
 const Address = primitives.Address;
@@ -293,8 +293,8 @@ fn legacy_from_json(
 }
 
 const testing = std.testing;
-const txdata = @import("../txdata/root.zig");
-const accounts = @import("../devnet/accounts.zig");
+const txdata = @import("batcher/txdata");
+const accounts = @import("batcher/devnet").accounts;
 
 /// Writes the JSON object for a signed typed or legacy transaction, as a node would.
 fn write_tx_json(w: *std.Io.Writer, envelope: consensus.Envelope) !void {
@@ -395,7 +395,7 @@ test "source: decodes a block with an L1 info deposit, a 1559 and a legacy tx" {
     try testing.expectEqualSlices(u8, legacy.encode_to(&raw), block.transactions[1]);
 
     // Seeded mutation fuzz: corrupted node responses fail cleanly, never crash.
-    var prng = @import("../../testing/prng.zig").Prng.init(0x736f7572);
+    var prng = @import("testing/prng").Prng.init(0x736f7572);
     var mutated: [8192]u8 = undefined;
     const original = w.buffered();
     for (0..300) |_| {

@@ -6,10 +6,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
-const program = @import("../program/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const trie = @import("../../execution/trie/root.zig");
+const preimage = @import("proof/preimage");
+const program = @import("proof/program");
+const keccak = @import("common/crypto").keccak;
+const trie = @import("execution/trie");
 
 const Hash = [32]u8;
 const Allocator = std.mem.Allocator;
@@ -190,7 +190,7 @@ test "store: ordered lists store every node the walker needs" {
         .channel_bytes = 4096,
     });
     defer harness.deinit(testing.allocator);
-    const mpt = @import("../mpt/root.zig");
+    const mpt = @import("proof/mpt");
     var resolver: mpt.OracleResolver = try .init(testing.allocator, harness.oracle_reader(), .{
         .bytes_max = 1 << 16,
         .entries_max = 256,

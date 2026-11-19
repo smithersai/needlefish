@@ -7,7 +7,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const secp256k1 = @import("secp256k1.zig");
 const peer_id = @import("peer_id.zig");
-const hex = @import("../../../common/primitives/hex.zig");
+const hex = @import("common/primitives").hex;
 
 pub const Error = error{ InvalidHex, InvalidSecretKey };
 
@@ -61,7 +61,7 @@ pub fn generate(random: std.Random) NodeKey {
     @panic("node_key: random source produced 64 invalid scalars");
 }
 
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "node_key: generate, save, load" {
     var prng = Prng.init(0x6b6579);

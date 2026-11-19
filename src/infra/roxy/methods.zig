@@ -9,7 +9,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
+const json = @import("utilities/json");
 const allowlist_module = @import("allowlist.zig");
 
 pub const batch_max = 100;
@@ -247,7 +247,7 @@ fn check_arbitrary(body: []const u8) !void {
 }
 
 test "methods: seeded fuzz" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x3e7);
+    var prng = @import("testing/prng").Prng.init(0x3e7);
     const pieces = [_][]const u8{
         "{",            "}", "[",          "]",
         ",",            ":", "\"method\"", "\"id\"",

@@ -15,11 +15,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const upgrade_signal = @import("../../utilities/upgrade_signal/root.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const upgrade_signal = @import("utilities/upgrade_signal");
 const rollup = @import("rollup.zig");
-const RollupConfig = @import("../protocol/rollup_config.zig").RollupConfig;
+const RollupConfig = @import("consensus/protocol").rollup_config.RollupConfig;
 
 const Backend = rollup.Backend;
 const Call = rpc.Call;
@@ -273,7 +273,7 @@ fn upgrade_readiness(backend: *const Backend, call: *Call) HandlerError!void {
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn test_config(mode: Mode) Config {
     return .{ .node_version = Version.pack(1, 1, 0, 0), .mode = mode, .halt_lead_s = 1_800 };
@@ -368,7 +368,7 @@ fn stub_backend(node: *StubNode, rollup_config: *const RollupConfig) Backend {
         fn output(_: *anyopaque, _: rollup.BlockTag) OutputError!rollup.OutputAtBlock {
             return error.NotAvailable;
         }
-        fn safe_db(_: *anyopaque) ?*const @import("../safedb/root.zig").SafeDB {
+        fn safe_db(_: *anyopaque) ?*const @import("consensus/safedb").SafeDB {
             return null;
         }
         const vtable: Backend.VTable = .{

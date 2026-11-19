@@ -16,7 +16,7 @@ const checkpoint_module = @import("storage/checkpoint.zig");
 const SimStorage = @import("storage/sim_storage.zig").SimStorage;
 const state_module = @import("state.zig");
 const overlay_module = @import("overlay.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Hash = database.Hash;
 const HeadInfo = database.HeadInfo;

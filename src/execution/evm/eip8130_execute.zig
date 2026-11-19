@@ -31,9 +31,9 @@ const apply = @import("eip8130_apply.zig");
 const tx_module = @import("eip8130_tx.zig");
 const nonce = @import("eip8130_nonce.zig");
 const Fork = @import("fork.zig").Fork;
-const eip8130 = @import("../../common/consensus/eip8130.zig");
-const eip8130_gas = @import("../../common/consensus/eip8130_gas.zig");
-const common_primitives = @import("../../common/primitives/root.zig");
+const eip8130 = @import("common/consensus").eip8130;
+const eip8130_gas = @import("common/consensus").eip8130_gas;
+const common_primitives = @import("common/primitives");
 
 const Address = primitives.Address;
 const B256 = primitives.B256;

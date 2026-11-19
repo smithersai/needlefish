@@ -11,10 +11,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../protocol/root.zig");
-const errors = @import("../derive/errors.zig");
-const attributes_module = @import("../derive/attributes.zig");
-const attributes_queue = @import("../derive/attributes_queue.zig");
+const protocol = @import("consensus/protocol");
+const errors = @import("consensus/derive").errors;
+const attributes_module = @import("consensus/derive").attributes;
+const attributes_queue = @import("consensus/derive").attributes_queue;
 const origin_module = @import("origin.zig");
 
 const BlockInfo = protocol.block.BlockInfo;
@@ -134,7 +134,7 @@ pub fn build_on(
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const TestChain = @import("../derive/test_chain.zig").TestChain;
+const TestChain = @import("consensus/derive").test_chain.TestChain;
 const L1BlobSchedule = protocol.l1_info.L1BlobSchedule;
 
 const Fixture = struct {
@@ -222,7 +222,7 @@ test "sequencer build: pool disabled past drift and on upgrade blocks" {
 }
 
 test "sequencer build: seeded fuzz never builds on an unrelated origin" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x5e9);
+    var prng = @import("testing/prng").Prng.init(0x5e9);
     for (0..64) |_| {
         var fixture: Fixture = undefined;
         fixture.init();

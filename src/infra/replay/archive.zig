@@ -43,8 +43,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const db = @import("../../execution/db/root.zig");
-const trie = @import("../../execution/trie/root.zig");
+const db = @import("execution/db");
+const trie = @import("execution/trie");
 
 const codec = db.witness_codec;
 const witness_module = db.witness;

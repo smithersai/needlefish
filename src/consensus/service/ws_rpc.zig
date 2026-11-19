@@ -13,13 +13,13 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const ws = @import("../../utilities/ws/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const rpc_ws = @import("../../utilities/rpc/ws.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const protocol = @import("../protocol/root.zig");
-const rollup_rpc = @import("../rpc/rollup.zig");
-const SyncState = @import("../engine/state.zig").SyncState;
+const ws = @import("utilities/ws");
+const json = @import("utilities/json");
+const rpc_ws = @import("utilities/rpc").ws;
+const rpc = @import("utilities/rpc");
+const protocol = @import("consensus/protocol");
+const rollup_rpc = @import("consensus/rpc").rollup;
+const SyncState = @import("consensus/engine").state.SyncState;
 
 const L2BlockInfo = protocol.block.L2BlockInfo;
 const ConnectionId = ws.server.ConnectionId;
@@ -324,7 +324,7 @@ test "ws rpc: parse_subscription_id" {
 }
 
 test "ws rpc: seeded fuzz over parse_subscription_id" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x75);
+    var prng = @import("testing/prng").Prng.init(0x75);
     const alphabet = "[]\"0x1fz -9,";
     for (0..2048) |_| {
         var buffer: [12]u8 = undefined;
@@ -358,8 +358,8 @@ test "ws rpc: notification format" {
     , out.buffered());
 }
 
-const sim_io = @import("../../utilities/io/root.zig");
-const rpc_client = @import("../../utilities/rpc/client.zig");
+const sim_io = @import("utilities/io");
+const rpc_client = @import("utilities/rpc").client;
 const SimIo = sim_io.SimIo;
 const SimWsRpc = WsRpc(SimIo);
 
@@ -378,7 +378,7 @@ const StubBackend = struct {
     ) error{ NotAvailable, NotFound }!rollup_rpc.OutputAtBlock {
         return error.NotAvailable;
     }
-    fn db_of(_: *anyopaque) ?*const @import("../safedb/root.zig").SafeDB {
+    fn db_of(_: *anyopaque) ?*const @import("consensus/safedb").SafeDB {
         return null;
     }
 };

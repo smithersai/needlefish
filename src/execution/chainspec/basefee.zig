@@ -221,7 +221,7 @@ test "basefee: fuzz" {
 }
 
 test "basefee: seeded fuzz" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x1559);
+    var prng = @import("testing/prng").Prng.init(0x1559);
     for (0..10_000) |_| {
         const params = BaseFeeParams.init(prng.range(1, 1 << 32), prng.range(1, 1 << 32));
         const limit = prng.int(u64) >> @intCast(prng.below(64));

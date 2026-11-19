@@ -11,14 +11,14 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 const Writer = std.Io.Writer;
-const rpc = @import("../rpc/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const frame_module = @import("../../consensus/protocol/frame.zig");
-const batch_module = @import("../../consensus/protocol/batch.zig");
-const batch_reader = @import("../../consensus/protocol/batch_reader.zig");
-const blobs = @import("../blobs/root.zig");
-const blob_tx = @import("../txdata/blob.zig");
+const rpc = @import("batcher/rpc");
+const primitives = @import("common/primitives");
+const protocol = @import("consensus/protocol");
+const frame_module = @import("consensus/protocol").frame;
+const batch_module = @import("consensus/protocol").batch;
+const batch_reader = @import("consensus/protocol").batch_reader;
+const blobs = @import("batcher/blobs");
+const blob_tx = @import("batcher/txdata").blob;
 
 const Address = primitives.Address;
 
@@ -281,9 +281,9 @@ fn print_batches(
 }
 
 const testing = std.testing;
-const manager_module = @import("../channel/manager.zig");
-const source = @import("../source/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const manager_module = @import("batcher/channel").manager;
+const source = @import("batcher/source");
+const Prng = @import("testing/prng").Prng;
 
 test "inspect: decodes the batches a channel manager produced" {
     var manager = try manager_module.Manager.init(testing.allocator, .{

@@ -9,7 +9,7 @@ const Pool = txpool.Pool;
 const Tx = txpool.Tx;
 const Address = txpool.Address;
 const B256 = txpool.B256;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const small_classes = [_]txpool.slab.Class{
     .{ .size_bytes = 64, .count = 64 },

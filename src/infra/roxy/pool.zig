@@ -262,7 +262,7 @@ fn check_operations(bytes: []const u8) !void {
 }
 
 test "pool: seeded fuzz" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x9001);
+    var prng = @import("testing/prng").Prng.init(0x9001);
     var bytes: [512]u8 = undefined;
     for (0..500) |_| {
         const size = prng.below(bytes.len);

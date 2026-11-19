@@ -16,7 +16,7 @@ const discovery_module = @import("discovery.zig");
 const signer_manager = @import("signer_manager.zig");
 const driver_module = @import("driver.zig");
 const planner = @import("planner.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Address = types.Address;
 const Hash = types.Hash;
@@ -258,7 +258,7 @@ test "registrar driver: exporter reports counters and progress" {
     const sim = try Sim.create(false);
     defer sim.destroy();
     sim.driver.step();
-    const telemetry = @import("../../telemetry/root.zig");
+    const telemetry = @import("proof/telemetry");
     var clock: telemetry.FakeClock = .{ .now_ns = 5 };
     var exporter: metrics.Exporter = undefined;
     try exporter.init(clock.clock(), .{ .version = "test", .poll_interval_ns = 1 });

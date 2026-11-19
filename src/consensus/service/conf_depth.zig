@@ -9,8 +9,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../protocol/root.zig");
-const ProviderError = @import("../derive/errors.zig").ProviderError;
+const protocol = @import("consensus/protocol");
+const ProviderError = @import("consensus/derive").errors.ProviderError;
 
 const BlockInfo = protocol.block.BlockInfo;
 const Hash = protocol.block.Hash;
@@ -81,8 +81,8 @@ pub fn ConfDepth(comptime L1: type) type {
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const TestChain = @import("../derive/test_chain.zig").TestChain;
-const Prng = @import("../../testing/prng.zig").Prng;
+const TestChain = @import("consensus/derive").test_chain.TestChain;
+const Prng = @import("testing/prng").Prng;
 
 test "conf depth: hides blocks within depth of the head; zero depth passes through" {
     var chain = TestChain.init(8, 0, 12);

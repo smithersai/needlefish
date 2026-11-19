@@ -1,9 +1,9 @@
 const std = @import("std");
 
-const io = @import("../io/root.zig");
-const http = @import("../http/root.zig");
-const json = @import("../json/root.zig");
-const rpc = @import("../rpc/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
 const l1_head = @import("root.zig");
 
 const Address = io.Address;
@@ -217,7 +217,7 @@ fn parse_arbitrary(raw: []const u8) void {
 }
 
 test "l1_head: seeded fuzz parsers" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x11ead);
+    var prng = @import("testing/prng").Prng.init(0x11ead);
     const pieces = [_][]const u8{
         "{",    "}",          ":",        ",",        "[",            "]",            "12",
         "null", "\"number\"", "\"hash\"", "\"0x1f\"", "\"blockRef\"", "\"l1origin\"", "\"0xab\"",

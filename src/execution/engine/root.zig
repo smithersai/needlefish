@@ -15,9 +15,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const chainspec = @import("../chainspec/root.zig");
-const payload = @import("../payload/root.zig");
+const primitives = @import("common/primitives");
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
 pub const types = @import("types.zig");
 pub const block = @import("block.zig");
 

@@ -10,8 +10,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../json/root.zig");
-const ws = @import("../ws/root.zig");
+const json = @import("utilities/json");
+const ws = @import("utilities/ws");
 const client_module = @import("client.zig");
 
 pub const Result = client_module.Result;

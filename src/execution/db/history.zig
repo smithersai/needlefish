@@ -21,9 +21,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const trie = @import("../trie/root.zig");
+const trie = @import("execution/trie");
 const changeset_module = @import("changeset.zig");
-const lazy_alloc = @import("../../utilities/lazy_alloc/root.zig");
+const lazy_alloc = @import("utilities/lazy_alloc");
 const PathIndex = @import("path_index.zig").PathIndex;
 const IndexSlot = @import("path_index.zig").Slot;
 pub const proof_set = @import("proof_set.zig");

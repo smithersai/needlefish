@@ -14,7 +14,7 @@ const validator = @import("validator.zig");
 const proof_manager_module = @import("proof_manager.zig");
 const bond = @import("bond.zig");
 const anchor = @import("anchor.zig");
-const contracts = @import("../contracts/root.zig");
+const contracts = @import("proof/contracts");
 
 const Hash = chain.Hash;
 const CandidateGame = scanner_module.CandidateGame;

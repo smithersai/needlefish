@@ -13,16 +13,16 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const clients = @import("../rpc/clients.zig");
-const endpoint_module = @import("../rpc/endpoint.zig");
-const abi = @import("../contracts/abi.zig");
-const factory = @import("../contracts/dispute_game_factory.zig");
-const verifier = @import("../contracts/aggregate_verifier.zig");
-const registry = @import("../contracts/anchor_state_registry.zig");
-const weth = @import("../contracts/delayed_weth.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const crypto = @import("../../common/crypto/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
+const clients = @import("proof/rpc").clients;
+const endpoint_module = @import("proof/rpc").endpoint;
+const abi = @import("proof/contracts").abi;
+const factory = @import("proof/contracts").dispute_game_factory;
+const verifier = @import("proof/contracts").aggregate_verifier;
+const registry = @import("proof/contracts").anchor_state_registry;
+const weth = @import("proof/contracts").delayed_weth;
+const consensus = @import("common/consensus");
+const crypto = @import("common/crypto");
+const rlp = @import("common/rlp");
 const chain = @import("chain.zig");
 
 const Address = chain.Address;

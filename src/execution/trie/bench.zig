@@ -13,7 +13,7 @@ const ordered = @import("ordered.zig");
 const state = @import("state_trie.zig");
 const HashBuilder = @import("hash_builder.zig").HashBuilder;
 const Nibbles = @import("nibbles.zig").Nibbles;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 pub const Case = struct {
     name: []const u8,

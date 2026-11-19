@@ -5,16 +5,16 @@
 const std = @import("std");
 const testing = std.testing;
 
-const trie = @import("../../execution/trie/root.zig");
-const preimage = @import("../preimage/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
-const fuzz = @import("../../testing/fuzz.zig");
+const trie = @import("execution/trie");
+const preimage = @import("proof/preimage");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 const list_walker = @import("list_walker.zig");
 const oracle_resolver = @import("oracle_resolver.zig");
 const OracleResolver = oracle_resolver.OracleResolver;
 const ResolverError = oracle_resolver.Error;
 const Hash = trie.Hash;
-const test_oracle = @import("../test_oracle.zig");
+const test_oracle = @import("proof/test_oracle");
 const MapStore = test_oracle.MapStore;
 const store_list = test_oracle.store_list;
 

@@ -17,10 +17,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Smith = std.testing.Smith;
-const fuzz = @import("fuzz.zig");
-const Prng = @import("prng.zig").Prng;
-const preimage = @import("../proof/preimage/root.zig");
-const keccak = @import("../common/crypto/keccak.zig");
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
+const preimage = @import("proof/preimage");
+const keccak = @import("common/crypto").keccak;
 
 const Key = preimage.Key;
 const Duplex = preimage.Duplex;

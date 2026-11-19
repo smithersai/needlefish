@@ -1,9 +1,9 @@
 const std = @import("std");
 
-const io = @import("../io/root.zig");
-const http = @import("../http/root.zig");
-const json = @import("../json/root.zig");
-const rpc = @import("../rpc/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
 const upgrade_signal = @import("root.zig");
 const contract = upgrade_signal.contract;
 
@@ -229,7 +229,7 @@ test "upgrade_signal: observer polls, detects changes, and keeps the last schedu
         }
         observer.deinit();
     }
-    var registry: @import("../metrics/root.zig").Registry(128) = .{};
+    var registry: @import("utilities/metrics").Registry(128) = .{};
     try observer.register(&registry);
     const m = &observer.metrics;
     const s = std.time.ns_per_s;

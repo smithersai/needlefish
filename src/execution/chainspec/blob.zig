@@ -160,7 +160,7 @@ test "blob: fuzz" {
 }
 
 test "blob: seeded fuzz monotone base fee" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x4844);
+    var prng = @import("testing/prng").Prng.init(0x4844);
     for (0..2_000) |_| {
         const a = prng.below(1 << 30);
         const b = a + prng.below(1 << 20);

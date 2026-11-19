@@ -359,7 +359,7 @@ comptime {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const LiveState = struct {
     state: bool,

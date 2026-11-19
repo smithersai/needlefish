@@ -10,12 +10,12 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const chainspec = @import("../chainspec/root.zig");
-const evm = @import("../evm/root.zig");
-const node = @import("../node/root.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const primitives = @import("common/primitives");
+const chainspec = @import("execution/chainspec");
+const evm = @import("execution/evm");
+const node = @import("execution/node");
 const eth = @import("eth.zig");
 
 const Api = eth.Api;
@@ -213,7 +213,7 @@ fn write_contract(w: *json.Writer, name: []const u8, address: [20]u8) HandlerErr
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "eth_config: EIP-2124 fork hash of the mainnet genesis" {
     // EIP-2124 vector: mainnet genesis hash -> 0xfc64ec04 (no forks folded).

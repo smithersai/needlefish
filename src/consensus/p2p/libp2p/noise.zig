@@ -503,8 +503,8 @@ pub const Transport = struct {
     }
 };
 
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 fn test_config(prng: *Prng) Config {
     var config: Config = undefined;

@@ -295,7 +295,7 @@ pub fn tcp_endpoint(address: *const Multiaddr) ?TcpEndpoint {
     return null;
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 const secp256k1 = @import("secp256k1.zig");
 
 test "multiaddr: text round trip" {

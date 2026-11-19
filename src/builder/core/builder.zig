@@ -30,16 +30,16 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const flz = @import("../../common/flz/root.zig");
-const chainspec = @import("../../execution/chainspec/root.zig");
-const payload = @import("../../execution/payload/root.zig");
-const txpool = @import("../../execution/txpool/root.zig");
-const chain_module = @import("../../execution/node/chain.zig");
-const executor_module = @import("../../execution/node/executor.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const flz = @import("common/flz");
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
+const txpool = @import("execution/txpool");
+const chain_module = @import("execution/node").chain;
+const executor_module = @import("execution/node").executor;
 const best_txs = @import("best_txs.zig");
-const resource_module = @import("../metering/resource.zig");
+const resource_module = @import("builder/metering").resource;
 
 pub const ResourceMetering = resource_module.ResourceMetering;
 

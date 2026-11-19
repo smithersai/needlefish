@@ -13,12 +13,12 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const http_client = @import("../../utilities/http/client.zig");
-const protocol = @import("../protocol/root.zig");
-const l2_block_full = @import("../sources/l2_block_full.zig");
-const header_json = @import("../sources/header_json.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const http_client = @import("utilities/http").client;
+const protocol = @import("consensus/protocol");
+const l2_block_full = @import("consensus/sources").l2_block_full;
+const header_json = @import("consensus/sources").header_json;
 
 const BlockInfo = protocol.block.BlockInfo;
 pub const PayloadEnvelope = l2_block_full.PayloadEnvelope;
@@ -256,7 +256,7 @@ test "follow: verify_label skips out of range, flags hash mismatches" {
 }
 
 test "follow: seeded fuzz over verify_label" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xf011);
+    var prng = @import("testing/prng").Prng.init(0xf011);
     for (0..1024) |_| {
         const number = prng.below(64);
         const source: BlockInfo = .{ .number = number, .hash = .init(@splat(prng.int(u8))) };
@@ -271,10 +271,10 @@ test "follow: seeded fuzz over verify_label" {
     }
 }
 
-const sim_harness = @import("../sources/sim_harness.zig");
-const fixtures = @import("../sources/fixtures.zig");
+const sim_harness = @import("consensus/sources").sim_harness;
+const fixtures = @import("consensus/sources").fixtures;
 const FakeRpc = sim_harness.FakeRpc;
-const SimFollower = Follower(@import("../../utilities/io/root.zig").SimIo);
+const SimFollower = Follower(@import("utilities/io").SimIo);
 
 fn run_follower(
     harness: anytype,

@@ -330,8 +330,8 @@ fn block(iterations: u32) u64 {
     return gas_used;
 }
 
-const keccak256 = @import("../../common/crypto/root.zig").keccak256;
-const bench = @import("../../testing/bench.zig");
+const keccak256 = @import("common/crypto").keccak256;
+const bench = @import("testing/bench");
 const Case = bench.Case;
 
 /// `just vectors` fetches the public snailtracer bytecode (revm's bench fixture) here.

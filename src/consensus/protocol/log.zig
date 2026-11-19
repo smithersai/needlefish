@@ -1,7 +1,7 @@
 //! Minimal L1 log and receipt views used by derivation. The primitives lane will own the
 //! full receipt types; these borrow their data and are cheap to construct from RPC results.
 
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 
 pub const Log = struct {
     address: primitives.Address,

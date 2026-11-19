@@ -46,7 +46,7 @@ pub const Pinger = struct {
     }
 };
 
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "ping: round trip, mismatch, timeout" {
     var prng = Prng.init(1);

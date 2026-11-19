@@ -58,8 +58,8 @@ const free_set_module = @import("storage/free_set.zig");
 const changeset_module = @import("changeset.zig");
 const branch_record = @import("branch_record.zig");
 const prefetch_module = @import("prefetch.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const node = @import("../trie/node.zig");
+const keccak = @import("common/crypto").keccak;
+const node = @import("execution/trie").node;
 
 const Changeset = changeset_module.Changeset;
 const AccountInfo = changeset_module.AccountInfo;

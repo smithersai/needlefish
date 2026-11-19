@@ -3,17 +3,17 @@
 
 const std = @import("std");
 const testing = std.testing;
-const io = @import("../../utilities/io/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const log = @import("../../utilities/log/root.zig");
-const genesis = @import("../../common/genesis/root.zig");
-const devnet = @import("../../batcher/devnet/root.zig");
+const io = @import("utilities/io");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const log = @import("utilities/log");
+const genesis = @import("common/genesis");
+const devnet = @import("batcher/devnet");
 const service_module = @import("service.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const validate = @import("../txpool/validate.zig");
-const eth = @import("../rpc/eth.zig");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const validate = @import("execution/txpool").validate;
+const eth = @import("execution/rpc").eth;
 
 const Service = service_module.Service(io.SimIo);
 const genesis_time: u64 = 1_700_000_000; // SimIo's default realtime start.
@@ -408,7 +408,7 @@ fn write_capabilities(context: void, writer: *json.Writer) json.Writer.WriteErro
 }
 
 test "service: L2 engine API requires a valid JWT" {
-    const jwt = @import("../../utilities/jwt/root.zig");
+    const jwt = @import("utilities/jwt");
     var world = try io.SimWorld.init(testing.allocator, .{ .seed = 5 });
     defer world.deinit();
     var node_io: io.SimIo = undefined;
@@ -442,7 +442,7 @@ test "service: L2 engine API requires a valid JWT" {
         .limits = limits,
     });
     defer service.deinit();
-    try testing.expectEqual(@import("../chainspec/root.zig").Mode.l2, service.spec.mode);
+    try testing.expectEqual(@import("execution/chainspec").Mode.l2, service.spec.mode);
     _ = try service.start();
 
     const authrpc = service.authrpc_address().?;
@@ -471,7 +471,7 @@ test "service: L2 engine API requires a valid JWT" {
 
 test "service: --builder.enabled routes FCU and getPayload through the payload service" {
     const fixture = @import("test_fixture.zig");
-    const types = @import("../engine/root.zig").types;
+    const types = @import("execution/engine").types;
     var world = try io.SimWorld.init(testing.allocator, .{ .seed = 6 });
     defer world.deinit();
     var node_io: io.SimIo = undefined;

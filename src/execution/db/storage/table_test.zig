@@ -10,8 +10,8 @@ const grid_module = @import("grid.zig");
 const table_module = @import("table.zig");
 const free_set_module = @import("free_set.zig");
 const SimStorage = @import("sim_storage.zig").SimStorage;
-const Prng = @import("../../../testing/prng.zig").Prng;
-const fuzz = @import("../../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 
 const sector_size = storage.sector_size;
 const Table = table_module.TableType(SimStorage, 32);

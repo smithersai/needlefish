@@ -8,12 +8,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 const Address = primitives.Address;
 const B256 = primitives.B256;
 const BlockId = @import("block.zig").BlockId;
 const SystemConfig = @import("system_config.zig").SystemConfig;
-const genesis_feature = @import("../../common/genesis/feature.zig");
+const genesis_feature = @import("common/genesis").feature;
 
 /// Network upgrades in activation order; OP Stack upgrades cascade through `implied_by`.
 pub const Upgrade = genesis_feature.Upgrade;

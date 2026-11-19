@@ -8,11 +8,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const basefee = @import("../../execution/chainspec/basefee.zig");
+const basefee = @import("execution/chainspec").basefee;
 const l1_info = @import("l1_info.zig");
 const rollup_config = @import("rollup_config.zig");
 const SystemConfig = @import("system_config.zig").SystemConfig;
-const B256 = @import("../../common/primitives/root.zig").B256;
+const B256 = @import("common/primitives").B256;
 
 const L1BlockInfo = l1_info.L1BlockInfo;
 const RollupConfig = rollup_config.RollupConfig;
@@ -93,7 +93,7 @@ pub fn from_l1_info(
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "l2 system config: genesis and per-fork fields" {
     var rollup: RollupConfig = .{ .block_time = 2 };

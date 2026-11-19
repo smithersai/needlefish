@@ -16,7 +16,7 @@ const storage_module = @import("storage/root.zig");
 const table_module = storage_module.table;
 const SimStorage = storage_module.SimStorage;
 const FreeSet = storage_module.free_set.FreeSet;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Table = table_module.TableType(SimStorage, 32);
 const Key = Table.Key;

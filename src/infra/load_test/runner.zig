@@ -14,11 +14,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const driver_module = @import("../tx_manager/driver.zig");
-const manager = @import("../tx_manager/manager.zig");
-const tx_metrics_module = @import("../tx_manager/metrics.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
+const rpc = @import("batcher/rpc");
+const driver_module = @import("infra/tx_manager").driver;
+const manager = @import("infra/tx_manager").manager;
+const tx_metrics_module = @import("infra/tx_manager").metrics;
+const accounts = @import("batcher/devnet").accounts;
 const pacing = @import("pacing.zig");
 const workload = @import("workload.zig");
 const metrics = @import("metrics.zig");

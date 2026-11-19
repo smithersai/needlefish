@@ -7,10 +7,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const utilities_metrics = @import("../../utilities/metrics/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const service = @import("../service/root.zig");
-const rpc = @import("../rpc/root.zig");
+const utilities_metrics = @import("utilities/metrics");
+const http = @import("utilities/http");
+const service = @import("batcher/service");
+const rpc = @import("batcher/rpc");
 
 /// Balance poll period (base/base `BalanceMonitorLayer::DEFAULT_POLL_INTERVAL`).
 pub const balance_poll_ms = 12_000;
@@ -161,7 +161,7 @@ fn fuzz_gwei(_: void, smith: *testing.Smith) anyerror!void {
     _ = smith.slice(&bytes);
     try check_gwei(std.mem.readInt(u256, &bytes, .little));
 }
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn render(metrics: *Metrics, raw: []const u8, buffer: []u8) !http.ResponseBuilder {
     var request_bytes: [256]u8 = undefined;

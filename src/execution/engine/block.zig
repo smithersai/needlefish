@@ -5,11 +5,11 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const ordered = @import("../trie/ordered.zig");
-const chainspec = @import("../chainspec/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const consensus = @import("common/consensus");
+const ordered = @import("execution/trie").ordered;
+const chainspec = @import("execution/chainspec");
 const types = @import("types.zig");
 
 const B256 = primitives.B256;
@@ -257,7 +257,7 @@ test "block: fuzz" {
 }
 
 test "block: seeded fuzz" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xb10c);
+    var prng = @import("testing/prng").Prng.init(0xb10c);
     for (0..500) |_| {
         var bytes: [160]u8 = undefined;
         prng.fill(&bytes);

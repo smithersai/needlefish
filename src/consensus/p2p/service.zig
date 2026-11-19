@@ -33,8 +33,8 @@ const identify = @import("libp2p/identify.zig");
 const peerstore_module = @import("peers/peerstore.zig");
 const peer_id = @import("peers/peer_id.zig");
 const secp256k1 = @import("peers/secp256k1.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rollup_config = @import("../protocol/rollup_config.zig");
+const primitives = @import("common/primitives");
+const rollup_config = @import("consensus/protocol").rollup_config;
 
 const ns_per_s = std.time.ns_per_s;
 const ns_per_ms = std.time.ns_per_ms;

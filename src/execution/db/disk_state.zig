@@ -46,9 +46,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 
-const trie = @import("../trie/root.zig");
+const trie = @import("execution/trie");
 const witness = @import("witness.zig");
 const changeset_module = @import("changeset.zig");
 const flat_trees_module = @import("flat_trees.zig");

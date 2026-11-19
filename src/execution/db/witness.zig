@@ -25,9 +25,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const evm = @import("../evm/root.zig");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
-const trie = @import("../trie/root.zig");
+const evm = @import("execution/evm");
+const lazy = @import("utilities/lazy_alloc");
+const trie = @import("execution/trie");
 const state_module = @import("state.zig");
 const changeset_module = @import("changeset.zig");
 const history = @import("history.zig");

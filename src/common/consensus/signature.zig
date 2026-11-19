@@ -6,11 +6,11 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
+const primitives = @import("common/primitives");
 const Address = primitives.Address;
 const B256 = primitives.B256;
 
-const secp256k1 = @import("../crypto/secp256k1/root.zig");
+const secp256k1 = @import("common/crypto").secp256k1;
 
 /// Order of the secp256k1 group.
 pub const curve_order: u256 =
@@ -117,7 +117,7 @@ pub fn sign(private_key: [32]u8, hash: B256) SignError!Signature {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "signature: dev account address" {
     // First account of the public `test test ... junk` devnet mnemonic.

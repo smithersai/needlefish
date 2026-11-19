@@ -128,7 +128,7 @@ fn encoded_length(message: *const Identify) usize {
 }
 
 const secp256k1 = @import("../peers/secp256k1.zig");
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "identify: round trip and peer check" {
     var secret: secp256k1.SecretKey = @splat(0x42);

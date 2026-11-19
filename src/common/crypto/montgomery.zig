@@ -9,7 +9,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const safegcd = @import("safegcd.zig");
 
 pub fn Field(comptime limb_count: comptime_int, comptime modulus_int: anytype) type {

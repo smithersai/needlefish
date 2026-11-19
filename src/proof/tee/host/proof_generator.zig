@@ -18,9 +18,9 @@ const std = @import("std");
 const assert = std.debug.assert;
 const log = std.log.scoped(.tee_host);
 
-const host = @import("../../host/root.zig");
-const protocol = @import("../../prover_service/protocol.zig");
-const worker_module = @import("../../prover_service/worker.zig");
+const host = @import("proof/host");
+const protocol = @import("proof/prover_service").protocol;
+const worker_module = @import("proof/prover_service").worker;
 const backend_module = @import("backend.zig");
 const pool_module = @import("pool.zig");
 

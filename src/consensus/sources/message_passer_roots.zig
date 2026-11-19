@@ -13,13 +13,13 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const http_client = @import("../../utilities/http/client.zig");
-const jwt = @import("../../utilities/jwt/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const predeploys = @import("../../common/consensus/predeploys.zig");
-const errors = @import("../derive/errors.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const http_client = @import("utilities/http").client;
+const jwt = @import("utilities/jwt");
+const primitives = @import("common/primitives");
+const predeploys = @import("common/consensus").predeploys;
+const errors = @import("consensus/derive").errors;
 
 const B256 = primitives.B256;
 const Address = primitives.Address;
@@ -210,8 +210,8 @@ const testing = std.testing;
 const harness_module = @import("sim_harness.zig");
 const FakeRpc = harness_module.FakeRpc;
 const Harness = harness_module.Harness(*FakeRpc, FakeRpc.handle);
-const Prng = @import("../../testing/prng.zig").Prng;
-const Roots = MessagePasserRoots(@import("../../utilities/io/root.zig").SimIo);
+const Prng = @import("testing/prng").Prng;
+const Roots = MessagePasserRoots(@import("utilities/io").SimIo);
 
 const proof_json =
     \\{"address":"0x4200000000000000000000000000000000000016","accountProof":[],

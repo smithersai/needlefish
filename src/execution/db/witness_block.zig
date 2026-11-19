@@ -43,7 +43,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const evm = @import("../evm/root.zig");
+const evm = @import("execution/evm");
 const witness = @import("witness.zig");
 const state_module = @import("state.zig");
 const overlay_module = @import("overlay.zig");
@@ -51,9 +51,9 @@ const changeset_module = @import("changeset.zig");
 const chain_module = @import("chain.zig");
 const evm_backend = @import("evm_backend.zig");
 const history = @import("history.zig");
-const node = @import("../trie/root.zig").node;
+const node = @import("execution/trie").node;
 
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 
 const State = state_module.State;
 const Overlay = overlay_module.Overlay;

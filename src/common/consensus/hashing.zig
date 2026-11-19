@@ -1,9 +1,9 @@
 //! Streaming keccak256 over RLP encodings: no buffer sized for the encoded value.
 
 const std = @import("std");
-const primitives = @import("../primitives/root.zig");
-const rlp = @import("../rlp/root.zig");
-const keccak = @import("../crypto/keccak.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const keccak = @import("common/crypto").keccak;
 const B256 = primitives.B256;
 
 /// Feeds encoded bytes into a keccak hasher.

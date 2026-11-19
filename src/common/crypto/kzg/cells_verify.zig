@@ -311,7 +311,7 @@ fn check(
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const blob_api = @import("blob.zig");
 
 test "cells verify: deduplication keeps first-appearance order" {

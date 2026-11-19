@@ -10,7 +10,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../json/root.zig");
+const json = @import("utilities/json");
 
 const HmacSha256 = std.crypto.auth.hmac.sha2.HmacSha256;
 const base64 = std.base64.url_safe_no_pad;
@@ -227,7 +227,7 @@ fn verify_arbitrary(token: []const u8) !void {
 }
 
 test "jwt: seeded fuzz of mutated tokens" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x3a7);
+    var prng = @import("testing/prng").Prng.init(0x3a7);
     const secret: Secret = .{ .bytes = @splat(7) };
     var buffer: [token_size_max]u8 = undefined;
     for (0..2000) |_| {

@@ -7,10 +7,10 @@ const assert = std.debug.assert;
 const testing = std.testing;
 
 const withdrawal_module = @import("withdrawal.zig");
-const header_json = @import("../../consensus/sources/header_json.zig");
-const trie_module = @import("../../execution/trie/trie.zig");
-const trie_proof = @import("../../execution/trie/proof.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const header_json = @import("consensus/sources").header_json;
+const trie_module = @import("execution/trie").trie;
+const trie_proof = @import("execution/trie").proof;
+const Prng = @import("testing/prng").Prng;
 
 const Hash = withdrawal_module.Hash;
 const Address = withdrawal_module.Address;

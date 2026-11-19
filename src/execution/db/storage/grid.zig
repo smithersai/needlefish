@@ -288,7 +288,7 @@ pub fn GridType(comptime Storage: type) type {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const SimStorage = @import("sim_storage.zig").SimStorage;
 
 const TestIo = struct {

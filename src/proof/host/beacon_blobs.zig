@@ -6,12 +6,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const blob_provider = @import("../../consensus/sources/blob_provider.zig");
-const BlockInfo = @import("../../consensus/protocol/root.zig").BlockInfo;
-const primitives = @import("../../common/primitives/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
+const blob_provider = @import("consensus/sources").blob_provider;
+const BlockInfo = @import("consensus/protocol").BlockInfo;
+const primitives = @import("common/primitives");
+const kzg = @import("common/crypto").kzg;
 const handler = @import("handler.zig");
-const endpoint_module = @import("../rpc/endpoint.zig");
+const endpoint_module = @import("proof/rpc").endpoint;
 
 const Hash = [32]u8;
 const SourceError = handler.SourceError;

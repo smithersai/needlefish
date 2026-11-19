@@ -5,24 +5,24 @@
 const std = @import("std");
 const testing = std.testing;
 
-const preimage = @import("../preimage/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const chains = @import("../../common/chains/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const program = @import("../program/root.zig");
-const test_oracle = @import("../test_oracle.zig");
+const preimage = @import("proof/preimage");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const chains = @import("common/chains");
+const kzg = @import("common/crypto").kzg;
+const keccak = @import("common/crypto").keccak;
+const protocol = @import("consensus/protocol");
+const json = @import("utilities/json");
+const program = @import("proof/program");
+const test_oracle = @import("proof/test_oracle");
 const client = @import("client.zig");
 
 const Hash = [32]u8;
 const B256 = primitives.B256;
 const LocalKey = program.boot.LocalKey;
 
-const builder_config: @import("../executor/root.zig").builder.Config = .{
+const builder_config: @import("proof/executor").builder.Config = .{
     .sparse = .{
         .nodes_max = 256,
         .node_bytes_max = 1 << 16,

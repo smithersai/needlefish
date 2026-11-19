@@ -7,7 +7,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const chain = @import("../challenger/chain.zig");
+const chain = @import("proof/challenger").chain;
 const protocol = @import("protocol.zig");
 const client_module = @import("client.zig");
 

@@ -12,7 +12,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
+const preimage = @import("proof/preimage");
 const store_module = @import("store.zig");
 
 const Store = store_module.Store;
@@ -91,7 +91,7 @@ pub fn decode(bytes: []const u8, store: *Store) DecodeError!void {
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 fn round_trip(store: *const Store) ![]u8 {
     const keys = try testing.allocator.alloc([32]u8, store.count());

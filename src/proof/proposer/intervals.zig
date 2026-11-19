@@ -9,7 +9,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const factory = @import("../contracts/dispute_game_factory.zig");
+const factory = @import("proof/contracts").dispute_game_factory;
 
 /// The checkpoint intervals a game starting at a given block is created with.
 pub const Intervals = struct {
@@ -116,7 +116,7 @@ pub fn supports_fork_aware_intervals(version: []const u8) bool {
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "proposer intervals: validation mirrors the verifier checks" {
     const ok = try validate(100, 50);

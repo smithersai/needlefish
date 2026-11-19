@@ -5,12 +5,12 @@
 
 const std = @import("std");
 const testing = std.testing;
-const consensus = @import("../../common/consensus/root.zig");
-const genesis_module = @import("../../common/genesis/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const db_module = @import("../db/root.zig");
-const SimStorage = @import("../db/storage/sim_storage.zig").SimStorage;
-const Prng = @import("../../testing/prng.zig").Prng;
+const consensus = @import("common/consensus");
+const genesis_module = @import("common/genesis");
+const primitives = @import("common/primitives");
+const db_module = @import("execution/db");
+const SimStorage = @import("execution/db").storage.sim_storage.SimStorage;
+const Prng = @import("testing/prng").Prng;
 const fixture = @import("test_fixture.zig");
 const durable_module = @import("durable.zig");
 const witness_module = @import("witness.zig");
@@ -168,7 +168,7 @@ const Harness = struct {
     fn build_head(harness: *Harness, parent: B256, timestamp: u64, recipient: u8) !B256 {
         const node = harness.node.?;
         const hash = try fixture.build(node, parent, timestamp, recipient);
-        const version = @import("../engine/root.zig").types.forkchoice_version(
+        const version = @import("execution/engine").types.forkchoice_version(
             fixture.spec,
             timestamp,
         );
@@ -234,7 +234,7 @@ test "durable: a restart resumes on the forkchoice head, not an unadopted block"
     const reopened = &h.durable.database;
     const second = try fixture.build(h.node.?, first, 24, 0xfd);
     const before = reopened.submitted_sequence;
-    const version = @import("../engine/root.zig").types.forkchoice_version(fixture.spec, 24);
+    const version = @import("execution/engine").types.forkchoice_version(fixture.spec, 24);
     _ = try h.node.?.engine.forkchoice_updated(version, fixture.forkchoice(second), null);
     try testing.expectEqual(before + 1, reopened.submitted_sequence);
     try testing.expect(h.node.?.chain.pending == null and !reopened.checkpoints_held);
@@ -259,7 +259,7 @@ test "durable: reads during a pending block journal it and serve the head" {
     try testing.expectEqualSlices(u8, &genesis_hash.bytes, &chain.state_hash);
     try testing.expectEqualSlices(u8, &genesis_root, &(try h.node.?.db.root()));
     // Adopting it later re-applies the stored changeset.
-    const version = @import("../engine/root.zig").types.forkchoice_version(fixture.spec, 12);
+    const version = @import("execution/engine").types.forkchoice_version(fixture.spec, 12);
     _ = try h.node.?.engine.forkchoice_updated(version, fixture.forkchoice(built), null);
     try testing.expectEqualSlices(u8, &built.bytes, &chain.state_hash);
     try h.settle();

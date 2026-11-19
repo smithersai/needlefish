@@ -10,11 +10,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const header_json = @import("../../consensus/sources/header_json.zig");
-const registry_module = @import("../../proof/contracts/anchor_state_registry.zig");
-const factory_module = @import("../../proof/contracts/dispute_game_factory.zig");
-const abi = @import("../../proof/contracts/abi.zig");
+const rpc = @import("batcher/rpc");
+const header_json = @import("consensus/sources").header_json;
+const registry_module = @import("proof/contracts").anchor_state_registry;
+const factory_module = @import("proof/contracts").dispute_game_factory;
+const abi = @import("proof/contracts").abi;
 const calldata = @import("calldata.zig");
 const status_module = @import("status.zig");
 const withdrawal_module = @import("withdrawal.zig");

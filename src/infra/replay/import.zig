@@ -18,15 +18,15 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const consensus = @import("../../common/consensus/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const header_json = @import("../../consensus/sources/header_json.zig");
-const transaction_json = @import("../../consensus/sources/transaction_json.zig");
-const object = @import("../../consensus/sources/json_object.zig");
-const db = @import("../../execution/db/root.zig");
-const trie = @import("../../execution/trie/root.zig");
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
+const header_json = @import("consensus/sources").header_json;
+const transaction_json = @import("consensus/sources").transaction_json;
+const object = @import("consensus/sources").json_object;
+const db = @import("execution/db");
+const trie = @import("execution/trie");
 const archive_module = @import("archive.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Archive = archive_module.Archive;
 const Hash = [32]u8;

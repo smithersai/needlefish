@@ -9,10 +9,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../json/root.zig");
-const rpc = @import("../rpc/root.zig");
-const http_client = @import("../http/client.zig");
-const l1_head = @import("../l1_head/root.zig");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const http_client = @import("utilities/http").client;
+const l1_head = @import("utilities/l1_head");
 const contract = @import("contract.zig");
 const Version = @import("version.zig").Version;
 

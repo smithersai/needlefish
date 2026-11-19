@@ -5,8 +5,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const evm = @import("../evm/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const evm = @import("execution/evm");
+const primitives = @import("common/primitives");
 
 const Address = evm.primitives.Address;
 
@@ -165,7 +165,7 @@ test "base time: schedule matches the reference formula" {
 }
 
 test "base time: seeded fuzz schedule is monotonic with 200 ms steps after activation" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xba5e);
+    var prng = @import("testing/prng").Prng.init(0xba5e);
     for (0..2_000) |_| {
         const schedule: Schedule = .{
             .genesis_block_number = prng.below(1_000),

@@ -890,8 +890,8 @@ pub fn frame_decode(input: []const u8, frame_size_max: u32) FrameError!?Frame {
     return .{ .payload = input[prefix..length], .length = length };
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 /// Comptime string repetition (Zig 0.17 dropped the `**` operator).
 fn repeat(comptime unit: []const u8, comptime count: usize) *const [unit.len * count]u8 {

@@ -4,8 +4,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
 const adapter = @import("adapter.zig");
 const Coverage = @import("coverage.zig").Coverage;
 

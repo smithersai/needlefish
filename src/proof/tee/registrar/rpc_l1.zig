@@ -16,11 +16,11 @@ const assert = std.debug.assert;
 const l1 = @import("l1.zig");
 const planner = @import("planner.zig");
 const signer_manager = @import("signer_manager.zig");
-const clients = @import("../../rpc/clients.zig");
-const abi = @import("../../contracts/abi.zig");
-const registry_abi = @import("../../contracts/tee_prover_registry.zig");
-const cert_manager_abi = @import("../../contracts/cert_manager.zig");
-const submission = @import("../../submission/root.zig");
+const clients = @import("proof/rpc").clients;
+const abi = @import("proof/contracts").abi;
+const registry_abi = @import("proof/contracts").tee_prover_registry;
+const cert_manager_abi = @import("proof/contracts").cert_manager;
+const submission = @import("proof/submission");
 
 const Address = l1.Address;
 const Hash = l1.Hash;

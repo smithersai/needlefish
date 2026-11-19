@@ -7,9 +7,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const keccak256 = @import("../../execution/trie/root.zig").node.keccak256;
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const keccak256 = @import("execution/trie").node.keccak256;
 
 const hex = primitives.hex;
 const Header = consensus.Header;
@@ -219,7 +219,7 @@ test "diff request: decodes inputs strictly" {
     var parent: Header = .{ .number = 9, .timestamp = 100, .gas_limit = 30_000_000 };
     parent.base_fee_per_gas = 7;
     var buffer: [1024]u8 = undefined;
-    const parent_rlp = @import("../../common/rlp/root.zig").encode_to(&buffer, parent);
+    const parent_rlp = @import("common/rlp").encode_to(&buffer, parent);
     var parent_hex: [2048 + 2]u8 = undefined;
     hex.encode_prefixed(parent_hex[0 .. parent_rlp.len * 2 + 2], parent_rlp);
     const line = try std.fmt.allocPrint(arena,
@@ -259,7 +259,7 @@ test "diff request: decodes inputs strictly" {
 test "diff request: seeded fuzz never crashes the decoder" {
     var arena_state: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena_state.deinit();
-    var prng = @import("../../testing/prng.zig").Prng.init(0xd1ff_0001);
+    var prng = @import("testing/prng").Prng.init(0xd1ff_0001);
     const alphabet = "{}[]\":,0x1a7e \"id\"\"mode\"\"build\"\"header\"\"ancestors\"";
     var line: [256]u8 = undefined;
     var round: u32 = 0;

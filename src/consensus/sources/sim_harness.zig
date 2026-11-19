@@ -4,9 +4,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const http_client = @import("../../utilities/http/client.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const http_client = @import("utilities/http").client;
 const object = @import("json_object.zig");
 
 pub const limits: http.Limits = .{ .head_size_max = 2048, .body_size_max = 1024 * 1024 };

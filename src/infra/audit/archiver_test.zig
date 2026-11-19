@@ -4,8 +4,8 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
 const audit = @import("root.zig");
 const line = @import("ingest_test.zig").line;
 

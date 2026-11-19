@@ -8,7 +8,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const primitives = @import("primitives.zig");
 const Fork = @import("fork.zig").Fork;
-const crypto = @import("../../common/crypto/root.zig");
+const crypto = @import("common/crypto");
 const op = @import("op.zig");
 const Address = primitives.Address;
 
@@ -426,7 +426,7 @@ test "precompiles: BLS caps under Base and failures consume all gas" {
 
 /// Public Wycheproof secp256r1 vectors (embedded by the crypto lane, Apache-2.0): `K` lines
 /// carry the key, `T` lines hash, r, s, and the verdict.
-const wycheproof_p256 = @embedFile("../../common/crypto/vectors/wycheproof_ecdsa_secp256r1.txt");
+const wycheproof_p256 = @import("common/crypto").wycheproof_ecdsa_secp256r1_txt;
 
 fn hex_field(comptime length: usize, fields: *std.mem.TokenIterator(u8, .scalar)) ![length]u8 {
     var out: [length]u8 = undefined;

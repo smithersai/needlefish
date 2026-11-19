@@ -11,8 +11,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const trie = @import("../../execution/trie/root.zig");
-const preimage = @import("../preimage/root.zig");
+const trie = @import("execution/trie");
+const preimage = @import("proof/preimage");
 const Hash = trie.Hash;
 
 pub const Error = preimage.oracle.ReadError || error{

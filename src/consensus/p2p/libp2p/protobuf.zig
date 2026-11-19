@@ -121,7 +121,7 @@ pub const Writer = struct {
     }
 };
 
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "protobuf: write then read" {
     var buffer: [64]u8 = undefined;

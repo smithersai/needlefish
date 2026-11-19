@@ -17,7 +17,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
+const json = @import("utilities/json");
 const time = @import("time.zig");
 
 pub const schema_version = "transaction-event/v1";

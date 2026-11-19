@@ -241,7 +241,7 @@ pub fn decode_dispute(calldata: []const u8) ?DisputeCall {
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "aggregate verifier: fork-aware interval ABI gates on 0.3.0" {
     const legacy = [_][]const u8{

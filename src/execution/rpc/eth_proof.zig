@@ -8,14 +8,14 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const state_trie = @import("../trie/state_trie.zig");
-const trie = @import("../trie/root.zig");
-const db_database = @import("../db/database.zig");
-const db_history = @import("../db/history.zig");
-const db_proof_set = @import("../db/proof_set.zig");
+const primitives = @import("common/primitives");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const state_trie = @import("execution/trie").state_trie;
+const trie = @import("execution/trie");
+const db_database = @import("execution/db").database;
+const db_history = @import("execution/db").history;
+const db_proof_set = @import("execution/db").proof_set;
 const eth = @import("eth.zig");
 
 const Hash = [32]u8;

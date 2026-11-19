@@ -19,13 +19,13 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const txdata = @import("../../batcher/txdata/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const rpc = @import("batcher/rpc");
+const txdata = @import("batcher/txdata");
+const primitives = @import("common/primitives");
 const manager_module = @import("manager.zig");
 const errors = @import("errors.zig");
 const blob_store = @import("blob_store.zig");
-const blob_tx = @import("../../batcher/txdata/blob.zig");
+const blob_tx = @import("batcher/txdata").blob;
 
 pub const Blob = blob_store.Blob;
 

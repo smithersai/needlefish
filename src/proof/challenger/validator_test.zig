@@ -5,7 +5,7 @@ const testing = std.testing;
 
 const validator = @import("validator.zig");
 const fake_world = @import("fake_world.zig");
-const crypto = @import("../../common/crypto/root.zig");
+const crypto = @import("common/crypto");
 
 const Hash = [32]u8;
 

@@ -1,6 +1,6 @@
 const std = @import("std");
 const frame = @import("frame.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "ws: handshake accept key (RFC 6455 section 1.3)" {
     const accept = frame.accept_key("dGhlIHNhbXBsZSBub25jZQ==");

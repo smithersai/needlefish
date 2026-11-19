@@ -9,8 +9,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const kzg = @import("../../batcher/blobs/kzg.zig");
-const blob_tx = @import("../../batcher/txdata/blob.zig");
+const kzg = @import("batcher/blobs").kzg;
+const blob_tx = @import("batcher/txdata").blob;
 
 pub const Blob = kzg.Blob;
 pub const blobs_per_send_limit = blob_tx.blobs_per_tx_max;

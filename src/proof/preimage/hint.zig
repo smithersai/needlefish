@@ -134,7 +134,7 @@ pub const Hint = struct {
 };
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 const Duplex = channel_module.Duplex;
 
 const Harness = struct {

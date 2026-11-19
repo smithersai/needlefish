@@ -8,13 +8,13 @@ const testing = std.testing;
 const assert = std.debug.assert;
 
 const archive_module = @import("archive.zig");
-const db = @import("../../execution/db/root.zig");
-const HeaderChain = @import("../../execution/db/witness_header_chain.zig").HeaderChain;
-const fuzz = @import("../../testing/fuzz.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const db = @import("execution/db");
+const HeaderChain = @import("execution/db").witness_header_chain.HeaderChain;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 const Archive = archive_module.Archive;
-const keccak256 = @import("../../execution/trie/root.zig").node.keccak256;
+const keccak256 = @import("execution/trie").node.keccak256;
 
 const witness_config: db.witness.Witness.Config = .{
     .state_nodes_max = 32,

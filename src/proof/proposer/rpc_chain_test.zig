@@ -5,12 +5,12 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const harness_module = @import("../../consensus/sources/sim_harness.zig");
-const abi = @import("../contracts/abi.zig");
-const factory = @import("../contracts/dispute_game_factory.zig");
-const registry = @import("../contracts/anchor_state_registry.zig");
-const endpoint_module = @import("../rpc/endpoint.zig");
+const io = @import("utilities/io");
+const harness_module = @import("consensus/sources").sim_harness;
+const abi = @import("proof/contracts").abi;
+const factory = @import("proof/contracts").dispute_game_factory;
+const registry = @import("proof/contracts").anchor_state_registry;
+const endpoint_module = @import("proof/rpc").endpoint;
 const rpc_chain = @import("rpc_chain.zig");
 
 const FakeRpc = harness_module.FakeRpc;

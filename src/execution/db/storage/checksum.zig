@@ -41,7 +41,7 @@ pub const Stream = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "checksum: stable test vectors" {
     // Pinned values: changing the checksum function silently invalidates every data file.

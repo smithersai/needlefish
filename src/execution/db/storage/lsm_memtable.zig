@@ -14,7 +14,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 
 const table_module = @import("table.zig");
 const key_size_max = table_module.key_size_max;
@@ -179,7 +179,7 @@ pub fn MemtableType(comptime key_size: u32, comptime value_size: u32, comptime v
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "lsm memtable: overwrite in place, deletes, Busy when full, sorted order" {
     const Memtable = MemtableType(32, 8, false);

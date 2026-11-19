@@ -12,9 +12,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const http = @import("../../utilities/http/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
+const http = @import("utilities/http");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
 const methods = @import("methods.zig");
 const pool = @import("pool.zig");
 const routes = @import("routes.zig");
@@ -364,7 +364,7 @@ fn check_responses(first: []const u8, second: []const u8) !void {
 }
 
 test "split: seeded fuzz of part responses" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x5917);
+    var prng = @import("testing/prng").Prng.init(0x5917);
     const pieces = [_][]const u8{
         "[", "]", "{", "}", ",", ":", "\"id\"", "1", "2", "\"result\"", "null", " ",
     };

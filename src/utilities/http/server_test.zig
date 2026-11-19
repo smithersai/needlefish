@@ -2,7 +2,7 @@
 
 const std = @import("std");
 
-const io = @import("../io/root.zig");
+const io = @import("utilities/io");
 const parser = @import("parser.zig");
 const server_module = @import("server.zig");
 const client_module = @import("client.zig");

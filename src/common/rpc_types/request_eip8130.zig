@@ -4,8 +4,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const consensus = @import("../consensus/root.zig");
-const rlp = @import("../rlp/root.zig");
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
 const request = @import("request.zig");
 const aa = consensus.eip8130;
 const Value = std.json.Value;

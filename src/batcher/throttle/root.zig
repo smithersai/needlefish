@@ -12,7 +12,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../rpc/root.zig");
+const rpc = @import("batcher/rpc");
 
 const ppm = 1_000_000;
 
@@ -202,7 +202,7 @@ pub const BacklogEstimate = struct {
     }
 };
 
-const flz = @import("../../common/flz/root.zig");
+const flz = @import("common/flz");
 
 /// Estimated DA bytes of a block (base/base `BufferedBlock::new`): batch overhead plus
 /// the Fjord FastLZ size estimate of each non-deposit transaction.
@@ -217,7 +217,7 @@ pub fn block_da_bytes(transactions: []const []const u8) u64 {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "throttle: limits follow base/base's controller" {
     const quadratic: Config = .{};

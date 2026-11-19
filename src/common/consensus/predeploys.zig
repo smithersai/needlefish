@@ -2,7 +2,7 @@
 //! Mirrors base/base `crates/common/consensus/src/predeploys.rs`.
 
 const std = @import("std");
-const primitives = @import("../primitives/root.zig");
+const primitives = @import("common/primitives");
 const Address = primitives.Address;
 
 fn address(comptime text: []const u8) Address {

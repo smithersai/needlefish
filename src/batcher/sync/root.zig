@@ -8,8 +8,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../rpc/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const rpc = @import("batcher/rpc");
+const primitives = @import("common/primitives");
 
 const Address = primitives.Address;
 
@@ -62,7 +62,7 @@ fn nonce_at(l1: *rpc.Client, batcher: Address, block: u64) Error!u64 {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// L1 with a per-block nonce history and a rollup node reporting `current_l1`.
 const FakeChain = struct {

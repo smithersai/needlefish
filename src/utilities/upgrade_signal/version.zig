@@ -129,7 +129,7 @@ test "upgrade_signal: release sorts above its prerelease" {
 }
 
 test "upgrade_signal: seeded version round trip" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x5e3);
+    var prng = @import("testing/prng").Prng.init(0x5e3);
     for (0..2000) |_| {
         const version = Version.pack(
             @truncate(prng.int(u64)),

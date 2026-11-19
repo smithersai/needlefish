@@ -12,7 +12,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const flate = std.compress.flate;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 pub const brotli = @import("brotli.zig");
 

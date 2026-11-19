@@ -19,7 +19,7 @@ const assert = std.debug.assert;
 
 const state_module = @import("state.zig");
 const State = state_module.State;
-const node = @import("../trie/node.zig");
+const node = @import("execution/trie").node;
 
 pub const magic: u32 = 0x534e464e; // "NFNS"
 pub const version: u16 = 1;
@@ -329,7 +329,7 @@ pub const BufferSource = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const Overlay = @import("overlay.zig").Overlay;
 const Changeset = @import("changeset.zig").Changeset;
 

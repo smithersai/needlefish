@@ -110,8 +110,8 @@ pub const TreeWriter = struct {
 };
 
 const testing = std.testing;
-const hex = @import("../primitives/hex.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const hex = @import("common/primitives").hex;
+const Prng = @import("testing/prng").Prng;
 
 /// Writes a JSON test-vector value with an explicit stack (no recursion).
 fn write_json(writer: *TreeWriter, root: std.json.Value) !void {

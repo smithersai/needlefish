@@ -312,7 +312,7 @@ pub const Writer = struct {
     }
 };
 
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 const testing = std.testing;
 
 test "cbor: decodes integers, strings, and simple values" {

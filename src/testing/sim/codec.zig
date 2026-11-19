@@ -19,13 +19,13 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const manager_module = @import("../../batcher/channel/manager.zig");
-const source = @import("../../batcher/source/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const tx_module = @import("../../common/consensus/tx.zig");
+const manager_module = @import("batcher/channel").manager;
+const source = @import("batcher/source");
+const protocol = @import("consensus/protocol");
+const primitives = @import("common/primitives");
+const tx_module = @import("common/consensus").tx;
 
-const derive = @import("../../consensus/derive/root.zig");
+const derive = @import("consensus/derive");
 
 const B256 = primitives.B256;
 const Address = primitives.Address;
@@ -601,7 +601,7 @@ fn decode_batches(allocator: std.mem.Allocator, decompressed: []const u8) ?Block
 }
 
 const testing = std.testing;
-const fuzz = @import("../fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 const Fixture = struct {
     hashes: [blocks_max + 2]u64,
@@ -611,7 +611,7 @@ const Fixture = struct {
     decoder: Decoder,
 
     fn init(fixture: *Fixture, seed: u64) !void {
-        var prng = @import("../prng.zig").Prng.init(seed);
+        var prng = @import("testing/prng").Prng.init(seed);
         fixture.origins = @splat(genesis_origin);
         for (&fixture.hashes, &fixture.payloads) |*hash, *payload| {
             hash.* = prng.int(u64);
@@ -651,7 +651,7 @@ test "codec: encode then decode round trips every batch size" {
 }
 
 test "codec: signed payload transactions recover their payload's sender" {
-    const signature = @import("../../common/consensus/signature.zig");
+    const signature = @import("common/consensus").signature;
     var buffer: [payload_tx_length_max]u8 = undefined;
     for ([_]u64{ 0, 1, 0xdead_beef, std.math.maxInt(u64) }) |payload| {
         const encoded = payload_tx_as(.signed, payload, &buffer);

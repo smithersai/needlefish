@@ -6,7 +6,7 @@ const assert = std.debug.assert;
 
 const sim = @import("sim.zig");
 const common = @import("common.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const SimIo = sim.SimIo;
 const World = sim.World;

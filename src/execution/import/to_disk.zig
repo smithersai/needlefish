@@ -33,21 +33,21 @@ const assert = std.debug.assert;
 const hashed_state = @import("hashed_state.zig");
 const state_root_module = @import("state_root.zig");
 const reth = @import("reth.zig");
-const database = @import("../db/database.zig");
-const flat_trees_module = @import("../db/flat_trees.zig");
-const branch_record = @import("../db/branch_record.zig");
-const state_module = @import("../db/state.zig");
-const chain_module = @import("../db/chain.zig");
-const changeset_module = @import("../db/changeset.zig");
-const code_store_module = @import("../db/code_store.zig");
-const grid_module = @import("../db/storage/grid.zig");
-const checkpoint_module = @import("../db/storage/checkpoint.zig");
-const node = @import("../trie/node.zig");
-const evm = @import("../evm/root.zig");
+const database = @import("execution/db").database;
+const flat_trees_module = @import("execution/db").flat_trees;
+const branch_record = @import("execution/db").branch_record;
+const state_module = @import("execution/db").state;
+const chain_module = @import("execution/db").chain;
+const changeset_module = @import("execution/db").changeset;
+const code_store_module = @import("execution/db").code_store;
+const grid_module = @import("execution/db").storage.grid;
+const checkpoint_module = @import("execution/db").storage.checkpoint;
+const node = @import("execution/trie").node;
+const evm = @import("execution/evm");
 
 const Hash = node.Hash;
 const EntrySource = hashed_state.EntrySource;
-const BranchNode = @import("../trie/root.zig").BranchNode;
+const BranchNode = @import("execution/trie").BranchNode;
 
 pub const block_hashes_max = state_module.block_hashes_max;
 

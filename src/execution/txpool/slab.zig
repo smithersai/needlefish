@@ -3,7 +3,7 @@
 //! smallest class that fits it, so a 120 byte transfer does not pin a 1 MiB blob slot.
 
 const std = @import("std");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const assert = std.debug.assert;
 
 pub const Class = struct {
@@ -142,7 +142,7 @@ test "slab: smallest fitting class, spill over, free" {
 }
 
 test "slab: seeded fuzz alloc/free keeps contents" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x51ab);
+    var prng = @import("testing/prng").Prng.init(0x51ab);
     const classes = [_]Class{
         .{ .size_bytes = 16, .count = 8 },
         .{ .size_bytes = 64, .count = 4 },

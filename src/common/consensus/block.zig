@@ -7,12 +7,12 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const rlp = @import("../rlp/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 const tx_module = @import("tx.zig");
 const receipt_module = @import("receipt.zig");
 const Header = @import("header.zig").Header;
-const ordered = @import("../../execution/trie/ordered.zig");
+const ordered = @import("execution/trie").ordered;
 const Address = primitives.Address;
 const B256 = primitives.B256;
 const Envelope = tx_module.Envelope;
@@ -213,7 +213,7 @@ pub const empty_requests_hash = B256.comptime_hex(
 );
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "block: empty roots" {
     var bytes: [64]u8 = undefined;

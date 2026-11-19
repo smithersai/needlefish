@@ -8,8 +8,8 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const task = @import("task.zig");
-const protocol = @import("../protocol/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const protocol = @import("consensus/protocol");
+const Prng = @import("testing/prng").Prng;
 
 const L2BlockInfo = protocol.block.L2BlockInfo;
 const ClientError = task.ClientError;

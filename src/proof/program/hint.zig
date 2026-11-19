@@ -5,7 +5,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
+const preimage = @import("proof/preimage");
 
 pub const HintType = enum {
     l1_block_header,

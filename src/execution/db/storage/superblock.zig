@@ -405,8 +405,8 @@ pub fn SuperBlockType(comptime Storage: type) type {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
-const fuzz = @import("../../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 
 fn sample(prng: *Prng, sequence: u64) SuperBlock {
     var superblock = zero();

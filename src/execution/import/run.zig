@@ -45,17 +45,17 @@ const assert = std.debug.assert;
 
 const to_disk = @import("to_disk.zig");
 const room_module = @import("room.zig");
-const database = @import("../db/database.zig");
-const state_module = @import("../db/state.zig");
-const executor_module = @import("../node/executor.zig");
-const state_db_module = @import("../node/state_db.zig");
-const node_chain = @import("../node/chain.zig");
-const chainspec = @import("../chainspec/root.zig");
-const payload = @import("../payload/root.zig");
-const trie = @import("../trie/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const evm = @import("../evm/root.zig");
+const database = @import("execution/db").database;
+const state_module = @import("execution/db").state;
+const executor_module = @import("execution/node").executor;
+const state_db_module = @import("execution/node").state_db;
+const node_chain = @import("execution/node").chain;
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
+const trie = @import("execution/trie");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const evm = @import("execution/evm");
 
 const Hash = [32]u8;
 const Address = [20]u8;
@@ -255,7 +255,7 @@ pub fn check_header(
 }
 
 /// The largest encoded changeset of a block under `config` (the undo ring holds one).
-fn changeset_bytes_max(config: @import("../db/changeset.zig").Config) u64 {
+fn changeset_bytes_max(config: @import("execution/db").changeset.Config) u64 {
     const bytes = 18 + @as(u64, config.accounts_max) * (21 + 2 * 72) +
         @as(u64, config.storage_max) * 116 + @as(u64, config.codes_max) * 4 +
         config.code_bytes_max;

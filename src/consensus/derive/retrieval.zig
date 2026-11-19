@@ -5,7 +5,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const errors = @import("errors.zig");
 const sources = @import("sources.zig");
 const Traversal = @import("traversal.zig").Traversal;
@@ -14,7 +14,7 @@ const BlockInfo = protocol.block.BlockInfo;
 const BlockId = protocol.block.BlockId;
 const RollupConfig = protocol.rollup_config.RollupConfig;
 const SystemConfig = protocol.system_config.SystemConfig;
-const Address = @import("../../common/primitives/root.zig").Address;
+const Address = @import("common/primitives").Address;
 const Error = errors.Error;
 
 pub const Retrieval = struct {

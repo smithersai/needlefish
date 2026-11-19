@@ -9,8 +9,8 @@ const storage = @import("storage.zig");
 const journal_module = @import("journal.zig");
 const sim_storage = @import("sim_storage.zig");
 const SimStorage = sim_storage.SimStorage;
-const Prng = @import("../../../testing/prng.zig").Prng;
-const fuzz = @import("../../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 
 const sector_size = storage.sector_size;
 const Journal = journal_module.JournalType(SimStorage);

@@ -12,19 +12,19 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const rpc_types = @import("../../common/rpc_types/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const node = @import("../node/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const rpc_types = @import("common/rpc_types");
+const rlp = @import("common/rlp");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const node = @import("execution/node");
 const eth = @import("eth.zig");
 const state_view = @import("state_view.zig");
 const eth_proof = @import("eth_proof.zig");
 
 const aa = consensus.eip8130;
-pub const Mode = @import("../evm/eip8130_simulate.zig").Mode;
+pub const Mode = @import("execution/evm").eip8130_simulate.Mode;
 const Address = primitives.Address;
 const Request = rpc_types.request.TransactionRequest;
 const Api = eth.Api;
@@ -300,7 +300,7 @@ fn run(
 // ---- Tests ------------------------------------------------------------------------
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "eip8130 call: request detection" {
     try testing.expect(is_request("{\"nonceKey\":\"0x1\"}"));

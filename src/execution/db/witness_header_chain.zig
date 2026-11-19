@@ -8,7 +8,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const witness = @import("witness.zig");
-const trie = @import("../trie/root.zig");
+const trie = @import("execution/trie");
 const rlp = trie.rlp;
 
 const Hash = witness.Hash;

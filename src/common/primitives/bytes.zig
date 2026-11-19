@@ -8,7 +8,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const hex = @import("hex.zig");
-const crypto_keccak = @import("../crypto/keccak.zig");
+const crypto_keccak = @import("common/crypto").keccak;
 
 /// A fixed-size byte string of `size` bytes with hex helpers.
 pub fn FixedBytes(comptime size: usize) type {
@@ -222,7 +222,7 @@ pub const Bloom = extern struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "bytes: fixed bytes hex and equality" {
     const a = Address.comptime_hex("0x00000000000000000000000000000000000000ff");

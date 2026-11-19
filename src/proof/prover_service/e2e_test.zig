@@ -8,10 +8,10 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const endpoint_module = @import("../rpc/endpoint.zig");
-const interfaces = @import("../proposer/interfaces.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const endpoint_module = @import("proof/rpc").endpoint;
+const interfaces = @import("proof/proposer").interfaces;
 const protocol = @import("protocol.zig");
 const store_module = @import("store.zig");
 const service_module = @import("service.zig");
@@ -297,7 +297,7 @@ test "prover service e2e: worker abandons an unsupported job and lists over the 
 }
 
 test "prover service e2e: the challenger prover requests and receives a TEE proof" {
-    const challenger_chain = @import("../challenger/chain.zig");
+    const challenger_chain = @import("proof/challenger").chain;
     const challenger_prover = @import("challenger_prover.zig");
     const harness = try Harness.create();
     defer harness.destroy();
@@ -375,8 +375,8 @@ const CompressedBackend = struct {
 };
 
 test "prover service e2e: the proposer's native mode proves through a compressed worker" {
-    const fakes = @import("../proposer/fakes.zig");
-    const intervals = @import("../proposer/intervals.zig");
+    const fakes = @import("proof/proposer").fakes;
+    const intervals = @import("proof/proposer").intervals;
     const proposer_native = @import("proposer_native.zig");
     const harness = try Harness.create();
     defer harness.destroy();

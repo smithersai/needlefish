@@ -14,7 +14,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 
 pub const Hash = [32]u8;
 
@@ -163,7 +163,7 @@ pub fn DigestTableType(comptime Value: type) type {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// A random key; with `narrow`, keys share their first word often (long probe runs, equal
 /// fingerprints).

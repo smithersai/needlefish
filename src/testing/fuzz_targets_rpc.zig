@@ -17,10 +17,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Smith = std.testing.Smith;
-const fuzz = @import("fuzz.zig");
-const Prng = @import("prng.zig").Prng;
-const rpc = @import("../utilities/rpc/root.zig");
-const json = @import("../utilities/json/root.zig");
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
 
 const batch_max = 8;
 const body_bytes_max = 4096;

@@ -13,7 +13,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const trie = @import("../trie/root.zig");
+const trie = @import("execution/trie");
 
 const Hash = [32]u8;
 const PathTarget = trie.PathTarget;

@@ -19,7 +19,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const montgomery = @import("montgomery.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const p_int: u256 = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff;
 const n_int: u256 = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551;

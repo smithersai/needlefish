@@ -10,7 +10,7 @@ const assert = std.debug.assert;
 const fields = @import("fields.zig");
 const curve = @import("curve.zig");
 const g1 = @import("g1.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Fp = fields.Fp;
 const Fp2 = fields.Fp2;

@@ -35,8 +35,8 @@ const overlay_module = @import("overlay.zig");
 const changeset_module = @import("changeset.zig");
 const branch_record = @import("branch_record.zig");
 const disk_state_test = @import("disk_state_test.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
-const node_keccak = @import("../trie/node.zig").keccak256;
+const Prng = @import("testing/prng").Prng;
+const node_keccak = @import("execution/trie").node.keccak256;
 
 const Hash = database.Hash;
 const HeadInfo = database.HeadInfo;

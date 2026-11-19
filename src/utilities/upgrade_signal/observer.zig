@@ -10,8 +10,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const metrics = @import("../metrics/root.zig");
-const time = @import("../time/root.zig");
+const metrics = @import("utilities/metrics");
+const time = @import("utilities/time");
 const contract = @import("contract.zig");
 const reader_module = @import("reader.zig");
 const Schedule = reader_module.Schedule;

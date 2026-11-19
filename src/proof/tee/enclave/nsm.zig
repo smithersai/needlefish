@@ -12,7 +12,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// PCR0 is a SHA-384 digest (AWS Nitro Enclaves specification).
 pub const pcr0_length = 48;

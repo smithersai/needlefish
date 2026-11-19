@@ -11,14 +11,14 @@ const assert = std.debug.assert;
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const consensus_types = @import("../../common/consensus/root.zig");
-const protocol = @import("../protocol/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const consensus_types = @import("common/consensus");
+const protocol = @import("consensus/protocol");
 const errors = @import("errors.zig");
 const blob = @import("blob.zig");
 const pipeline_module = @import("pipeline.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const TestChain = @import("test_chain.zig").TestChain;
 const L1Transaction = @import("providers.zig").L1Transaction;
 

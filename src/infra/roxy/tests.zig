@@ -6,11 +6,11 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const rpc = @import("utilities/rpc");
 const roxy = @import("root.zig");
-const trusted_proxy = @import("../../utilities/trusted_proxy/root.zig");
+const trusted_proxy = @import("utilities/trusted_proxy");
 
 const Address = io.Address;
 const SimIo = io.SimIo;
@@ -38,7 +38,7 @@ const FakeUpstream = struct {
         upstream.last_block_size = size;
         @memcpy(upstream.last_block[0..size], block[0..size]);
         const text = std.mem.trim(u8, block, "\"");
-        const number = @import("../../utilities/json/root.zig").parse_quantity(u64, text) catch
+        const number = @import("utilities/json").parse_quantity(u64, text) catch
             upstream.head;
         try call.writer.quantity(number);
     }

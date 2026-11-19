@@ -36,8 +36,8 @@ const checkpoint_module = @import("storage/checkpoint.zig");
 const storage_module = @import("storage/storage.zig");
 const SimStorage = @import("storage/sim_storage.zig").SimStorage;
 const IoStorageType = @import("storage/io_storage.zig").IoStorageType;
-const io_root = @import("../../utilities/io/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const io_root = @import("utilities/io");
+const Prng = @import("testing/prng").Prng;
 
 const Overlay = overlay_module.Overlay;
 const Hash = database.Hash;

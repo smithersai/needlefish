@@ -20,8 +20,8 @@ const table_module = @import("table.zig");
 const lsm = @import("lsm.zig");
 const lsm_bulk = @import("lsm_bulk.zig");
 const SimStorage = @import("sim_storage.zig").SimStorage;
-const Prng = @import("../../../testing/prng.zig").Prng;
-const fuzz = @import("../../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 const build_options = @import("build_options");
 
 const sector_size = storage.sector_size;

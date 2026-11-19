@@ -8,8 +8,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../utilities/rpc/root.zig");
-const http = @import("../../utilities/http/root.zig");
+const rpc = @import("utilities/rpc");
+const http = @import("utilities/http");
 
 const Call = rpc.Call;
 const HandlerError = rpc.HandlerError;
@@ -116,7 +116,7 @@ test "proposer admin: start, stop and running follow base/base" {
 }
 
 test "proposer admin: fuzz method sequences keep the state consistent" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             var admin: Admin = .{};

@@ -5,7 +5,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const telemetry = @import("../telemetry/root.zig");
+const telemetry = @import("proof/telemetry");
 const driver_module = @import("driver.zig");
 
 pub const Stats = struct {

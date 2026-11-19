@@ -10,7 +10,7 @@ const fakes = @import("fakes.zig");
 const intervals_module = @import("intervals.zig");
 const pipeline_module = @import("pipeline.zig");
 const target = @import("target.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Address = target.Address;
 const FakeChain = fakes.FakeChain;

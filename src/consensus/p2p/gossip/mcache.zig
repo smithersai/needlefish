@@ -183,7 +183,7 @@ pub const Cache = struct {
     }
 };
 
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "mcache: windows, gossip ids, expiry" {
     var cache = try Cache.init(std.testing.allocator, .{

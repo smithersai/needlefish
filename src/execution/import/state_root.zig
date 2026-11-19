@@ -16,7 +16,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const trie = @import("../trie/root.zig");
+const trie = @import("execution/trie");
 const node = trie.node;
 const state_trie = trie.state_trie;
 
@@ -166,7 +166,7 @@ pub const StateRootBuilder = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Entry = struct {
     address_hash: Hash,
@@ -278,7 +278,7 @@ test "import state root: empty state is the empty root" {
     try testing.expectEqualSlices(u8, &node.empty_root, &try builder.root());
 }
 
-const branch_record = @import("../db/branch_record.zig");
+const branch_record = @import("execution/db").branch_record;
 
 /// A record sink for tests that only need the root.
 pub const discard_sink: RecordSink = .{ .context = @constCast(&discard_context), .emit = discard };
@@ -289,7 +289,7 @@ fn discard(_: *anyopaque, _: ?*const Hash, hang: []const u8, branch: *const Bran
     // A branch, or a single-leaf trie's leaf-root record at the root.
     assert(branch.child_count() >= 2 or (branch.state_mask == 0 and hang.len == 0));
 }
-const record_test = @import("../db/branch_record_test.zig");
+const record_test = @import("execution/db").branch_record_test;
 
 /// Collects emitted records as encoded (key, value) pairs, in emission order.
 const RecordCollector = struct {

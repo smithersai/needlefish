@@ -22,11 +22,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const payload = @import("../../execution/payload/root.zig");
-const chain_module = @import("../../execution/node/chain.zig");
-const metrics = @import("../../utilities/metrics/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const payload = @import("execution/payload");
+const chain_module = @import("execution/node").chain;
+const metrics = @import("utilities/metrics");
 const builder_module = @import("builder.zig");
 const timing = @import("timing.zig");
 

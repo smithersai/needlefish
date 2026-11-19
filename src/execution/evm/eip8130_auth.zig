@@ -11,10 +11,10 @@ const assert = std.debug.assert;
 
 const primitives = @import("primitives.zig");
 const config = @import("eip8130_config.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const eip8130 = @import("../../common/consensus/eip8130.zig");
-const crypto = @import("../../common/crypto/root.zig");
-const common_primitives = @import("../../common/primitives/root.zig");
+const consensus = @import("common/consensus");
+const eip8130 = @import("common/consensus").eip8130;
+const crypto = @import("common/crypto");
+const common_primitives = @import("common/primitives");
 
 const Address = primitives.Address;
 const B256 = primitives.B256;
@@ -484,7 +484,7 @@ pub fn changes_digest(account: Address, local_chain_id: u64, change: eip8130.Con
 const testing = std.testing;
 const memory_db = @import("memory_db.zig");
 const state_module = @import("state.zig");
-const signature_module = @import("../../common/consensus/signature.zig");
+const signature_module = @import("common/consensus").signature;
 const Ecdsa = std.crypto.sign.ecdsa.EcdsaP256Sha256;
 
 /// Hardhat/anvil dev accounts 0 and 1 (publicly known keys).

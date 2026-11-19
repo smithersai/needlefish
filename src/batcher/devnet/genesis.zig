@@ -8,10 +8,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Writer = std.Io.Writer;
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 const accounts = @import("accounts.zig");
 const portal = @import("portal.zig");
-const common_genesis = @import("../../common/genesis/root.zig");
+const common_genesis = @import("common/genesis");
 
 const Address = primitives.Address;
 
@@ -412,7 +412,7 @@ test "genesis: rollup config is valid JSON with the expected anchors" {
 const base_time_proxy_bytes: [20]u8 = .{0x42} ++ @as([18]u8, @splat(0)) ++ .{0x30};
 
 fn check_subsecond_schedule(genesis_timestamp: u64, block_number: u64) !void {
-    const rollup_json = @import("../../consensus/protocol/rollup_json.zig");
+    const rollup_json = @import("consensus/protocol").rollup_json;
     const config: Config = .{ .genesis_timestamp = genesis_timestamp };
     var buffer: [32 * 1024]u8 = undefined;
     var rollup_writer: Writer = .fixed(&buffer);
@@ -452,7 +452,7 @@ test "genesis: Denim at genesis gives 200 ms L2 blocks on both layers" {
 }
 
 test "genesis: seeded fuzz of the subsecond schedule" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xde1);
+    var prng = @import("testing/prng").Prng.init(0xde1);
     for (0..16) |_| {
         const timestamp = prng.range(1, 4_000_000_000);
         try check_subsecond_schedule(timestamp, prng.below(1_000_000));

@@ -134,7 +134,7 @@ fn skip_space(bytes: []const u8, start: usize) usize {
 }
 
 const boot = @import("boot.zig");
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "store: a newer record for the same node replaces the older one" {
     var store = try Store.init(std.testing.allocator, 4);

@@ -6,7 +6,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 const protocol = @import("protocol.zig");
 const store_module = @import("store.zig");
 

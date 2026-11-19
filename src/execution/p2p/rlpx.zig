@@ -18,9 +18,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const curve = @import("../../common/crypto/secp256k1/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const rlp = @import("../../common/rlp/root.zig");
+const curve = @import("common/crypto").secp256k1;
+const keccak = @import("common/crypto").keccak;
+const rlp = @import("common/rlp");
 const ecies = @import("ecies.zig");
 
 const Aes256 = std.crypto.core.aes.Aes256;
@@ -351,8 +351,8 @@ pub fn respond(
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
-const fuzz = @import("../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 
 fn random_for(prng: *Prng) Random {
     var random: Random = undefined;

@@ -9,7 +9,7 @@ const std = @import("std");
 const testing = std.testing;
 
 const mdbx = @import("mdbx.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const fixture = @embedFile("testdata/fixture.mdbx");
 

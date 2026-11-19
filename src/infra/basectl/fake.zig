@@ -5,7 +5,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../../batcher/rpc/root.zig");
+const rpc = @import("batcher/rpc");
 
 pub const answers_max = 64;
 

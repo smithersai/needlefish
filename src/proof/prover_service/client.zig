@@ -10,8 +10,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const endpoint_module = @import("../rpc/endpoint.zig");
-const interfaces = @import("../proposer/interfaces.zig");
+const endpoint_module = @import("proof/rpc").endpoint;
+const interfaces = @import("proof/proposer").interfaces;
 const protocol = @import("protocol.zig");
 const codec = @import("codec.zig");
 

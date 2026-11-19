@@ -5,8 +5,8 @@
 
 const std = @import("std");
 const testing = std.testing;
-const primitives = @import("../primitives/root.zig");
-const rlp = @import("../rlp/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 const genesis_module = @import("root.zig");
 const json = @import("json.zig");
 const state = @import("state.zig");

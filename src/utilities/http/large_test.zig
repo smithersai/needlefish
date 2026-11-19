@@ -7,7 +7,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const io = @import("../io/root.zig");
+const io = @import("utilities/io");
 const parser = @import("parser.zig");
 const server_module = @import("server.zig");
 const client_module = @import("client.zig");

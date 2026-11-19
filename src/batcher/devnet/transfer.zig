@@ -3,10 +3,10 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../rpc/root.zig");
-const txdata = @import("../txdata/root.zig");
+const rpc = @import("batcher/rpc");
+const txdata = @import("batcher/txdata");
 const accounts = @import("accounts.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 
 pub const Params = struct {
     chain_id: u64,

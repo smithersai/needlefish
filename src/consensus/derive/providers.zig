@@ -15,7 +15,7 @@
 //! Returned slices only need to stay valid until the next call on the same provider:
 //! stages copy what they keep.
 
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 
 /// An L1 transaction as seen by the data sources.
 pub const L1Transaction = struct {

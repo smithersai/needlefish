@@ -6,7 +6,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const trie = @import("../../execution/trie/root.zig");
+const trie = @import("execution/trie");
 const node = @import("node.zig");
 const Hash = trie.Hash;
 const RlpNode = trie.RlpNode;
@@ -73,9 +73,9 @@ pub fn get(
 }
 
 const testing = std.testing;
-const test_oracle = @import("../test_oracle.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
-const preimage = @import("../preimage/root.zig");
+const test_oracle = @import("proof/test_oracle");
+const Prng = @import("testing/prng").Prng;
+const preimage = @import("proof/preimage");
 
 const KeyTrie = trie.TrieType(.{ .key_bytes_max = 32, .value_size_max = 128 });
 
@@ -139,7 +139,7 @@ const RandomResolver = struct {
 };
 
 test "mpt key reader: fuzz malformed nodes never escape the bounds" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             var random: RandomResolver = .{ .bytes = undefined, .len = smith.index(200) };

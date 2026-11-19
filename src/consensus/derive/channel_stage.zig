@@ -14,7 +14,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const errors = @import("errors.zig");
 
 const Frame = protocol.frame.Frame;
@@ -251,7 +251,7 @@ pub const ChannelProvider = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// Upstream stub: hands out `frames` in order, then `error.Eof`.
 const TestFrames = struct {

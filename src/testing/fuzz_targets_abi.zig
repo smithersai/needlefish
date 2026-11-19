@@ -16,10 +16,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Smith = std.testing.Smith;
-const fuzz = @import("fuzz.zig");
-const Prng = @import("prng.zig").Prng;
-const abi = @import("../execution/evm/native_abi.zig");
-const native = @import("../execution/evm/native.zig");
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
+const abi = @import("execution/evm").native_abi;
+const native = @import("execution/evm").native;
 
 const Kind = abi.Kind;
 const kinds_all = std.enums.values(Kind);

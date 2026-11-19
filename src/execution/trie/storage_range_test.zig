@@ -8,7 +8,7 @@ const testing = std.testing;
 
 const node = @import("node.zig");
 const state = @import("state_trie.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const Hash = node.Hash;
 
 const slots_max = 192;

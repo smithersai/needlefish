@@ -42,7 +42,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const Prng = @import("../prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const network_module = @import("network.zig");
 const nodes = @import("nodes.zig");
 const codec = @import("codec.zig");
@@ -52,7 +52,7 @@ const real_sequencer = @import("real_sequencer.zig");
 const real_execution = @import("real_execution.zig");
 const real_reference = @import("real_reference.zig");
 const real_gossip = @import("real_gossip.zig");
-const gossip_bridge = @import("../../consensus/service/gossip_bridge.zig");
+const gossip_bridge = @import("consensus/service").gossip_bridge;
 const RealBatcher = real_batcher.RealBatcher;
 const NodeId = network_module.NodeId;
 
@@ -1507,7 +1507,7 @@ fn fuzz_cluster(_: void, smith: *std.testing.Smith) anyerror!void {
 }
 
 test "cluster: fuzz configs (extreme fault rates)" {
-    try @import("../fuzz.zig").run({}, fuzz_cluster, .{ .iterations = 12 });
+    try @import("testing/fuzz").run({}, fuzz_cluster, .{ .iterations = 12 });
 }
 
 test "cluster: real sequencer produces the chain to liveness without faults" {

@@ -3,18 +3,18 @@
 
 const std = @import("std");
 const testing = std.testing;
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const chainspec = @import("../chainspec/root.zig");
-const payload = @import("../payload/root.zig");
-const txpool = @import("../txpool/root.zig");
-const engine_module = @import("../engine/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
+const txpool = @import("execution/txpool");
+const engine_module = @import("execution/engine");
 const chain_module = @import("chain.zig");
 const Executor = @import("executor.zig").Executor;
 const state_db_module = @import("state_db.zig");
 const base_time = @import("base_time.zig");
 const StateDb = state_db_module.StateDb;
-const db_module = @import("../db/root.zig");
+const db_module = @import("execution/db");
 
 pub const Chain = chain_module.Chain;
 pub const Engine = engine_module.Engine(Chain);

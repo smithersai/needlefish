@@ -36,9 +36,9 @@ const state_module = @import("state.zig");
 const overlay_module = @import("overlay.zig");
 const changeset_module = @import("changeset.zig");
 const evm_backend = @import("evm_backend.zig");
-const evm = @import("../evm/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const evm = @import("execution/evm");
+const json = @import("utilities/json");
+const Prng = @import("testing/prng").Prng;
 
 const State = state_module.State;
 const Overlay = overlay_module.Overlay;

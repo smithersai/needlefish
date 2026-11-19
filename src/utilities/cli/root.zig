@@ -318,7 +318,7 @@ test "cli: help text" {
 }
 
 test "cli: seeded fuzz never crashes" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xc11);
+    var prng = @import("testing/prng").Prng.init(0xc11);
     const pieces = [_][]const u8{
         "--http-port", "--chain-id", "--jwt-secret", "--log-level", "--sequencer", "=", "1",
         "0x",          "ffff",       "65536",        "debug",       "true",        "-", "",

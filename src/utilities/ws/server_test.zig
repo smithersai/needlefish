@@ -2,8 +2,8 @@
 
 const std = @import("std");
 
-const io = @import("../io/root.zig");
-const http = @import("../http/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
 const client_module = @import("client.zig");
 const server_module = @import("server.zig");
 

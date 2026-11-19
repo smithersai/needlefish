@@ -454,7 +454,7 @@ test "nitro attestation: document field validation" {
     try testing.expectError(error.DocumentFieldMissing, AttestationDocument.parse(&.{0xa0}));
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 /// Property: arbitrary bytes never crash the envelope or document parsers.
 fn fuzz_parse(_: void, smith: *testing.Smith) anyerror!void {

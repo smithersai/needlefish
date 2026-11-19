@@ -5,7 +5,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const factory = @import("../contracts/dispute_game_factory.zig");
+const factory = @import("proof/contracts").dispute_game_factory;
 const interfaces = @import("interfaces.zig");
 
 const log = std.log.scoped(.proposer);

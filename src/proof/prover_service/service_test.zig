@@ -4,7 +4,7 @@
 const std = @import("std");
 const testing = std.testing;
 
-const json = @import("../../utilities/json/root.zig");
+const json = @import("utilities/json");
 const protocol = @import("protocol.zig");
 const codec = @import("codec.zig");
 const store_module = @import("store.zig");

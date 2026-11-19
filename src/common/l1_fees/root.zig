@@ -7,7 +7,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const flz = @import("../flz/root.zig");
+const flz = @import("common/flz");
 
 /// EIP-2028 gas per calldata token.
 pub const standard_token_cost: u64 = 4;
@@ -191,7 +191,7 @@ pub const L1FeeParams = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn reference_params() L1FeeParams {
     return .{

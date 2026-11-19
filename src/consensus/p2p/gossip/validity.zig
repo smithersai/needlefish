@@ -26,12 +26,12 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../../common/primitives/root.zig");
-const consensus_types = @import("../../../common/consensus/root.zig");
-const common_block = @import("../../../common/consensus/block.zig");
-const ordered = @import("../../../execution/trie/ordered.zig");
-const Nibbles = @import("../../../execution/trie/nibbles.zig").Nibbles;
-const rollup_config = @import("../../protocol/rollup_config.zig");
+const primitives = @import("common/primitives");
+const consensus_types = @import("common/consensus");
+const common_block = @import("common/consensus").block;
+const ordered = @import("execution/trie").ordered;
+const Nibbles = @import("execution/trie").nibbles.Nibbles;
+const rollup_config = @import("consensus/protocol").rollup_config;
 const base_time = consensus_types.base_time;
 const block = @import("block.zig");
 const ssz = @import("ssz_payload.zig");
@@ -360,10 +360,10 @@ pub const Validator = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
-const fuzz = @import("../../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 const snappy = @import("snappy.zig");
-const secp256k1 = @import("../../../common/crypto/secp256k1/root.zig");
+const secp256k1 = @import("common/crypto").secp256k1;
 
 const now_test: u64 = 2_000_000;
 const chain_id_test: u64 = 8453;

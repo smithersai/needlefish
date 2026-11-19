@@ -14,11 +14,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const trie = @import("../trie/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rpc_types = @import("../../common/rpc_types/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
+const trie = @import("execution/trie");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const rpc_types = @import("common/rpc_types");
+const rlp = @import("common/rlp");
 const witness = @import("witness.zig");
 const history = @import("history.zig");
 const changeset_module = @import("changeset.zig");

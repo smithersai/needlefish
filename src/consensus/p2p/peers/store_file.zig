@@ -13,7 +13,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const io_module = @import("../../../utilities/io/root.zig");
+const io_module = @import("utilities/io");
 
 pub const Stats = struct {
     open_errors: u64 = 0,
@@ -261,7 +261,7 @@ pub fn StoreFile(comptime IO: type, comptime Owner: type, comptime hooks: Hooks(
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const SimIo = io_module.SimIo;
 const ns_per_ms = std.time.ns_per_ms;
 

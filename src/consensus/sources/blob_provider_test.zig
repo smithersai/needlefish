@@ -7,10 +7,10 @@ const builtin = @import("builtin");
 const testing = std.testing;
 const assert = std.debug.assert;
 
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const kzg = @import("common/crypto").kzg;
+const primitives = @import("common/primitives");
 const harness_module = @import("sim_harness.zig");
 const blob_provider = @import("blob_provider.zig");
 const beacon_json = @import("beacon_json.zig");
@@ -18,7 +18,7 @@ const beacon_json = @import("beacon_json.zig");
 const B256 = primitives.B256;
 const Blob = beacon_json.Blob;
 const Sidecar = beacon_json.Sidecar;
-const BlockInfo = @import("../protocol/root.zig").BlockInfo;
+const BlockInfo = @import("consensus/protocol").BlockInfo;
 const Info = BlockInfo;
 
 /// Fake KZG: a blob's commitment is its first 48 bytes; valid proofs start with 0xaa.

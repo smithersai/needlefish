@@ -3,7 +3,7 @@
 const std = @import("std");
 const testing = std.testing;
 const metering = @import("root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const B256 = metering.B256;
 const MeteringStore = metering.MeteringStore;

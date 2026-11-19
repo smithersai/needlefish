@@ -7,12 +7,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const consensus = @import("../../common/consensus/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const trie = @import("../../execution/trie/root.zig");
+const consensus = @import("common/consensus");
+const keccak = @import("common/crypto").keccak;
+const trie = @import("execution/trie");
 const rlp = trie.rlp;
-const mpt = @import("../mpt/root.zig");
-const preimage = @import("../preimage/root.zig");
+const mpt = @import("proof/mpt");
+const preimage = @import("proof/preimage");
 const hint = @import("hint.zig");
 
 const Hash = [32]u8;
@@ -108,7 +108,7 @@ test "eip2935: the hashed address matches base/base" {
     try testing.expectEqualStrings(expected, &hex);
 }
 
-const test_oracle = @import("../test_oracle.zig");
+const test_oracle = @import("proof/test_oracle");
 const KeyTrie = trie.TrieType(.{ .key_bytes_max = 32, .value_size_max = 128 });
 
 /// Stores a trie of `entries` (hashed key, value) and returns its root.

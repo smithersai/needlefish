@@ -3,22 +3,22 @@
 
 const std = @import("std");
 
-pub const preimage = @import("preimage/root.zig");
-pub const mpt = @import("mpt/root.zig");
-pub const executor = @import("executor/root.zig");
-pub const program = @import("program/root.zig");
-pub const driver = @import("driver/root.zig");
-pub const client = @import("client/root.zig");
-pub const host = @import("host/root.zig");
-pub const contracts = @import("contracts/root.zig");
-pub const rpc = @import("rpc/root.zig");
-pub const proposer = @import("proposer/root.zig");
-pub const challenger = @import("challenger/root.zig");
-pub const submission = @import("submission/root.zig");
-pub const prover_service = @import("prover_service/root.zig");
-pub const telemetry = @import("telemetry/root.zig");
-pub const tee = @import("tee/root.zig");
-pub const primitives = @import("primitives/root.zig");
+pub const preimage = @import("proof/preimage");
+pub const mpt = @import("proof/mpt");
+pub const executor = @import("proof/executor");
+pub const program = @import("proof/program");
+pub const driver = @import("proof/driver");
+pub const client = @import("proof/client");
+pub const host = @import("proof/host");
+pub const contracts = @import("proof/contracts");
+pub const rpc = @import("proof/rpc");
+pub const proposer = @import("proof/proposer");
+pub const challenger = @import("proof/challenger");
+pub const submission = @import("proof/submission");
+pub const prover_service = @import("proof/prover_service");
+pub const telemetry = @import("proof/telemetry");
+pub const tee = @import("proof/tee");
+pub const primitives = @import("proof/primitives");
 
 test {
     std.testing.refAllDecls(@This());

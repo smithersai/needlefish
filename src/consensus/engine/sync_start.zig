@@ -26,8 +26,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../protocol/root.zig");
-const ProviderError = @import("../derive/errors.zig").ProviderError;
+const protocol = @import("consensus/protocol");
+const ProviderError = @import("consensus/derive").errors.ProviderError;
 
 const BlockInfo = protocol.block.BlockInfo;
 const L2BlockInfo = protocol.block.L2BlockInfo;
@@ -292,7 +292,7 @@ pub const StartFinder = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// Linear test chain: L2 block `i` has L1 origin `i / 2`. L1 blocks at or above
 /// `l1_reorg_from` have a different (non-canonical) hash in the L2 view.

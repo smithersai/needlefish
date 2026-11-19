@@ -9,7 +9,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../json/root.zig");
+const json = @import("utilities/json");
 
 pub const client = @import("client.zig");
 pub const Client = client.Client;

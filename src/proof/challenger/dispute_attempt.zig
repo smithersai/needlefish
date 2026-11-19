@@ -13,7 +13,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const chain = @import("chain.zig");
-const contracts = @import("../contracts/root.zig");
+const contracts = @import("proof/contracts");
 
 const Address = chain.Address;
 const Hash = chain.Hash;

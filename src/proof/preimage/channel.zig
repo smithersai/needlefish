@@ -193,7 +193,7 @@ pub const Duplex = struct {
 };
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "pipe: atomic write and exact read" {
     var storage: [8]u8 = undefined;

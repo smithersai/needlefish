@@ -9,11 +9,11 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const json = @import("../../utilities/json/root.zig");
+const json = @import("utilities/json");
 const object = @import("json_object.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const engine_types = @import("../../execution/engine/types.zig");
-const payload_attributes = @import("../../execution/payload/attributes.zig");
+const primitives = @import("common/primitives");
+const engine_types = @import("execution/engine").types;
+const payload_attributes = @import("execution/payload").attributes;
 
 const B256 = primitives.B256;
 const Writer = json.Writer;

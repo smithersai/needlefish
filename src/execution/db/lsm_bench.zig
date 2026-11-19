@@ -25,7 +25,7 @@ const lsm = storage_module.lsm;
 const SimStorage = storage_module.SimStorage;
 const FreeSet = storage_module.free_set.FreeSet;
 const BlockCache = storage_module.table.BlockCache;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const AccountTree = lsm.TreeType(SimStorage, 32, 80);
 const StorageTree = lsm.TreeType(SimStorage, 64, 32);

@@ -12,7 +12,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rlp = @import("../../common/rlp/root.zig");
+const rlp = @import("common/rlp");
 const node = @import("node.zig");
 const trie_module = @import("trie.zig");
 const rehash_pool = @import("rehash_pool.zig");

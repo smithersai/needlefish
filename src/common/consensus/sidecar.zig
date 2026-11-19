@@ -13,10 +13,10 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const rlp = @import("../rlp/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 const tx_module = @import("tx.zig");
-const kzg = @import("../crypto/kzg/root.zig");
+const kzg = @import("common/crypto").kzg;
 const kzg_blob = kzg.blob;
 const kzg_cells = kzg.cells;
 const B256 = primitives.B256;
@@ -360,7 +360,7 @@ pub const PooledTx = union(enum) {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const dev_key = [32]u8{
     0xac, 0x09, 0x74, 0xbe, 0xc3, 0x9a, 0x17, 0xe3, 0x6b, 0xa4, 0xa6, 0xb4, 0xd2, 0x38, 0xff, 0x94,

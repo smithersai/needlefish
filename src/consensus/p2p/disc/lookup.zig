@@ -141,7 +141,7 @@ pub const Lookup = struct {
 };
 
 const secp256k1 = @import("../peers/secp256k1.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "lookup: keeps closest sorted, respects parallelism, finishes" {
     var prng = Prng.init(0x6c6f_6f6b);

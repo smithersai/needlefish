@@ -6,11 +6,11 @@
 const std = @import("std");
 const testing = std.testing;
 
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const chainspec = @import("../../execution/chainspec/root.zig");
-const db = @import("../../execution/db/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
+const chainspec = @import("execution/chainspec");
+const db = @import("execution/db");
 const diff = @import("root.zig");
 
 const hex = primitives.hex;

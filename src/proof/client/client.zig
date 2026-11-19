@@ -11,16 +11,16 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
-const mpt = @import("../mpt/root.zig");
-const executor = @import("../executor/root.zig");
-const program = @import("../program/root.zig");
-const driver_module = @import("../driver/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
-const chains = @import("../../common/chains/root.zig");
-const chainspec = @import("../../execution/chainspec/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const derive = @import("../../consensus/derive/root.zig");
+const preimage = @import("proof/preimage");
+const mpt = @import("proof/mpt");
+const executor = @import("proof/executor");
+const program = @import("proof/program");
+const driver_module = @import("proof/driver");
+const kzg = @import("common/crypto").kzg;
+const chains = @import("common/chains");
+const chainspec = @import("execution/chainspec");
+const protocol = @import("consensus/protocol");
+const derive = @import("consensus/derive");
 
 const Hash = [32]u8;
 const Allocator = std.mem.Allocator;

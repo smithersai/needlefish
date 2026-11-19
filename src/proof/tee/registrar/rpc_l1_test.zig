@@ -6,13 +6,13 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../../utilities/io/root.zig");
-const harness_module = @import("../../../consensus/sources/sim_harness.zig");
-const abi = @import("../../contracts/abi.zig");
-const registry_abi = @import("../../contracts/tee_prover_registry.zig");
-const cert_manager_abi = @import("../../contracts/cert_manager.zig");
-const endpoint_module = @import("../../rpc/endpoint.zig");
-const accounts = @import("../../../batcher/devnet/accounts.zig");
+const io = @import("utilities/io");
+const harness_module = @import("consensus/sources").sim_harness;
+const abi = @import("proof/contracts").abi;
+const registry_abi = @import("proof/contracts").tee_prover_registry;
+const cert_manager_abi = @import("proof/contracts").cert_manager;
+const endpoint_module = @import("proof/rpc").endpoint;
+const accounts = @import("batcher/devnet").accounts;
 const signer_manager = @import("signer_manager.zig");
 const rpc_l1 = @import("rpc_l1.zig");
 

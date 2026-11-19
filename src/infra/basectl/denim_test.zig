@@ -10,7 +10,7 @@ const types = @import("types.zig");
 const denim = @import("denim.zig");
 const denim_fetch = @import("denim_fetch.zig");
 const FakeTransport = @import("fake.zig").FakeTransport;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Answer = FakeTransport.Answer;
 
@@ -76,14 +76,14 @@ const Scenario = struct {
 };
 
 const timestamp_ms_word = "\"0x" ++ denim.repeat("0", 60) ++ "c4e0\"";
-const proxy_file = @embedFile("../../batcher/devnet/base_time_proxy.hex");
+const proxy_file = @import("batcher/devnet").base_time_proxy_hex;
 const proxy_result = "\"0x" ++ std.mem.trimEnd(u8, proxy_file, "\n") ++ "\"";
 
 /// The snapshot (block 100) answers: its block, state pinned to its hash, and getters.
 fn state_answers(arena: std.mem.Allocator, scenario: Scenario) [12]Answer {
     const pin = print(arena, "{{\"blockHash\":\"{s}\"}}", .{hex32(arena, hash_of(100))});
     const snapshot = block_json(arena, 100, 50_400);
-    const code = @import("../../execution/node/base_time.zig").implementation_code;
+    const code = @import("execution/node").base_time.implementation_code;
     var millis_word: [32]u8 = @splat(0);
     millis_word[30] = 0x01;
     millis_word[31] = 0x90;
@@ -319,7 +319,7 @@ test "denim fetch: activation, words, and code hashes decode" {
     const long = parse(arena, "\"0x" ++ denim.repeat("0", 65) ++ "\"");
     try testing.expectError(error.MalformedResponse, denim_fetch.decode_word(long));
     const empty = try denim_fetch.hash_code(parse(arena, "\"0x\""));
-    const keccak = @import("../../common/crypto/keccak.zig");
+    const keccak = @import("common/crypto").keccak;
     try testing.expectEqualSlices(u8, &keccak.empty_digest, &empty);
     const odd = parse(arena, "\"0x1\"");
     try testing.expectError(error.MalformedResponse, denim_fetch.hash_code(odd));

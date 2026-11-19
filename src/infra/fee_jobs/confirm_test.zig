@@ -9,16 +9,16 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const abi = @import("../../proof/contracts/abi.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
-const header_json = @import("../../consensus/sources/header_json.zig");
-const state_trie = @import("../../execution/trie/state_trie.zig");
-const trie_node = @import("../../execution/trie/node.zig");
-const withdrawer = @import("../withdrawer/root.zig");
-const fake_chain = @import("../withdrawer/fake_chain.zig");
+const rpc = @import("batcher/rpc");
+const abi = @import("proof/contracts").abi;
+const accounts = @import("batcher/devnet").accounts;
+const header_json = @import("consensus/sources").header_json;
+const state_trie = @import("execution/trie").state_trie;
+const trie_node = @import("execution/trie").node;
+const withdrawer = @import("infra/withdrawer");
+const fake_chain = @import("infra/withdrawer").fake_chain;
 const confirm = @import("confirm.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const withdrawal_module = withdrawer.withdrawal;
 const calldata = withdrawer.calldata;
@@ -26,7 +26,7 @@ const Hash = [32]u8;
 const Address = [20]u8;
 const keccak256 = withdrawal_module.keccak256;
 
-const fixture_json = @embedFile("../withdrawer/testdata/base_sepolia_withdrawal_proof.json");
+const fixture_json = @import("infra/withdrawer").base_sepolia_withdrawal_proof_json;
 const fee_disburser: Address = @splat(0x44);
 const disbursal: Hash = @splat(0xd1);
 const foreign_disbursal: Hash = @splat(0xd2);

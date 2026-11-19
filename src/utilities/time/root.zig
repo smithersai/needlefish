@@ -110,7 +110,7 @@ pub fn Ticker(comptime IO: type, comptime Context: type) type {
         ticks_skipped: u64 = 0,
 
         const Self = @This();
-        const TimeoutResult = @import("../io/common.zig").TimeoutError!void;
+        const TimeoutResult = @import("utilities/io").common.TimeoutError!void;
 
         pub fn init(
             io: *IO,
@@ -169,7 +169,7 @@ pub fn Ticker(comptime IO: type, comptime Context: type) type {
     };
 }
 
-const io_module = @import("../io/root.zig");
+const io_module = @import("utilities/io");
 
 test "time: clock is monotonic over manual clock" {
     var manual: ManualClock = .{};

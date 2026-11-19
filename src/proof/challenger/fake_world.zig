@@ -12,12 +12,12 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const chain = @import("chain.zig");
-const contracts = @import("../contracts/root.zig");
-const native = @import("../host/native.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const crypto = @import("../../common/crypto/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const contracts = @import("proof/contracts");
+const native = @import("proof/host").native;
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
+const crypto = @import("common/crypto");
+const Prng = @import("testing/prng").Prng;
 
 const Address = chain.Address;
 const Hash = chain.Hash;

@@ -30,7 +30,7 @@ const overlay_module = @import("overlay.zig");
 const storage_module = @import("storage/storage.zig");
 const checkpoint_module = @import("storage/checkpoint.zig");
 const SimStorage = @import("storage/sim_storage.zig").SimStorage;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Database = database.DatabaseType(SimStorage);
 const Overlay = overlay_module.Overlay;

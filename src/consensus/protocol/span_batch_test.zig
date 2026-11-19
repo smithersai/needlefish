@@ -7,13 +7,13 @@ const assert = std.debug.assert;
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
 const batch_module = @import("batch.zig");
 const block = @import("block.zig");
 const RollupConfig = @import("rollup_config.zig").RollupConfig;
 const span_batch = @import("span_batch.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Address = primitives.Address;
 const B256 = primitives.B256;
@@ -1034,7 +1034,7 @@ test "span batch: EIP-8130 span data rejects inconsistent authenticators" {
     const Eip8130 = span_batch.tx_data.Eip8130;
     var buffer: [256]u8 = undefined;
     const data: Eip8130 = .{ .sender = .{ .bytes = @splat(1) }, .sender_authenticator = &.{} };
-    var encoder = @import("../../common/rlp/root.zig").Encoder.init(&buffer);
+    var encoder = @import("common/rlp").Encoder.init(&buffer);
     data.encode(&encoder);
     try testing.expectError(error.InvalidTransactionData, Eip8130.decode(encoder.written()));
     const valid: Eip8130 = .{ .payer = eip8130.open_payer };

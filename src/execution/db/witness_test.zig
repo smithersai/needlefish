@@ -11,9 +11,9 @@ const state_module = @import("state.zig");
 const overlay_module = @import("overlay.zig");
 const changeset_module = @import("changeset.zig");
 const evm_backend = @import("evm_backend.zig");
-const trie = @import("../trie/root.zig");
+const trie = @import("execution/trie");
 const HeaderChain = @import("witness_header_chain.zig").HeaderChain;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const State = state_module.State;
 const Overlay = overlay_module.Overlay;

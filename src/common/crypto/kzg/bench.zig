@@ -8,7 +8,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const blob = @import("blob.zig");
 const bls = @import("../bls12_381/root.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const batch_size = 6;
 

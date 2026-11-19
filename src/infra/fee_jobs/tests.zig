@@ -5,13 +5,13 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
-const tx_manager = @import("../tx_manager/root.zig");
+const rpc = @import("batcher/rpc");
+const consensus = @import("common/consensus");
+const accounts = @import("batcher/devnet").accounts;
+const tx_manager = @import("infra/tx_manager");
 const fee_jobs = @import("root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
-const keccak = @import("../../common/crypto/keccak.zig");
+const Prng = @import("testing/prng").Prng;
+const keccak = @import("common/crypto").keccak;
 
 const Driver = tx_manager.driver.Driver(.{ .sends_max = 2, .hashes_max = 4 });
 const contract: fee_jobs.Address = .{ .bytes = @splat(0xfe) };

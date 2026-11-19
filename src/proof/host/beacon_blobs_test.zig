@@ -5,12 +5,12 @@ const std = @import("std");
 const testing = std.testing;
 const assert = std.debug.assert;
 
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const harness_module = @import("../../consensus/sources/sim_harness.zig");
-const beacon_json = @import("../../consensus/sources/beacon_json.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const kzg = @import("common/crypto").kzg;
+const primitives = @import("common/primitives");
+const harness_module = @import("consensus/sources").sim_harness;
+const beacon_json = @import("consensus/sources").beacon_json;
 const beacon_blobs = @import("beacon_blobs.zig");
 
 const Blob = [kzg.bytes_per_blob]u8;

@@ -5,9 +5,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../json/root.zig");
-const http_client = @import("../http/client.zig");
-const parser = @import("../http/parser.zig");
+const json = @import("utilities/json");
+const http_client = @import("utilities/http").client;
+const parser = @import("utilities/http").parser;
 
 pub const Address = http_client.Address;
 

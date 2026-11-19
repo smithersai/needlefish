@@ -9,11 +9,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../utilities/rpc/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const service_module = @import("../service/root.zig");
-const throttle = @import("../throttle/root.zig");
+const rpc = @import("utilities/rpc");
+const http = @import("utilities/http");
+const json = @import("utilities/json");
+const service_module = @import("batcher/service");
+const throttle = @import("batcher/throttle");
 
 const Service = service_module.Service;
 const Call = rpc.Call;
@@ -205,8 +205,8 @@ fn write_ppm(writer: anytype, value_ppm: u32) HandlerError!void {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
-const accounts = @import("../devnet/accounts.zig");
+const Prng = @import("testing/prng").Prng;
+const accounts = @import("batcher/devnet").accounts;
 
 fn test_service() !Service {
     const batcher = accounts.derive_dev(@backingInt(accounts.Role.batcher));

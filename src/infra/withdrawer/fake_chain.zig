@@ -9,10 +9,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const registry = @import("../../proof/contracts/anchor_state_registry.zig");
-const factory = @import("../../proof/contracts/dispute_game_factory.zig");
+const rpc = @import("batcher/rpc");
+const consensus = @import("common/consensus");
+const registry = @import("proof/contracts").anchor_state_registry;
+const factory = @import("proof/contracts").dispute_game_factory;
 const calldata = @import("calldata.zig");
 
 pub const Hash = [32]u8;

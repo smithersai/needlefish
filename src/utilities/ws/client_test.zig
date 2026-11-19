@@ -3,9 +3,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const io = @import("../io/root.zig");
-const io_common = @import("../io/common.zig");
-const http_parser = @import("../http/parser.zig");
+const io = @import("utilities/io");
+const io_common = @import("utilities/io").common;
+const http_parser = @import("utilities/http").parser;
 const frame = @import("frame.zig");
 const client_module = @import("client.zig");
 

@@ -2,7 +2,7 @@
 //! two simulated connections.
 
 const std = @import("std");
-const metrics = @import("../../utilities/metrics/root.zig");
+const metrics = @import("utilities/metrics");
 const p2p_metrics = @import("metrics.zig");
 const Fixture = @import("rpc_test.zig").Fixture;
 const validity = @import("gossip/validity.zig");

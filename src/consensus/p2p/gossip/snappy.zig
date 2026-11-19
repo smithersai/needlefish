@@ -311,8 +311,8 @@ fn emit_copy2(output: []u8, offset: usize, length: usize) usize {
     return 3;
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 fn expect_decode(expected: []const u8, input: []const u8) !void {
     var buffer: [256]u8 = undefined;

@@ -262,7 +262,7 @@ test "chainspec: fork order validation" {
 }
 
 test "chainspec: seeded fuzz spec_at is monotone" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xc4a1);
+    var prng = @import("testing/prng").Prng.init(0xc4a1);
     const specs = [_]ChainSpec{
         ChainSpec.presets.base_mainnet,
         ChainSpec.presets.base_sepolia,

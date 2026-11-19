@@ -16,8 +16,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
 
 const Address = primitives.Address;
 
@@ -293,7 +293,7 @@ fn recover_range(raws: []const []const u8, out: []?Address, recoverer: consensus
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn signed_transfer(buffer: []u8, key_index: u32, nonce: u64) ![]const u8 {
     var key: [32]u8 = @splat(0);

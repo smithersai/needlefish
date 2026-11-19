@@ -6,8 +6,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const consensus = @import("../consensus/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
 const hex = primitives.hex;
 const Address = primitives.Address;
 const B256 = primitives.B256;
@@ -298,7 +298,7 @@ pub fn parse_block_id(value: Value) ParseError!BlockId {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn parse_text(arena: Allocator, text: []const u8) !TransactionRequest {
     const value = try std.json.parseFromSliceLeaky(Value, arena, text, .{});

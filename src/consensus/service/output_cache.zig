@@ -8,7 +8,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rollup_rpc = @import("../rpc/rollup.zig");
+const rollup_rpc = @import("consensus/rpc").rollup;
 
 const OutputAtBlock = rollup_rpc.OutputAtBlock;
 

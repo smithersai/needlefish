@@ -96,7 +96,7 @@ fn check_bounds(random: std.Random) !void {
 }
 
 test "pacing: seeded fuzz bounds" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x9ace);
+    var prng = @import("testing/prng").Prng.init(0x9ace);
     for (0..200) |_| try check_bounds(prng.random());
 }
 

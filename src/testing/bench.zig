@@ -13,8 +13,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rlp = @import("../common/rlp/root.zig");
-const swarm = @import("sim/swarm.zig");
+const rlp = @import("common/rlp");
+const swarm = @import("testing/sim").swarm;
 
 pub const sample_count = 5;
 pub const sample_ns_target: u64 = 50 * std.time.ns_per_ms;

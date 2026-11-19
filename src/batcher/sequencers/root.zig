@@ -9,7 +9,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../rpc/root.zig");
+const rpc = @import("batcher/rpc");
 
 pub const sequencers_max = 8;
 
@@ -71,7 +71,7 @@ fn is_active(rollup: *rpc.Client) bool {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// A rollup node answering `admin_sequencerActive` with `active`, or failing.
 const FakeNode = struct {

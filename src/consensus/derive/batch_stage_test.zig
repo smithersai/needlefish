@@ -6,12 +6,12 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const errors = @import("errors.zig");
 const channel_reader = @import("channel_reader.zig");
 const batch_stage = @import("batch_stage.zig");
 const TestChain = @import("test_chain.zig").TestChain;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const BlockInfo = protocol.block.BlockInfo;
 const L2BlockInfo = protocol.block.L2BlockInfo;

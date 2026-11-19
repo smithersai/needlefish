@@ -8,8 +8,8 @@ const enr = @import("peers/enr.zig");
 const peer_id = @import("peers/peer_id.zig");
 const secp256k1 = @import("peers/secp256k1.zig");
 const ip = @import("peers/ip.zig");
-const rollup_config = @import("../protocol/rollup_config.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const rollup_config = @import("consensus/protocol").rollup_config;
+const Prng = @import("testing/prng").Prng;
 
 const Service = service_module.Service;
 const testing = std.testing;
@@ -212,7 +212,7 @@ test "p2p rpc: seeded fuzz of methods and params" {
             \\{{"jsonrpc":"2.0","id":1,"method":"{s}","params":{s}}}
         , .{ method.name, param });
         const reply = fixture.call(request);
-        try @import("../../utilities/json/root.zig").validate(reply);
+        try @import("utilities/json").validate(reply);
         while (fixture.service.pop_command()) |_| {}
     }
 }
@@ -298,13 +298,13 @@ fn fuzz_peer_info(_: void, input: []const u8) anyerror!void {
 }
 
 test "p2p rpc: fuzz peer info from identify bytes" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run_bytes({}, fuzz_peer_info, fuzz.Options{ .input_size_max = 4096, .corpus = &.{} });
 }
 
 const InnerContext = struct { answer: u64 };
 
-const utilities_rpc = @import("../../utilities/rpc/root.zig");
+const utilities_rpc = @import("utilities/rpc");
 
 fn inner_answer(
     context: *const InnerContext,

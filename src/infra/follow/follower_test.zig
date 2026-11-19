@@ -6,12 +6,12 @@
 const std = @import("std");
 const testing = std.testing;
 
-const chainspec = @import("../../execution/chainspec/root.zig");
-const Header = @import("../../common/consensus/root.zig").Header;
-const trie = @import("../../execution/trie/root.zig");
+const chainspec = @import("execution/chainspec");
+const Header = @import("common/consensus").Header;
+const trie = @import("execution/trie");
 const keccak256 = trie.node.keccak256;
-const replay = @import("../replay/root.zig");
-const mainnet_test = @import("../replay/mainnet_test.zig");
+const replay = @import("infra/replay");
+const mainnet_test = @import("infra/replay").mainnet_fixture;
 const follower_module = @import("follower.zig");
 
 const Archive = replay.Archive;

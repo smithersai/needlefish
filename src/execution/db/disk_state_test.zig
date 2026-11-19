@@ -30,9 +30,9 @@ const flat_trees_module = @import("flat_trees.zig");
 const branch_record = @import("branch_record.zig");
 const record_test = @import("branch_record_test.zig");
 const disk_state = @import("disk_state.zig");
-const state_root_module = @import("../import/state_root.zig");
-const trie = @import("../trie/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const state_root_module = @import("execution/import").state_root;
+const trie = @import("execution/trie");
+const Prng = @import("testing/prng").Prng;
 
 const node = trie.node;
 const Hash = node.Hash;

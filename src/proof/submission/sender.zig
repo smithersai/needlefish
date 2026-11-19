@@ -14,11 +14,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const clients = @import("../rpc/clients.zig");
-const endpoint_module = @import("../rpc/endpoint.zig");
-const txdata = @import("../../batcher/txdata/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
+const clients = @import("proof/rpc").clients;
+const endpoint_module = @import("proof/rpc").endpoint;
+const txdata = @import("batcher/txdata");
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
 
 pub const Address = endpoint_module.Address;
 pub const TxId = u64;

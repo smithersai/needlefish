@@ -337,8 +337,8 @@ fn read_word(bytes: []const u8, index: usize) u64 {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
-const fuzz = @import("../../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 
 test "free set: acquire lowest, release waits for two durable checkpoints" {
     var free_set = try FreeSet.init(testing.allocator, 70);

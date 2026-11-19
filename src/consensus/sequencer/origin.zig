@@ -20,8 +20,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../protocol/root.zig");
-const ProviderError = @import("../derive/errors.zig").ProviderError;
+const protocol = @import("consensus/protocol");
+const ProviderError = @import("consensus/derive").errors.ProviderError;
 
 const BlockInfo = protocol.block.BlockInfo;
 const L2BlockInfo = protocol.block.L2BlockInfo;
@@ -125,7 +125,7 @@ pub const OriginSelector = struct {
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const TestL1 = struct {
     /// L1 block `i` has timestamp `i * 12`.

@@ -5,16 +5,16 @@
 
 const std = @import("std");
 const testing = std.testing;
-const consensus = @import("../../common/consensus/root.zig");
-const genesis_module = @import("../../common/genesis/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const db_module = @import("../db/root.zig");
-const SimStorage = @import("../db/storage/sim_storage.zig").SimStorage;
-const fixture = @import("../node/test_fixture.zig");
-const durable_module = @import("../node/durable.zig");
-const StateDb = @import("../node/state_db.zig").StateDb;
-const engine_types = @import("../engine/root.zig").types;
+const consensus = @import("common/consensus");
+const genesis_module = @import("common/genesis");
+const primitives = @import("common/primitives");
+const json = @import("utilities/json");
+const db_module = @import("execution/db");
+const SimStorage = @import("execution/db").storage.sim_storage.SimStorage;
+const fixture = @import("execution/node").test_fixture;
+const durable_module = @import("execution/node").durable;
+const StateDb = @import("execution/node").state_db.StateDb;
+const engine_types = @import("execution/engine").types;
 const eth = @import("eth.zig");
 
 const Durable = durable_module.Durable(SimStorage);

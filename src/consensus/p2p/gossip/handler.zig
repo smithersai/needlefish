@@ -19,8 +19,8 @@ const block = @import("block.zig");
 const validity = @import("validity.zig");
 const snappy = @import("snappy.zig");
 const score = @import("../peers/score.zig");
-const primitives = @import("../../../common/primitives/root.zig");
-const rollup_config = @import("../../protocol/rollup_config.zig");
+const primitives = @import("common/primitives");
+const rollup_config = @import("consensus/protocol").rollup_config;
 
 pub const Router = router_module.Router;
 pub const Id = router_module.Id;

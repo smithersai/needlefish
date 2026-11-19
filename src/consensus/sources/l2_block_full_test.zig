@@ -7,12 +7,12 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const protocol = @import("../protocol/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const protocol = @import("consensus/protocol");
 const fixtures = @import("fixtures.zig");
 const l2_block_full = @import("l2_block_full.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const B256 = primitives.B256;
 const Envelope = consensus.Envelope;

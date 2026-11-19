@@ -13,10 +13,10 @@ const execute = @import("eip8130_execute.zig");
 const simulate = @import("eip8130_simulate.zig");
 const config = @import("eip8130_config.zig");
 const auth = @import("eip8130_auth.zig");
-const signature_module = @import("../../common/consensus/signature.zig");
+const signature_module = @import("common/consensus").signature;
 const Harness = @import("evm_test.zig").Harness;
-const eip8130 = @import("../../common/consensus/eip8130.zig");
-const common = @import("../../common/primitives/root.zig");
+const eip8130 = @import("common/consensus").eip8130;
+const common = @import("common/primitives");
 
 const Address = primitives.Address;
 
@@ -315,7 +315,7 @@ test "eip8130 execute: 2D nonce channels advance and reject replays" {
     try testing.expectEqual(@as(u256, 0), h.state.transient_load(native.tx_context_address, 0));
 }
 
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "eip8130 execute: fuzz phases, gas, fees, and nonces" {
     try fuzz.run_bytes({}, fuzz_execute, .{ .seed = 0x8130_e8ec, .iterations = 48 });

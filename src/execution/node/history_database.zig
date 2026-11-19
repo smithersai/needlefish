@@ -10,10 +10,10 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const evm = @import("../evm/root.zig");
-const trie_node = @import("../trie/node.zig");
-const state_trie = @import("../trie/state_trie.zig");
-const db_database = @import("../db/database.zig");
+const evm = @import("execution/evm");
+const trie_node = @import("execution/trie").node;
+const state_trie = @import("execution/trie").state_trie;
+const db_database = @import("execution/db").database;
 const chain_module = @import("chain.zig");
 
 const Hash = [32]u8;

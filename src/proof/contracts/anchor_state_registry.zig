@@ -86,7 +86,7 @@ test "anchor state registry: calls and returns" {
 }
 
 test "anchor state registry: fuzz the anchor root decoder" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             var data: [96]u8 = undefined;

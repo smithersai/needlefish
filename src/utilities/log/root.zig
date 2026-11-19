@@ -337,7 +337,7 @@ test "log: json format" {
         \\{"time":1700000000.005,"level":"WARN","scope":"p2p","message":"peer banned","reason":"bad \"block\"","score":-100,"err":"Timeout"}
         \\
     , line);
-    try @import("../json/root.zig").validate(line[0 .. line.len - 1]);
+    try @import("utilities/json").validate(line[0 .. line.len - 1]);
 }
 
 test "log: long lines are truncated, never split" {

@@ -5,9 +5,9 @@
 const std = @import("std");
 const testing = std.testing;
 
-const trie = @import("../trie/root.zig");
+const trie = @import("execution/trie");
 const replay = @import("replay_roots.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const node = trie.node;
 const StateTrie = trie.StateTrie;
@@ -283,7 +283,7 @@ test "replay_roots: receipts root of a deposit and a typed receipt" {
     const value = try std.json.parseFromSliceLeaky(std.json.Value, arena, text, .{});
     const root = try replay.receipts_root(arena, value);
     // Expected: the ordered trie of the same receipts built with the consensus encoder.
-    const receipt = @import("../../common/consensus/root.zig").receipt;
+    const receipt = @import("common/consensus").receipt;
     var first_buffer: [512]u8 = undefined;
     var second_buffer: [512]u8 = undefined;
     const first: receipt.Receipt = .{

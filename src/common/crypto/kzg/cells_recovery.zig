@@ -181,7 +181,7 @@ pub fn recover_cells_and_kzg_proofs(
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 var test_cells: Cells = undefined;
 var test_recovered: Cells = undefined;

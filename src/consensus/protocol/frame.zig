@@ -159,7 +159,7 @@ pub fn parse_frames(encoded: []const u8, out: []Frame) ParseFramesError![]Frame 
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "frame: encode/decode roundtrip" {
     const data = @as([50]u8, @splat(0xdd));

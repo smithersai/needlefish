@@ -15,8 +15,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
 const event_module = @import("event.zig");
 const store_module = @import("store.zig");
 const time = @import("time.zig");

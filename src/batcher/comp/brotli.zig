@@ -644,8 +644,8 @@ fn build_codes(input: []const u8, commands: []const Command, codes: *Codes) void
 }
 
 const testing = std.testing;
-const consensus_brotli = @import("../../consensus/protocol/brotli.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const consensus_brotli = @import("consensus/protocol").brotli;
+const Prng = @import("testing/prng").Prng;
 
 fn expect_round_trip(encoder: *Encoder, input: []const u8) !usize {
     const out = try testing.allocator.alloc(u8, input.len * 2 + 1024);

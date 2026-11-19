@@ -236,7 +236,7 @@ pub fn Curve(comptime F: type, comptime b: F) type {
 }
 
 test "curve: wnaf digits reconstruct the scalar" {
-    const Prng = @import("../../../testing/prng.zig").Prng;
+    const Prng = @import("testing/prng").Prng;
     var prng = Prng.init(0x7a4f);
     var digits: [wnaf_digits_max]i8 = undefined;
     const edge = [_]u256{ 0, 1, 15, 16, 31, std.math.maxInt(u256), 1 << 255 };

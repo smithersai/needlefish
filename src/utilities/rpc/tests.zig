@@ -3,10 +3,10 @@
 
 const std = @import("std");
 const rpc = @import("root.zig");
-const json = @import("../json/root.zig");
-const io = @import("../io/root.zig");
-const http = @import("../http/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const json = @import("utilities/json");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const Prng = @import("testing/prng").Prng;
 
 const expectEqual = std.testing.expectEqual;
 const expectEqualStrings = std.testing.expectEqualStrings;

@@ -10,9 +10,9 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const object = @import("json_object.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const protocol = @import("../protocol/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const protocol = @import("consensus/protocol");
 
 const Header = consensus.Header;
 const B256 = primitives.B256;

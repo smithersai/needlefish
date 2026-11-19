@@ -7,20 +7,20 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const chainspec = @import("../chainspec/root.zig");
-const payload = @import("../payload/root.zig");
-const txpool = @import("../txpool/root.zig");
-const engine_module = @import("../engine/root.zig");
-const Case = @import("../../testing/bench.zig").Case;
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
+const txpool = @import("execution/txpool");
+const engine_module = @import("execution/engine");
+const Case = @import("testing/bench").Case;
 const StateDb = @import("state_db.zig").StateDb;
 const Executor = @import("executor.zig").Executor;
 const chain_module = @import("chain.zig");
 const base_time = @import("base_time.zig");
-const genesis_module = @import("../../common/genesis/root.zig");
-const db_module = @import("../db/root.zig");
-const SimStorage = @import("../db/storage/sim_storage.zig").SimStorage;
+const genesis_module = @import("common/genesis");
+const db_module = @import("execution/db");
+const SimStorage = @import("execution/db").storage.sim_storage.SimStorage;
 const durable_module = @import("durable.zig");
 const service_limits: @import("service.zig").Limits = .{};
 

@@ -12,12 +12,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const abi = @import("../../proof/contracts/abi.zig");
-const trie_rlp = @import("../../execution/trie/rlp.zig");
-const trie_proof = @import("../../execution/trie/proof.zig");
-const nibbles_module = @import("../../execution/trie/nibbles.zig");
-const state_trie = @import("../../execution/trie/state_trie.zig");
-const predeploys = @import("../../common/consensus/predeploys.zig");
+const abi = @import("proof/contracts").abi;
+const trie_rlp = @import("execution/trie").rlp;
+const trie_proof = @import("execution/trie").proof;
+const nibbles_module = @import("execution/trie").nibbles;
+const state_trie = @import("execution/trie").state_trie;
+const predeploys = @import("common/consensus").predeploys;
 
 const Keccak256 = std.crypto.hash.sha3.Keccak256;
 
@@ -411,8 +411,8 @@ pub fn expand_inline_nodes(
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 test "withdrawal: event topic and selector constants" {
     const expected = "02a52367d10742d8032712c1bb8e0144ff1ec5ffda1ed7d70bb05a2744955054";

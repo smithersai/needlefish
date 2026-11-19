@@ -9,11 +9,11 @@ const Allocator = std.mem.Allocator;
 
 const object = @import("json_object.zig");
 const transaction_json = @import("transaction_json.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const ordered = @import("../../execution/trie/ordered.zig");
-const protocol = @import("../protocol/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
+const ordered = @import("execution/trie").ordered;
+const protocol = @import("consensus/protocol");
 
 const B256 = primitives.B256;
 const Receipt = protocol.log.Receipt;

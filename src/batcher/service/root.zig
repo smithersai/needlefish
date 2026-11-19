@@ -10,13 +10,13 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../rpc/root.zig");
-const source = @import("../source/root.zig");
-const channel_manager = @import("../channel/manager.zig");
-const throttle = @import("../throttle/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
-const txmgr = @import("../txmgr/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const rpc = @import("batcher/rpc");
+const source = @import("batcher/source");
+const channel_manager = @import("batcher/channel").manager;
+const throttle = @import("batcher/throttle");
+const Prng = @import("testing/prng").Prng;
+const txmgr = @import("batcher/txmgr");
+const primitives = @import("common/primitives");
 
 pub const Config = struct {
     channels: channel_manager.Config,
@@ -377,14 +377,14 @@ fn read_heads(clients: Clients) Error!Heads {
 }
 
 const testing = std.testing;
-const consensus = @import("../../common/consensus/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const frame_module = @import("../frame/root.zig");
-const comp = @import("../comp/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const batch_module = @import("../../consensus/protocol/batch.zig");
-const l1_info = @import("../../consensus/protocol/l1_info.zig");
-const accounts = @import("../devnet/accounts.zig");
+const consensus = @import("common/consensus");
+const protocol = @import("consensus/protocol");
+const frame_module = @import("batcher/frame");
+const comp = @import("batcher/comp");
+const rlp = @import("common/rlp");
+const batch_module = @import("consensus/protocol").batch;
+const l1_info = @import("consensus/protocol").l1_info;
+const accounts = @import("batcher/devnet").accounts;
 
 /// In-memory L1 and L2 behind the JSON-RPC transport interface. L1 mines every
 /// sent transaction immediately; L2 serves `l2_head` empty blocks.
@@ -739,7 +739,7 @@ fn fuzz_shadow_heads(_: void, smith: *testing.Smith) anyerror!void {
 test "service: rollup fields from the devnet rollup.json" {
     var buffer: [8192]u8 = undefined;
     var writer: std.Io.Writer = .fixed(&buffer);
-    const genesis = @import("../devnet/genesis.zig");
+    const genesis = @import("batcher/devnet").genesis;
     const anchor: genesis.GenesisAnchor = .{ .l1_hash = @splat(1), .l2_hash = @splat(2) };
     try genesis.write_rollup_config(&writer, &.{ .genesis_timestamp = 1_700_000_000 }, anchor);
     const fields = try RollupFields.parse(testing.allocator, writer.buffered());

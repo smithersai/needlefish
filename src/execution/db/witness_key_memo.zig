@@ -12,8 +12,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
-const trie = @import("../trie/root.zig");
+const lazy = @import("utilities/lazy_alloc");
+const trie = @import("execution/trie");
 
 const node = trie.node;
 const sparse = trie.sparse;
@@ -179,7 +179,7 @@ pub const KeyMemo = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "KeyMemo: hits equal keccak256, collisions overwrite, clear forgets" {
     var memo = try KeyMemo.init(testing.allocator, .{ .slots_count = 4, .addresses_count = 2 });

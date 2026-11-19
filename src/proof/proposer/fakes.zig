@@ -12,11 +12,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const abi = @import("../contracts/abi.zig");
-const factory = @import("../contracts/dispute_game_factory.zig");
+const abi = @import("proof/contracts").abi;
+const factory = @import("proof/contracts").dispute_game_factory;
 const interfaces = @import("interfaces.zig");
 const intervals_module = @import("intervals.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Hash = interfaces.Hash;
 const Address = interfaces.Address;

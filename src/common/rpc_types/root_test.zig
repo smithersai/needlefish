@@ -1,9 +1,9 @@
 const std = @import("std");
 const testing = std.testing;
 const rpc = @import("root.zig");
-const primitives = @import("../primitives/root.zig");
-const consensus = @import("../consensus/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const Prng = @import("testing/prng").Prng;
 const hex = primitives.hex;
 const Address = primitives.Address;
 const B256 = primitives.B256;
@@ -264,7 +264,7 @@ fn expect_round_trip(text: []const u8, encoded: []const u8) !void {
     const value = try std.json.parseFromSliceLeaky(Value, arena.allocator(), text, .{});
     const parsed = try rpc.transaction.parse_transaction(arena.allocator(), value);
     var buffer: [1024]u8 = undefined;
-    var encoder = @import("../rlp/root.zig").Encoder.init(&buffer);
+    var encoder = @import("common/rlp").Encoder.init(&buffer);
     parsed.envelope.encode(&encoder);
     try testing.expectEqualSlices(u8, encoded, encoder.written());
 }
@@ -346,7 +346,7 @@ test "rpc types: fuzz" {
 
 fn round_trip_envelope(envelope: Envelope) !void {
     var encoded: [2048]u8 = undefined;
-    var encoder = @import("../rlp/root.zig").Encoder.init(&encoded);
+    var encoder = @import("common/rlp").Encoder.init(&encoded);
     envelope.encode(&encoder);
     _ = try Envelope.decode(encoder.written()); // write_any skips undecodable input.
     var buffer: [16 * 1024]u8 = undefined;

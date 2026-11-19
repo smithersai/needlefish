@@ -6,7 +6,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const crypto_keccak = @import("../../common/crypto/keccak.zig");
+const crypto_keccak = @import("common/crypto").keccak;
 
 pub const Address = [20]u8;
 pub const B256 = [32]u8;

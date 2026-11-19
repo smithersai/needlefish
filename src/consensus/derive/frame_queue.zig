@@ -9,7 +9,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const errors = @import("errors.zig");
 
 const Frame = protocol.frame.Frame;
@@ -112,7 +112,7 @@ pub const FrameQueue = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Spec = struct { id: u8, number: u16, last: bool };
 
@@ -215,7 +215,7 @@ test "frame queue: loads payloads through retrieval" {
     const Retrieval = @import("retrieval.zig").Retrieval;
     const TestChain = @import("test_chain.zig").TestChain;
     const L1Transaction = @import("providers.zig").L1Transaction;
-    const Address = @import("../../common/primitives/root.zig").Address;
+    const Address = @import("common/primitives").Address;
     const inbox = Address.init(@splat(0x11));
     const batcher = Address.init(@splat(0x22));
     var rollup: RollupConfig = .{ .batch_inbox_address = inbox };

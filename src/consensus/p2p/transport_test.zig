@@ -5,7 +5,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const io_module = @import("../../utilities/io/root.zig");
+const io_module = @import("utilities/io");
 const service_module = @import("service.zig");
 const transport_module = @import("transport.zig");
 const enr = @import("peers/enr.zig");
@@ -13,11 +13,11 @@ const secp256k1 = @import("peers/secp256k1.zig");
 const peer_id = @import("peers/peer_id.zig");
 const ssz = @import("gossip/ssz_payload.zig");
 const validity = @import("gossip/validity.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const consensus_types = @import("../../common/consensus/root.zig");
-const rollup_config = @import("../protocol/rollup_config.zig");
-const common_secp256k1 = @import("../../common/crypto/secp256k1/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const primitives = @import("common/primitives");
+const consensus_types = @import("common/consensus");
+const rollup_config = @import("consensus/protocol").rollup_config;
+const common_secp256k1 = @import("common/crypto").secp256k1;
+const Prng = @import("testing/prng").Prng;
 const build_options = @import("build_options");
 
 const SimIo = io_module.SimIo;

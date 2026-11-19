@@ -7,7 +7,7 @@ const table_module = @import("table.zig");
 const Table = table_module.Table;
 const enr = @import("../peers/enr.zig");
 const secp256k1 = @import("../peers/secp256k1.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const record_count = 48;
 

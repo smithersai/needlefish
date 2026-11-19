@@ -10,7 +10,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
+const json = @import("utilities/json");
 const rollup_config = @import("rollup_config.zig");
 const BlockId = @import("block.zig").BlockId;
 const SystemConfig = @import("system_config.zig").SystemConfig;
@@ -337,7 +337,7 @@ pub fn write(writer: *json.Writer, config: *const RollupConfig) json.Writer.Writ
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const reference =
     \\{

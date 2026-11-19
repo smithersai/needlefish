@@ -7,8 +7,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
+const preimage = @import("proof/preimage");
+const keccak = @import("common/crypto").keccak;
 
 const Hash = [32]u8;
 
@@ -57,7 +57,7 @@ pub fn safe_head_hash(oracle: preimage.OracleReader, agreed_output_root: Hash) E
 }
 
 const testing = std.testing;
-const test_oracle = @import("../test_oracle.zig");
+const test_oracle = @import("proof/test_oracle");
 
 test "sync: the safe head comes from the output root preimage" {
     var store: test_oracle.MapStore = .init();
@@ -89,7 +89,7 @@ test "sync: the safe head comes from the output root preimage" {
 }
 
 test "sync: fuzz output root preimages round trip" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             var bytes: [output_root_preimage_bytes + 8]u8 = undefined;

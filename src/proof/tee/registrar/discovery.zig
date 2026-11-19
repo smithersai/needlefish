@@ -149,6 +149,6 @@ fn fuzz_parse(_: void, smith: *testing.Smith) anyerror!void {
 }
 
 test "registrar discovery: fuzz parse" {
-    const fuzz = @import("../../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, fuzz_parse, .{ .iterations = 2000 });
 }

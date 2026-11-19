@@ -13,13 +13,13 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const time = @import("../../utilities/time/root.zig");
-const metrics = @import("../../utilities/metrics/root.zig");
-const health = @import("../../utilities/health/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const http_client = @import("../../utilities/http/client.zig");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const time = @import("utilities/time");
+const metrics = @import("utilities/metrics");
+const health = @import("utilities/health");
+const http = @import("utilities/http");
+const http_client = @import("utilities/http").client;
 
 pub const head_state = @import("head_state.zig");
 pub const State = head_state.State;

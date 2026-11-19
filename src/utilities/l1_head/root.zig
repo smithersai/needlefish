@@ -11,9 +11,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../json/root.zig");
-const rpc = @import("../rpc/root.zig");
-const http_client = @import("../http/client.zig");
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const http_client = @import("utilities/http").client;
 
 pub const Address = rpc.client.Address;
 

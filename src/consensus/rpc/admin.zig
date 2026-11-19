@@ -16,8 +16,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const rpc = @import("../../utilities/rpc/root.zig");
-const protocol = @import("../protocol/root.zig");
+const rpc = @import("utilities/rpc");
+const protocol = @import("consensus/protocol");
 const rollup = @import("rollup.zig");
 
 const Hash = protocol.block.Hash;
@@ -296,7 +296,7 @@ const StubNode = struct {
     ) error{ NotAvailable, NotFound }!rollup.OutputAtBlock {
         return error.NotAvailable;
     }
-    fn db_of(_: *anyopaque) ?*const @import("../safedb/root.zig").SafeDB {
+    fn db_of(_: *anyopaque) ?*const @import("consensus/safedb").SafeDB {
         return null;
     }
 
@@ -434,7 +434,7 @@ test "admin rpc: fuzz" {
 }
 
 test "admin rpc: seeded fuzz over method names and params" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xad);
+    var prng = @import("testing/prng").Prng.init(0xad);
     const names = [_][]const u8{
         "admin_startSequencer",    "admin_stopSequencer",   "admin_setRecoverMode",
         "admin_recoverMode",       "admin_sequencerActive", "healthz",

@@ -17,7 +17,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const common = @import("common.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 pub const Address = common.Address;
 const FdSim = u32;

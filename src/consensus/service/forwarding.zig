@@ -14,10 +14,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const http = @import("../../utilities/http/root.zig");
-const http_client = @import("../../utilities/http/client.zig");
-const json = @import("../../utilities/json/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
+const http = @import("utilities/http");
+const http_client = @import("utilities/http").client;
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
 
 pub const slots_max = 4;
 /// Longest request id copied for error replies; longer ids are not forwarded.
@@ -199,7 +199,7 @@ fn write_failure(response: *http.ResponseBuilder, id: []const u8, message: []con
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const served_example = [_][]const u8{ "optimism_syncStatus", "admin_sequencerActive" };
 

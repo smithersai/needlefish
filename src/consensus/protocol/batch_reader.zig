@@ -12,7 +12,7 @@ const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 const flate = std.compress.flate;
 
-const rlp = @import("../../common/rlp/root.zig");
+const rlp = @import("common/rlp");
 const BatchType = @import("batch.zig").BatchType;
 const brotli = @import("brotli.zig");
 
@@ -117,7 +117,7 @@ pub const BatchReader = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// Test helper (also used by the derive tests): zlib-compresses `input`.
 pub fn compress_zlib(allocator: Allocator, input: []const u8) ![]u8 {

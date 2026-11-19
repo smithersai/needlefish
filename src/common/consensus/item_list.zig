@@ -3,7 +3,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rlp = @import("../rlp/root.zig");
+const rlp = @import("common/rlp");
 
 /// `decode_item(*Decoder) !Item` must consume exactly one item.
 pub fn ItemList(comptime Item: type, comptime decode_item: anytype) type {

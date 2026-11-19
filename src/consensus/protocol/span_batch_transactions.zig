@@ -15,9 +15,9 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const consensus = @import("common/consensus");
 const bits_module = @import("span_batch_bits.zig");
 const tx_data_module = @import("span_batch_tx_data.zig");
 const Address = primitives.Address;

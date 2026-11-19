@@ -8,8 +8,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const json = std.json;
-const rpc = @import("../../batcher/rpc/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
+const rpc = @import("batcher/rpc");
+const keccak = @import("common/crypto").keccak;
 const types = @import("types.zig");
 const denim = @import("denim.zig");
 

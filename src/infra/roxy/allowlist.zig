@@ -112,7 +112,7 @@ fn check_arbitrary(text: []const u8) !void {
 }
 
 test "allowlist: seeded fuzz" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xa110);
+    var prng = @import("testing/prng").Prng.init(0xa110);
     const alphabet = "abc_,, \t-1";
     var input: [256]u8 = undefined;
     for (0..2000) |_| {

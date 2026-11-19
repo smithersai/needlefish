@@ -4,7 +4,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 const cbor = @import("cbor.zig");
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 const CborItem = cbor.CborItem;
 const NitroCose = cbor.NitroCose;

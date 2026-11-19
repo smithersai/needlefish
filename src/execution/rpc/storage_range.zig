@@ -8,12 +8,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
+const primitives = @import("common/primitives");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
 const eth = @import("eth.zig");
-const db = @import("../db/root.zig");
-const node = @import("../node/root.zig");
+const db = @import("execution/db");
+const node = @import("execution/node");
 
 const Api = eth.Api;
 const Call = rpc.Call;

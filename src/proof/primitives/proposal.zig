@@ -15,7 +15,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const proof_encoder = @import("proof_encoder.zig");
-const service_protocol = @import("../prover_service/protocol.zig");
+const service_protocol = @import("proof/prover_service").protocol;
 
 pub const Hash = [32]u8;
 pub const Address = [20]u8;
@@ -98,8 +98,8 @@ fn put_u64(out: []u8, offset: *usize, value: u64) void {
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const fuzz = @import("testing/fuzz");
+const primitives = @import("common/primitives");
 
 const proof_data_v_index = 1 + 32 + 32 + proof_encoder.ecdsa_signature_length - 1;
 

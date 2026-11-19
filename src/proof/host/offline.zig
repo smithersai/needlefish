@@ -4,9 +4,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
-const client = @import("../client/root.zig");
-const program = @import("../program/root.zig");
+const preimage = @import("proof/preimage");
+const client = @import("proof/client");
+const program = @import("proof/program");
 const archive = @import("archive.zig");
 const store_module = @import("store.zig");
 
@@ -46,12 +46,12 @@ pub fn replay(
 }
 
 const testing = std.testing;
-const consensus = @import("../../common/consensus/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const chains = @import("../../common/chains/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const json = @import("../../utilities/json/root.zig");
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
+const chains = @import("common/chains");
+const kzg = @import("common/crypto").kzg;
+const protocol = @import("consensus/protocol");
+const json = @import("utilities/json");
 
 fn put_header(store: *store_module.Store, header: consensus.Header) ![32]u8 {
     var buffer: [1024]u8 = undefined;
@@ -136,7 +136,7 @@ fn replay_recorded(claim_matches: bool) !Verdict {
     });
 }
 
-const small_builder_config: @import("../executor/root.zig").builder.Config = .{
+const small_builder_config: @import("proof/executor").builder.Config = .{
     .sparse = .{
         .nodes_max = 64,
         .node_bytes_max = 1 << 14,

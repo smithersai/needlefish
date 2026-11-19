@@ -17,7 +17,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const event_module = @import("event.zig");
-const lazy_alloc = @import("../../utilities/lazy_alloc/root.zig");
+const lazy_alloc = @import("utilities/lazy_alloc");
 
 const Event = event_module.Event;
 

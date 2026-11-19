@@ -12,13 +12,13 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Smith = std.testing.Smith;
-const fuzz = @import("fuzz.zig");
-const Prng = @import("prng.zig").Prng;
-const preimage = @import("../proof/preimage/root.zig");
-const boot = @import("../proof/program/boot.zig");
-const chains = @import("../common/chains/root.zig");
-const protocol = @import("../consensus/protocol/root.zig");
-const json = @import("../utilities/json/root.zig");
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
+const preimage = @import("proof/preimage");
+const boot = @import("proof/program").boot;
+const chains = @import("common/chains");
+const protocol = @import("consensus/protocol");
+const json = @import("utilities/json");
 
 const LocalKey = boot.LocalKey;
 const Store = preimage.MemoryStore(16, 32 * 1024);

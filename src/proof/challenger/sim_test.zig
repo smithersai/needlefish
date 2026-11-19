@@ -20,8 +20,8 @@ const proof_manager = @import("proof_manager.zig");
 const bond = @import("bond.zig");
 const fake_world = @import("fake_world.zig");
 const exporter_module = @import("exporter.zig");
-const telemetry = @import("../telemetry/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const telemetry = @import("proof/telemetry");
+const Prng = @import("testing/prng").Prng;
 
 const second = std.time.ns_per_s;
 const propose_until_s = 3600;

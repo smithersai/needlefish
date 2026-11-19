@@ -15,11 +15,11 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
-const program = @import("../program/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
-const crypto = @import("../../common/crypto/root.zig");
+const preimage = @import("proof/preimage");
+const program = @import("proof/program");
+const keccak = @import("common/crypto").keccak;
+const kzg = @import("common/crypto").kzg;
+const crypto = @import("common/crypto");
 const store_module = @import("store.zig");
 
 const Hash = [32]u8;
@@ -212,7 +212,7 @@ fn hash_of(data: []const u8) Handler.Error!Hash {
 
 /// Fills `out` with the 32-byte big-endian roots of unity in bit-reversal order.
 pub fn fill_roots(out: *[kzg.field_elements_per_blob][32]u8) void {
-    var roots: [kzg.field_elements_per_blob]@import("../../common/crypto/bls12_381/root.zig").Fr =
+    var roots: [kzg.field_elements_per_blob]@import("common/crypto").bls12_381.Fr =
         undefined;
     kzg.blob.fill_roots_brp(&roots);
     for (out, roots) |*bytes, root| bytes.* = root.to_bytes_be();

@@ -8,9 +8,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 const task = @import("task.zig");
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const SynchronizeTask = @import("synchronize_task.zig").SynchronizeTask;
 
 const B256 = primitives.B256;

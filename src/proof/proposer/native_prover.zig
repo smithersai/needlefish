@@ -7,10 +7,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const client = @import("../client/root.zig");
-const host = @import("../host/root.zig");
-const program = @import("../program/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
+const client = @import("proof/client");
+const host = @import("proof/host");
+const program = @import("proof/program");
+const kzg = @import("common/crypto").kzg;
 const interfaces = @import("interfaces.zig");
 
 const Hash = interfaces.Hash;

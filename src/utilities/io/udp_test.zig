@@ -7,7 +7,7 @@ const root = @import("root.zig");
 const common = @import("common.zig");
 const sim = @import("sim.zig");
 
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Address = common.Address;
 

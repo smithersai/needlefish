@@ -6,7 +6,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const keccak = @import("../../common/crypto/keccak.zig");
+const keccak = @import("common/crypto").keccak;
 
 pub const key_size = 32;
 pub const data_size = 31;
@@ -96,7 +96,7 @@ pub const Key = struct {
 };
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "key: type from byte" {
     try testing.expectEqual(KeyType.local, try KeyType.from_byte(1));

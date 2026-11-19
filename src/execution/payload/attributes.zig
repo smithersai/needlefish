@@ -7,9 +7,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const chainspec = @import("../chainspec/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const chainspec = @import("execution/chainspec");
 
 const Address = primitives.Address;
 const B256 = primitives.B256;
@@ -347,7 +347,7 @@ test "attributes: fuzz" {
 }
 
 test "attributes: seeded fuzz validate never panics, ids stable" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xa77e);
+    var prng = @import("testing/prng").Prng.init(0xa77e);
     for (0..5_000) |_| {
         var bytes: [64]u8 = undefined;
         prng.fill(&bytes);

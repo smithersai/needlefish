@@ -10,7 +10,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const trie = @import("../../execution/trie/root.zig");
+const trie = @import("execution/trie");
 const rlp = trie.rlp;
 const nibbles = trie.nibbles;
 const Nibbles = trie.Nibbles;
@@ -78,7 +78,7 @@ pub fn decode(bytes: []const u8) Error!Decoded {
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 fn hex(comptime text: []const u8) [text.len / 2]u8 {
     var out: [text.len / 2]u8 = undefined;

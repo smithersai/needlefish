@@ -31,10 +31,10 @@
 //! timers, so nothing is left in flight after `stop`.
 
 const std = @import("std");
-const lazy_alloc = @import("../lazy_alloc/root.zig");
+const lazy_alloc = @import("utilities/lazy_alloc");
 const assert = std.debug.assert;
 
-const io_common = @import("../io/common.zig");
+const io_common = @import("utilities/io").common;
 const parser = @import("parser.zig");
 
 pub const Address = io_common.Address;

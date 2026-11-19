@@ -10,7 +10,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../../utilities/rpc/root.zig");
+const rpc = @import("utilities/rpc");
 const eth = @import("eth.zig");
 
 const Api = eth.Api;
@@ -230,7 +230,7 @@ fn uninstall_filter(api: *Api, call: *Call) HandlerError!void {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "filters: install, find, evict the least recently used, uninstall" {
     var filters: Filters = .{};

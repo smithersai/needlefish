@@ -4,7 +4,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 
 pub const Hash = primitives.B256;
 pub const zero_hash: Hash = Hash.zero;

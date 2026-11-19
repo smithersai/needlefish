@@ -10,9 +10,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const protocol = @import("../protocol/root.zig");
-const engine_attributes = @import("../../execution/payload/attributes.zig");
+const primitives = @import("common/primitives");
+const protocol = @import("consensus/protocol");
+const engine_attributes = @import("execution/payload").attributes;
 const errors = @import("errors.zig");
 const upgrades = @import("upgrades.zig");
 
@@ -430,8 +430,8 @@ pub fn encode_base_time(
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
-const consensus_types = @import("../../common/consensus/root.zig");
+const Prng = @import("testing/prng").Prng;
+const consensus_types = @import("common/consensus");
 const TestChain = @import("test_chain.zig").TestChain;
 const system_config = protocol.system_config;
 const Log = protocol.log.Log;

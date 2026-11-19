@@ -17,9 +17,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const clients = @import("../rpc/clients.zig");
+const clients = @import("proof/rpc").clients;
 const intervals_module = @import("intervals.zig");
-const anchor_state_registry = @import("../contracts/anchor_state_registry.zig");
+const anchor_state_registry = @import("proof/contracts").anchor_state_registry;
 
 pub const Hash = [32]u8;
 pub const Address = [20]u8;

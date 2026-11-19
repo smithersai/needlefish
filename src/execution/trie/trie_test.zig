@@ -10,7 +10,7 @@ const proof_module = @import("proof.zig");
 const trie_module = @import("trie.zig");
 const HashBuilder = @import("hash_builder.zig").HashBuilder;
 const Nibbles = @import("nibbles.zig").Nibbles;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Trie = trie_module.TrieType(.{ .key_bytes_max = 32, .value_size_max = 128 });
 

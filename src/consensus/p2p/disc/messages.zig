@@ -6,7 +6,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rlp = @import("../../../common/rlp/root.zig");
+const rlp = @import("common/rlp");
 const ip = @import("../peers/ip.zig");
 const enr = @import("../peers/enr.zig");
 const packet = @import("packet.zig");
@@ -240,8 +240,8 @@ pub fn encode(output: []u8, message: *const Message) Error![]const u8 {
 pub const plaintext_length_max = packet.size_max - packet.masking_iv_length -
     packet.static_header_length - packet.message_authdata_length - packet.tag_length;
 
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 test "disc messages: ping vector plaintext" {
     // PING from the wire vectors: req-id 0x00000001, enr-seq 2.

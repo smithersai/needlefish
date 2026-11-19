@@ -31,7 +31,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const channel_reader = @import("channel_reader.zig");
 
 const BlockInfo = protocol.block.BlockInfo;

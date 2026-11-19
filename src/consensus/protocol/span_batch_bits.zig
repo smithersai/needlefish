@@ -205,7 +205,7 @@ pub const Writer = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn bits_of(buffer: []u8, indices: []const u64) Bits {
     @memset(buffer, 0);

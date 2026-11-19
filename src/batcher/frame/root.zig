@@ -9,8 +9,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const protocol = @import("../../consensus/protocol/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const protocol = @import("consensus/protocol");
+const Prng = @import("testing/prng").Prng;
 
 pub const Frame = protocol.frame.Frame;
 pub const ChannelId = protocol.frame.ChannelId;

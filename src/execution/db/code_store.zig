@@ -50,7 +50,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 
 const state_module = @import("state.zig");
 const snapshot_module = @import("snapshot.zig");
@@ -58,7 +58,7 @@ const storage_module = @import("storage/storage.zig");
 const grid_module = @import("storage/grid.zig");
 const table_module = @import("storage/table.zig");
 const free_set_module = @import("storage/free_set.zig");
-const keccak256 = @import("../trie/node.zig").keccak256;
+const keccak256 = @import("execution/trie").node.keccak256;
 
 const State = state_module.State;
 const Hash = state_module.Hash;

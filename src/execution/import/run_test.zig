@@ -30,19 +30,19 @@ const run = @import("run.zig");
 const to_disk = @import("to_disk.zig");
 const to_disk_test = @import("to_disk_test.zig");
 const hashed_state = @import("hashed_state.zig");
-const SimStorage = @import("../db/storage/sim_storage.zig").SimStorage;
-const sector_size = @import("../db/storage/storage.zig").sector_size;
-const state_module = @import("../db/state.zig");
-const state_db_module = @import("../node/state_db.zig");
-const executor_module = @import("../node/executor.zig");
-const node_chain = @import("../node/chain.zig");
-const chainspec = @import("../chainspec/root.zig");
-const evm = @import("../evm/root.zig");
-const trie = @import("../trie/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const dev_accounts = @import("../../batcher/devnet/accounts.zig");
+const SimStorage = @import("execution/db").storage.sim_storage.SimStorage;
+const sector_size = @import("execution/db").storage.storage.sector_size;
+const state_module = @import("execution/db").state;
+const state_db_module = @import("execution/node").state_db;
+const executor_module = @import("execution/node").executor;
+const node_chain = @import("execution/node").chain;
+const chainspec = @import("execution/chainspec");
+const evm = @import("execution/evm");
+const trie = @import("execution/trie");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const dev_accounts = @import("batcher/devnet").accounts;
 
 const Hash = [32]u8;
 const Address = [20]u8;
@@ -485,7 +485,7 @@ const Harness = struct {
 
 /// What a failed or refused block must leave as it was.
 const Snapshot = struct {
-    head: @import("../db/database.zig").HeadInfo,
+    head: @import("execution/db").database.HeadInfo,
     root: Hash,
     accounts: [senders + 2]?state_module.AccountInfo,
     slots: [4]u256,
@@ -781,7 +781,7 @@ test "import run: failed checks and refusals leave head and state; the next bloc
 /// accounts, slots, branch records and trie paths, the touched accounts' hashes as slots and
 /// storage-trie owners, and slot hashes as accounts.
 const WrongHints = struct {
-    prng: @import("../../testing/prng.zig").Prng,
+    prng: @import("testing/prng").Prng,
     addresses: []const Address,
     hinted: u64 = 0,
     attempts: u64 = 0,

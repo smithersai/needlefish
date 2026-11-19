@@ -13,7 +13,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const primitives = @import("primitives.zig");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const B256 = primitives.B256;
 
 /// Longer inputs are hashed directly: they rarely repeat and would make entries large.
@@ -88,7 +88,7 @@ pub const KeccakMemo = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "keccak memo: hits, collisions, and long inputs all return the exact digest" {
     var memo = try KeccakMemo.init(testing.allocator, 64);

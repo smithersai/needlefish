@@ -16,11 +16,11 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const jwt = @import("../../utilities/jwt/root.zig");
-const http_client = @import("../../utilities/http/client.zig");
-const protocol = @import("../protocol/root.zig");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
+const jwt = @import("utilities/jwt");
+const http_client = @import("utilities/http").client;
+const protocol = @import("consensus/protocol");
 const engine_json = @import("engine_json.zig");
 const l2_block = @import("l2_block.zig");
 const l2_block_full = @import("l2_block_full.zig");

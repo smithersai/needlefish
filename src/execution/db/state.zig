@@ -21,12 +21,12 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 
 const changeset_module = @import("changeset.zig");
 const address_map = @import("address_map.zig");
-const trie = @import("../trie/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
+const trie = @import("execution/trie");
+const keccak = @import("common/crypto").keccak;
 const flat_trees_module = @import("flat_trees.zig");
 const node = trie.node;
 

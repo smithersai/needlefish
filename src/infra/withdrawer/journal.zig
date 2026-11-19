@@ -172,8 +172,8 @@ pub fn replay(bytes: []const u8) DecodeError!Replay {
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 fn sample(step: Step, event: Event, transaction: u8) Record {
     return .{

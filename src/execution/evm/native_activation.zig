@@ -170,7 +170,7 @@ fn set_admin(context: *Context, new_admin: Address) Error!void {
 }
 
 const testing = std.testing;
-const keccak256 = @import("../../common/crypto/root.zig").keccak256;
+const keccak256 = @import("common/crypto").keccak256;
 
 fn expect_hash(comptime signature: []const u8, expected: []const u8) !void {
     try testing.expectEqualSlices(u8, keccak256(signature)[0..expected.len], expected);

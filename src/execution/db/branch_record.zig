@@ -36,7 +36,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const trie = @import("../trie/root.zig");
+const trie = @import("execution/trie");
 const node = trie.node;
 const Hash = node.Hash;
 const Nibbles = trie.Nibbles;
@@ -299,7 +299,7 @@ pub fn reference(record: *const Record) RlpNode {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// A random path; a small alphabet often, so paths share prefixes and 0xF nibbles.
 fn random_path(prng: *Prng, out: *[hang_nibbles_max]u8) []u8 {

@@ -2,9 +2,9 @@
 
 const std = @import("std");
 
-const io = @import("../io/root.zig");
-const json = @import("../json/root.zig");
-const ws = @import("../ws/root.zig");
+const io = @import("utilities/io");
+const json = @import("utilities/json");
+const ws = @import("utilities/ws");
 const rpc = @import("root.zig");
 const rpc_ws = @import("ws.zig");
 
@@ -267,7 +267,7 @@ fn notification_arbitrary(payload: []const u8) !void {
 }
 
 test "rpc: seeded fuzz parse_notification" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x75b);
+    var prng = @import("testing/prng").Prng.init(0x75b);
     const pieces = [_][]const u8{
         "{",       "}", ":", ",",                "\"method\"", "\"params\"",
         "\"0x1\"", "[", "]", "\"subscription\"", "\"result\"", "null",

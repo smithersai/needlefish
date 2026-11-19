@@ -15,12 +15,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
-const mpt = @import("../mpt/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const derive = @import("../../consensus/derive/root.zig");
+const preimage = @import("proof/preimage");
+const mpt = @import("proof/mpt");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const protocol = @import("consensus/protocol");
+const derive = @import("consensus/derive");
 const hint = @import("hint.zig");
 const eip2935 = @import("eip2935.zig");
 

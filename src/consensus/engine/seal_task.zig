@@ -10,11 +10,11 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const task = @import("task.zig");
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const attributes_match = @import("attributes_match.zig");
 const insert_module = @import("insert_task.zig");
 const BuildTask = @import("build_task.zig").BuildTask;
-const AttributesWithParent = @import("../derive/attributes_queue.zig").AttributesWithParent;
+const AttributesWithParent = @import("consensus/derive").attributes_queue.AttributesWithParent;
 
 const L2BlockInfo = protocol.block.L2BlockInfo;
 const EngineState = task.EngineState;

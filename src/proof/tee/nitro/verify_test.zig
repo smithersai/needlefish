@@ -269,7 +269,7 @@ test "nitro verify: M-02 optional field limits" {
     try AttestationVerifier.validate_attestation_content(&document);
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 /// Property: corrupting a real report never crashes verification, and a report that
 /// still verifies carries the original signed payload (only the unsigned

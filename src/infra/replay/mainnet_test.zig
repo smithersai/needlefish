@@ -7,10 +7,10 @@
 const std = @import("std");
 const testing = std.testing;
 
-const chainspec = @import("../../execution/chainspec/root.zig");
+const chainspec = @import("execution/chainspec");
 const archive_module = @import("archive.zig");
 const replayer_module = @import("replayer.zig");
-const keccak256 = @import("../../execution/trie/root.zig").node.keccak256;
+const keccak256 = @import("execution/trie").node.keccak256;
 
 pub const fixture = @embedFile("testdata/base-mainnet-53715983-10.nfrp");
 

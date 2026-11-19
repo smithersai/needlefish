@@ -8,15 +8,15 @@ const testing = std.testing;
 const assert = std.debug.assert;
 
 const fixture = @import("test_fixture.zig");
-const history_module = @import("../db/history.zig");
-const types = @import("../engine/types.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const history_module = @import("execution/db").history;
+const types = @import("execution/engine").types;
+const primitives = @import("common/primitives");
+const Prng = @import("testing/prng").Prng;
 
 const B256 = primitives.B256;
 const Node = fixture.Node;
-const AccountProof = @import("../trie/state_trie.zig").StateTrie.AccountProof;
-const StorageProof = @import("../trie/state_trie.zig").StateTrie.StorageProof;
+const AccountProof = @import("execution/trie").state_trie.StateTrie.AccountProof;
+const StorageProof = @import("execution/trie").state_trie.StateTrie.StorageProof;
 const HistoryDatabase = @import("history_database.zig").HistoryDatabase;
 
 const blocks_max = 128;

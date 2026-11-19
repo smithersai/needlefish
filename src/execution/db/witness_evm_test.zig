@@ -20,10 +20,10 @@ const state_module = @import("state.zig");
 const overlay_module = @import("overlay.zig");
 const changeset_module = @import("changeset.zig");
 const evm_backend = @import("evm_backend.zig");
-const evm = @import("../evm/root.zig");
-const trie = @import("../trie/root.zig");
+const evm = @import("execution/evm");
+const trie = @import("execution/trie");
 const HeaderChain = @import("witness_header_chain.zig").HeaderChain;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const op = evm.opcode;
 const push16 = op.PUSH1 + 15;

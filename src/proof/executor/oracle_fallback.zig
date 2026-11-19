@@ -15,10 +15,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
-const mpt = @import("../mpt/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const witness = @import("../../execution/db/witness.zig");
+const preimage = @import("proof/preimage");
+const mpt = @import("proof/mpt");
+const consensus = @import("common/consensus");
+const witness = @import("execution/db").witness;
 
 const Hash = [32]u8;
 const OracleResolver = mpt.OracleResolver;
@@ -134,8 +134,8 @@ pub const OracleFallback = struct {
 };
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
-const rlp = @import("../../common/rlp/root.zig");
+const fuzz = @import("testing/fuzz");
+const rlp = @import("common/rlp");
 
 const chain_length = 300;
 

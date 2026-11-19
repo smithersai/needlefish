@@ -129,7 +129,7 @@ const testing = std.testing;
 test {
     testing.refAllDecls(@This());
 }
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const bls_g1 = @import("../bls12_381/g1.zig");
 
 test "kzg: trusted setup layout" {

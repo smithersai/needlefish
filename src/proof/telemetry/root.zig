@@ -9,9 +9,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const metrics = @import("../../utilities/metrics/root.zig");
-const health = @import("../../utilities/health/root.zig");
-const http = @import("../../utilities/http/root.zig");
+const metrics = @import("utilities/metrics");
+const health = @import("utilities/health");
+const http = @import("utilities/http");
 
 pub const Clock = struct {
     context: *anyopaque,
@@ -209,7 +209,7 @@ test "telemetry: health and unknown paths" {
 }
 
 test "telemetry: fuzz observations keep counters monotonic" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             var fake: FakeClock = .{};

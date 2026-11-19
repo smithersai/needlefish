@@ -13,7 +13,7 @@ const testing = std.testing;
 
 const manager_module = @import("manager.zig");
 const fees = @import("fees.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 const Hash = manager_module.Hash;
 const Fees = manager_module.Fees;

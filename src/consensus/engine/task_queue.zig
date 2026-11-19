@@ -13,15 +13,15 @@ const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
 const task = @import("task.zig");
-const protocol = @import("../protocol/root.zig");
-const derive_attributes = @import("../derive/attributes.zig");
+const protocol = @import("consensus/protocol");
+const derive_attributes = @import("consensus/derive").attributes;
 const insert_module = @import("insert_task.zig");
 const SynchronizeTask = @import("synchronize_task.zig").SynchronizeTask;
 const FinalizeTask = @import("finalize_task.zig").FinalizeTask;
 const ConsolidateTask = @import("consolidate_task.zig").ConsolidateTask;
 const SealTask = @import("seal_task.zig").SealTask;
 const BuildTask = @import("build_task.zig").BuildTask;
-const AttributesWithParent = @import("../derive/attributes_queue.zig").AttributesWithParent;
+const AttributesWithParent = @import("consensus/derive").attributes_queue.AttributesWithParent;
 
 const L2BlockInfo = protocol.block.L2BlockInfo;
 const EngineState = task.EngineState;

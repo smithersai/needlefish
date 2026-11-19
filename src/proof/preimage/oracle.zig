@@ -163,8 +163,8 @@ pub fn MemoryStore(comptime entries_max: u32, comptime bytes_max: u32) type {
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
+const fuzz = @import("testing/fuzz");
+const keccak = @import("common/crypto").keccak;
 const Duplex = channel_module.Duplex;
 
 /// Runs one server step when the client starves, recording the last error.

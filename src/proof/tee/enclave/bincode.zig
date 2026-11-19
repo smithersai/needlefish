@@ -174,7 +174,7 @@ pub const Decoder = struct {
 };
 
 const testing = std.testing;
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "bincode: varint boundaries" {
     const cases = [_]struct { u64, []const u8 }{

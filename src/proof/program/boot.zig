@@ -23,15 +23,15 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const preimage = @import("../preimage/root.zig");
-const chains = @import("../../common/chains/root.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
+const preimage = @import("proof/preimage");
+const chains = @import("common/chains");
+const protocol = @import("consensus/protocol");
 const schedule_id = @import("schedule_id.zig");
 
 const Hash = [32]u8;
 const Address = [20]u8;
 const RollupConfig = protocol.RollupConfig;
-const json = @import("../../utilities/json/root.zig");
+const json = @import("utilities/json");
 
 pub const LocalKey = enum(u64) {
     l1_head = 1,
@@ -380,7 +380,7 @@ test "boot: chain op config and L1 config parsing" {
     try testing.expectError(error.MissingChainId, parse_l1_config("{}"));
 }
 
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 fn fuzz_parse(_: void, smith: *std.testing.Smith) anyerror!void {
     var text: [256]u8 = undefined;

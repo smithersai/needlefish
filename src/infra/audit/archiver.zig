@@ -17,10 +17,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const http = @import("../../utilities/http/root.zig");
-const health = @import("../../utilities/health/root.zig");
-const metrics = @import("../../utilities/metrics/root.zig");
-const io_common = @import("../../utilities/io/common.zig");
+const http = @import("utilities/http");
+const health = @import("utilities/health");
+const metrics = @import("utilities/metrics");
+const io_common = @import("utilities/io").common;
 const store_module = @import("store.zig");
 const ingest_module = @import("ingest.zig");
 const rpc_module = @import("rpc.zig");

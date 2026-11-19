@@ -6,16 +6,16 @@
 const std = @import("std");
 const testing = std.testing;
 
-const preimage = @import("../preimage/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const chainspec = @import("../../execution/chainspec/root.zig");
-const payload = @import("../../execution/payload/root.zig");
-const db_module = @import("../../execution/db/root.zig");
-const fixture = @import("../../execution/node/test_fixture.zig");
-const node_witness = @import("../../execution/node/witness.zig");
-const engine_types = @import("../../execution/engine/root.zig").types;
+const preimage = @import("proof/preimage");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const consensus = @import("common/consensus");
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
+const db_module = @import("execution/db");
+const fixture = @import("execution/node").test_fixture;
+const node_witness = @import("execution/node").witness;
+const engine_types = @import("execution/engine").types;
 const builder_module = @import("builder.zig");
 
 const Hash = [32]u8;

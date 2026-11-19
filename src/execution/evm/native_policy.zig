@@ -20,7 +20,7 @@ const Address = primitives.Address;
 const B256 = primitives.B256;
 const Context = native.Context;
 const Error = native.Error;
-const keccak256 = @import("../../common/crypto/root.zig").keccak256;
+const keccak256 = @import("common/crypto").keccak256;
 const Arguments = abi.Arguments;
 const Array = abi.Array;
 

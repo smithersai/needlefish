@@ -16,10 +16,10 @@ const assert = std.debug.assert;
 
 const protocol = @import("protocol.zig");
 const worker_module = @import("worker.zig");
-const host = @import("../host/root.zig");
-const proof_client = @import("../client/root.zig");
-const crypto = @import("../../common/crypto/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
+const host = @import("proof/host");
+const proof_client = @import("proof/client");
+const crypto = @import("common/crypto");
+const kzg = @import("common/crypto").kzg;
 
 const BackendError = worker_module.BackendError;
 
@@ -176,8 +176,8 @@ pub fn NativeOver(comptime SourceType: type) type {
 }
 
 const testing = std.testing;
-const io = @import("../../utilities/io/root.zig");
-const http = @import("../../utilities/http/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
 
 test "prover service native backend: unsupported kinds and unreachable sources fail cleanly" {
     const allocator = testing.allocator;

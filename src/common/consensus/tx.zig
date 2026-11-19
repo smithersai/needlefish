@@ -8,8 +8,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const rlp = @import("../rlp/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 const fields = @import("tx_fields.zig");
 const signature_module = @import("signature.zig");
 pub const eip8130 = @import("eip8130.zig");

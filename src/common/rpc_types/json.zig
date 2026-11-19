@@ -4,7 +4,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
+const primitives = @import("common/primitives");
 const Writer = std.Io.Writer;
 const Address = primitives.Address;
 

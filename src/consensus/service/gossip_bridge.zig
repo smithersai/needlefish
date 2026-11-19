@@ -10,10 +10,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const insert_task = @import("../engine/insert_task.zig");
-const block = @import("../p2p/gossip/block.zig");
-const ssz = @import("../p2p/gossip/ssz_payload.zig");
-const rollup_config = @import("../protocol/rollup_config.zig");
+const insert_task = @import("consensus/engine").insert_task;
+const block = @import("consensus/p2p").gossip.block;
+const ssz = @import("consensus/p2p").gossip.ssz_payload;
+const rollup_config = @import("consensus/protocol").rollup_config;
 
 pub const Envelope = insert_task.Envelope;
 pub const Withdrawal = ssz.Withdrawal;
@@ -118,7 +118,7 @@ pub fn decode_gossip(
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn rollup_all_active() rollup_config.RollupConfig {
     var rollup: rollup_config.RollupConfig = .{ .block_time = 2 };

@@ -108,8 +108,8 @@ pub fn decode_public_key(bytes: []const u8) Error!PublicKey {
     return key;
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 test "identity: sign and verify DER with low-s" {
     var prng = Prng.init(0x6964_656e);

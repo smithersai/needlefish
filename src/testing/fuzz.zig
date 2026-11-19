@@ -17,7 +17,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Smith = std.testing.Smith;
-const Prng = @import("prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const build_options = @import("build_options");
 
 /// `-Dfuzz-soak=N` multiplies every seeded run's iterations and `-Dfuzz-seed=S` moves it

@@ -14,15 +14,15 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Smith = std.testing.Smith;
-const fuzz = @import("fuzz.zig");
-const tx_module = @import("../common/consensus/tx.zig");
-const rlp = @import("../common/rlp/root.zig");
-const channel_module = @import("../consensus/protocol/channel.zig");
-const frame_module = @import("../consensus/protocol/frame.zig");
-const trie_module = @import("../execution/trie/trie.zig");
-const proof_module = @import("../execution/trie/proof.zig");
-const Signature = @import("../common/consensus/signature.zig").Signature;
-const BlockInfo = @import("../consensus/protocol/block.zig").BlockInfo;
+const fuzz = @import("testing/fuzz");
+const tx_module = @import("common/consensus").tx;
+const rlp = @import("common/rlp");
+const channel_module = @import("consensus/protocol").channel;
+const frame_module = @import("consensus/protocol").frame;
+const trie_module = @import("execution/trie").trie;
+const proof_module = @import("execution/trie").proof;
+const Signature = @import("common/consensus").signature.Signature;
+const BlockInfo = @import("consensus/protocol").block.BlockInfo;
 
 const Envelope = tx_module.Envelope;
 const tx_bytes_max = 2048;
@@ -387,8 +387,8 @@ test "fuzz_targets: trie proof verifier survives garbage" {
     try fuzz.run({}, fuzz_proof_garbage, .{ .iterations = 2048 });
 }
 
-const g1 = @import("../common/crypto/bls12_381/g1.zig");
-const g2 = @import("../common/crypto/bls12_381/g2.zig");
+const g1 = @import("common/crypto").bls12_381.g1;
+const g2 = @import("common/crypto").bls12_381.g2;
 
 /// Point decoding must be canonical: every accepted encoding is the one `compress`
 /// emits, so two byte strings never name the same commitment (KZG, precompiles).
@@ -431,7 +431,7 @@ test "fuzz_targets: bls12-381 g2 point encoding is canonical" {
     try fuzz.run({}, fuzz_bls_points(g2), .{ .iterations = 32 });
 }
 
-const codec = @import("../common/rlp/codec.zig");
+const codec = @import("common/rlp").codec;
 
 /// Every type kind the comptime codec maps: ints of several widths, bool, fixed arrays,
 /// borrowed byte strings, byte wrappers, and nested lists.
@@ -494,9 +494,9 @@ test "fuzz_targets: rlp comptime codec is canonical and round trips" {
 
 // ------------------------------------------------------------------ tx fields
 
-const tx_fields = @import("../common/consensus/tx_fields.zig");
-const signature_module = @import("../common/consensus/signature.zig");
-const primitives = @import("../common/primitives/root.zig");
+const tx_fields = @import("common/consensus").tx_fields;
+const signature_module = @import("common/consensus").signature;
+const primitives = @import("common/primitives");
 const field_bytes_max = 1024;
 
 /// Anything a field decoder accepts re-encodes byte-identically, and the list iterators

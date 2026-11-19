@@ -14,9 +14,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Smith = std.testing.Smith;
-const fuzz = @import("fuzz.zig");
-const Prng = @import("prng.zig").Prng;
-const beacon_json = @import("../consensus/sources/beacon_json.zig");
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
+const beacon_json = @import("consensus/sources").beacon_json;
 
 const Blob = beacon_json.Blob;
 const Sidecar = beacon_json.Sidecar;

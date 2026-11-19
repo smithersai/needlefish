@@ -27,9 +27,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const json = @import("../../utilities/json/root.zig");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
-const trie = @import("../trie/root.zig");
+const json = @import("utilities/json");
+const lazy = @import("utilities/lazy_alloc");
+const trie = @import("execution/trie");
 const witness_module = @import("witness.zig");
 
 const rlp = trie.rlp;

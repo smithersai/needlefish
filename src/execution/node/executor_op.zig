@@ -5,8 +5,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const evm = @import("../evm/root.zig");
-const chainspec = @import("../chainspec/root.zig");
+const evm = @import("execution/evm");
+const chainspec = @import("execution/chainspec");
 const base_time = @import("base_time.zig");
 
 const Upgrade = chainspec.Upgrade;

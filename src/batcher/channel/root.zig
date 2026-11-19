@@ -10,9 +10,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const comp = @import("../comp/root.zig");
-const frame_module = @import("../frame/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const comp = @import("batcher/comp");
+const frame_module = @import("batcher/frame");
+const Prng = @import("testing/prng").Prng;
 
 pub const Frame = frame_module.Frame;
 pub const ChannelId = frame_module.ChannelId;
@@ -219,7 +219,7 @@ pub const ChannelOut = struct {
 };
 
 const testing = std.testing;
-const protocol = @import("../../consensus/protocol/root.zig");
+const protocol = @import("consensus/protocol");
 
 /// Feeds every frame of a closed channel through the consensus channel and returns
 /// the reassembled compressed data (caller frees).
@@ -348,7 +348,7 @@ test "channel: seeded fuzz round trip through consensus channel" {
 }
 
 fn brotli_decode(data: []const u8) ![]u8 {
-    const consensus_brotli = @import("../../consensus/protocol/brotli.zig");
+    const consensus_brotli = @import("consensus/protocol").brotli;
     try testing.expectEqual(comp.brotli_channel_version, data[0]);
     return consensus_brotli.decompress(testing.allocator, data[1..], 1 << 20);
 }

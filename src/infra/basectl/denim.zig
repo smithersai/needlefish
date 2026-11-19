@@ -11,10 +11,10 @@ const std = @import("std");
 const assert = std.debug.assert;
 const json = std.json;
 const types = @import("types.zig");
-const base_time = @import("../../common/consensus/base_time.zig");
-const predeploys = @import("../../common/consensus/predeploys.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const hex = @import("../../common/primitives/hex.zig");
+const base_time = @import("common/consensus").base_time;
+const predeploys = @import("common/consensus").predeploys;
+const keccak = @import("common/crypto").keccak;
+const hex = @import("common/primitives").hex;
 
 const Writer = types.Writer;
 
@@ -390,7 +390,7 @@ fn decode_deposit(tx: json.Value, input: []const u8) ?base_time_tx.Deposit {
     };
 }
 
-const base_time_tx = @import("../../common/consensus/tx.zig");
+const base_time_tx = @import("common/consensus").tx;
 
 fn quantity_field(comptime T: type, value: json.Value, name: []const u8) ?T {
     if (value != .object) return null;
@@ -704,7 +704,7 @@ fn status_named(report: *Report, name: []const u8) Status {
 }
 
 test "denim: constants match the execution side and the proxy bytecode" {
-    const execution_base_time = @import("../../execution/node/base_time.zig");
+    const execution_base_time = @import("execution/node").base_time;
     const execution = execution_base_time;
     try testing.expectEqualSlices(u8, &execution.implementation_address, &implementation_address);
     try testing.expectEqualSlices(
@@ -717,7 +717,7 @@ test "denim: constants match the execution side and the proxy bytecode" {
     const implementation_word = std.mem.readInt(u256, &implementation_slot, .big);
     try testing.expectEqual(execution.implementation_slot, implementation_word);
     try testing.expectEqual(execution.admin_slot, std.mem.readInt(u256, &admin_slot, .big));
-    const proxy_file = @embedFile("../../batcher/devnet/base_time_proxy.hex");
+    const proxy_file = @import("batcher/devnet").base_time_proxy_hex;
     const proxy_hex = comptime std.mem.trimEnd(u8, proxy_file, "\n");
     var proxy_code: [proxy_hex.len / 2]u8 = undefined;
     _ = try std.fmt.hexToBytes(&proxy_code, proxy_hex);

@@ -5,13 +5,13 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const harness_module = @import("../../consensus/sources/sim_harness.zig");
-const endpoint_module = @import("../rpc/endpoint.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const txdata = @import("../../batcher/txdata/root.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
+const io = @import("utilities/io");
+const harness_module = @import("consensus/sources").sim_harness;
+const endpoint_module = @import("proof/rpc").endpoint;
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
+const txdata = @import("batcher/txdata");
+const accounts = @import("batcher/devnet").accounts;
 const sender_module = @import("sender.zig");
 
 const FakeRpc = harness_module.FakeRpc;

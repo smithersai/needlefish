@@ -6,7 +6,7 @@
 const metrics_module = @import("metrics.zig");
 const std = @import("std");
 const assert = std.debug.assert;
-const io_module = @import("../../utilities/io/root.zig");
+const io_module = @import("utilities/io");
 const service_module = @import("service.zig");
 const transport_module = @import("transport.zig");
 const options_module = @import("options.zig");
@@ -19,8 +19,8 @@ const store_file_module = @import("peers/store_file.zig");
 const secp256k1 = @import("peers/secp256k1.zig");
 const block = @import("gossip/block.zig");
 const router_module = @import("gossip/router.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rollup_config = @import("../protocol/rollup_config.zig");
+const primitives = @import("common/primitives");
+const rollup_config = @import("consensus/protocol").rollup_config;
 
 const Service = service_module.Service;
 const Options = options_module.Options;
@@ -403,7 +403,7 @@ pub fn Network(comptime IO: type) type {
 // --------------------------------------------------------------------------- tests
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "network: options map to the service configuration" {
     const options = try options_module.parse(&.{

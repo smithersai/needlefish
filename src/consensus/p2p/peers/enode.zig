@@ -7,7 +7,7 @@ const ip = @import("ip.zig");
 const multiaddr = @import("multiaddr.zig");
 const peer_id = @import("peer_id.zig");
 const secp256k1 = @import("secp256k1.zig");
-const hex = @import("../../../common/primitives/hex.zig");
+const hex = @import("common/primitives").hex;
 
 pub const scheme = "enode://";
 pub const text_length_max = 256;
@@ -81,7 +81,7 @@ fn parse_port(text: []const u8) !u16 {
     return std.fmt.parseUnsigned(u16, text, 10);
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 /// From base/base `boot.rs` tests (a public OP Stack boot node).
 const example = "enode://2bd2e657bb3c8efffb8ff6db9071d9eb7be70d7c6d7d980ff80fc93b2629675c5f75" ++

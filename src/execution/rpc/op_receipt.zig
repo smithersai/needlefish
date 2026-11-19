@@ -11,12 +11,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const consensus = @import("../../common/consensus/root.zig");
-const l1_fees = @import("../../common/l1_fees/root.zig");
-const l1_info = @import("../../consensus/protocol/l1_info.zig");
-const chainspec = @import("../chainspec/root.zig");
-const executor_op = @import("../node/executor_op.zig");
-const json = @import("../../utilities/json/root.zig");
+const consensus = @import("common/consensus");
+const l1_fees = @import("common/l1_fees");
+const l1_info = @import("consensus/protocol").l1_info;
+const chainspec = @import("execution/chainspec");
+const executor_op = @import("execution/node").executor_op;
+const json = @import("utilities/json");
 
 pub const Fields = struct {
     l1_gas_price: u256,
@@ -127,8 +127,8 @@ pub fn write(w: *json.Writer, value: Fields) json.Writer.WriteError!void {
 // ---- Tests ------------------------------------------------------------------------
 
 const testing = std.testing;
-const primitives = @import("../../common/primitives/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const primitives = @import("common/primitives");
+const Prng = @import("testing/prng").Prng;
 
 fn hex_concat(comptime parts: []const []const u8) [hex_length(parts) / 2]u8 {
     @setEvalBranchQuota(100_000);

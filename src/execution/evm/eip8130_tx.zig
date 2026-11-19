@@ -12,7 +12,7 @@ const primitives = @import("primitives.zig");
 const config = @import("eip8130_config.zig");
 const auth = @import("eip8130_auth.zig");
 const apply = @import("eip8130_apply.zig");
-const eip8130 = @import("../../common/consensus/eip8130.zig");
+const eip8130 = @import("common/consensus").eip8130;
 
 const Address = primitives.Address;
 const B256 = primitives.B256;
@@ -269,7 +269,7 @@ test "eip8130 tx: an EOA delegation applies after post-apply verification" {
     defer state.deinit(testing.allocator);
     state.begin_transaction();
     const store = Store{ .state = &state };
-    const common = @import("../../common/primitives/root.zig");
+    const common = @import("common/primitives");
     const target = common.Address.init(@splat(0x55));
     const changes = [1]eip8130.AccountChange{.{ .delegation = target }};
     var buffer: [128]u8 = undefined;

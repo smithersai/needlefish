@@ -18,13 +18,13 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const tx = @import("../../common/consensus/tx.zig");
-const protocol = @import("../protocol/root.zig");
-const engine_json = @import("../sources/engine_json.zig");
+const primitives = @import("common/primitives");
+const tx = @import("common/consensus").tx;
+const protocol = @import("consensus/protocol");
+const engine_json = @import("consensus/sources").engine_json;
 const state_module = @import("state.zig");
 const attributes_match = @import("attributes_match.zig");
-const AttributesWithParent = @import("../derive/attributes_queue.zig").AttributesWithParent;
+const AttributesWithParent = @import("consensus/derive").attributes_queue.AttributesWithParent;
 
 const B256 = primitives.B256;
 const L2BlockInfo = protocol.block.L2BlockInfo;
@@ -36,7 +36,7 @@ pub const Version = engine_json.Version;
 pub const ExecutionPayload = engine_json.ExecutionPayload;
 pub const NewPayloadParams = engine_json.NewPayloadParams;
 pub const PayloadStatus = engine_json.PayloadStatus;
-pub const Status = @import("../../execution/engine/types.zig").Status;
+pub const Status = @import("execution/engine").types.Status;
 pub const ForkchoiceUpdated = engine_json.ForkchoiceUpdated;
 pub const EngineForkchoiceState = engine_json.ForkchoiceState;
 pub const EngineAttributes = engine_json.PayloadAttributes;

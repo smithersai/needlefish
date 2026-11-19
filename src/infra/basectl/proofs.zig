@@ -7,7 +7,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const json = std.json;
-const rpc = @import("../../batcher/rpc/root.zig");
+const rpc = @import("batcher/rpc");
 const types = @import("types.zig");
 
 const Writer = types.Writer;
@@ -212,7 +212,7 @@ const RootClaim = struct {
 
 const testing = std.testing;
 const FakeTransport = @import("fake.zig").FakeTransport;
-const keccak = @import("../../common/crypto/keccak.zig");
+const keccak = @import("common/crypto").keccak;
 
 test "basectl proofs: selectors match keccak256 signatures" {
     const pairs = .{

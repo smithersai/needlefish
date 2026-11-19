@@ -8,11 +8,11 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
-const registry = @import("../../proof/contracts/anchor_state_registry.zig");
-const factory = @import("../../proof/contracts/dispute_game_factory.zig");
+const rpc = @import("batcher/rpc");
+const consensus = @import("common/consensus");
+const accounts = @import("batcher/devnet").accounts;
+const registry = @import("proof/contracts").anchor_state_registry;
+const factory = @import("proof/contracts").dispute_game_factory;
 const calldata = @import("calldata.zig");
 const flow_module = @import("flow.zig");
 const journal_module = @import("journal.zig");
@@ -137,7 +137,7 @@ const Harness = struct {
             .{},
         );
         _ = try harness.reader.resolve_contracts();
-        const driver_config: @import("../tx_manager/root.zig").driver.Config = .{
+        const driver_config: @import("infra/tx_manager").driver.Config = .{
             .chain_id = 900,
             .private_key = sender.private_key,
             .from = sender.address,
@@ -230,7 +230,7 @@ test "withdrawer flow: tx_manager metrics count the prove and finalize sends" {
     var harness: Harness = .{};
     try harness.init();
     defer harness.deinit();
-    var tx_metrics: @import("../tx_manager/root.zig").metrics.Metrics = .{};
+    var tx_metrics: @import("infra/tx_manager").metrics.Metrics = .{};
     var config = run_config;
     config.tx_metrics = &tx_metrics;
     var flow = try harness.start(config);

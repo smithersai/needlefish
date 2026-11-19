@@ -6,11 +6,11 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const primitives = @import("../../common/primitives/root.zig");
-const tx = @import("../../common/consensus/tx.zig");
-const protocol = @import("../protocol/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
-const AttributesWithParent = @import("../derive/attributes_queue.zig").AttributesWithParent;
+const primitives = @import("common/primitives");
+const tx = @import("common/consensus").tx;
+const protocol = @import("consensus/protocol");
+const Prng = @import("testing/prng").Prng;
+const AttributesWithParent = @import("consensus/derive").attributes_queue.AttributesWithParent;
 const attributes_match = @import("attributes_match.zig");
 
 const B256 = primitives.B256;

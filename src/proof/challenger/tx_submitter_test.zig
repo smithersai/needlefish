@@ -5,15 +5,15 @@
 const std = @import("std");
 const testing = std.testing;
 
-const io = @import("../../utilities/io/root.zig");
-const harness_module = @import("../../consensus/sources/sim_harness.zig");
-const verifier = @import("../contracts/aggregate_verifier.zig");
-const endpoint_module = @import("../rpc/endpoint.zig");
-const txdata = @import("../../batcher/txdata/root.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
+const io = @import("utilities/io");
+const harness_module = @import("consensus/sources").sim_harness;
+const verifier = @import("proof/contracts").aggregate_verifier;
+const endpoint_module = @import("proof/rpc").endpoint;
+const txdata = @import("batcher/txdata");
+const accounts = @import("batcher/devnet").accounts;
 const chain = @import("chain.zig");
 const tx_submitter = @import("tx_submitter.zig");
-const sender_test = @import("../submission/sender_test.zig");
+const sender_test = @import("proof/submission").sender_test;
 const revert_error = sender_test.revert_error;
 
 const FakeRpc = harness_module.FakeRpc;

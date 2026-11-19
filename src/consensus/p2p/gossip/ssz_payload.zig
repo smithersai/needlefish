@@ -18,8 +18,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../../common/primitives/root.zig");
-const payload_types = @import("../../../execution/payload/root.zig");
+const primitives = @import("common/primitives");
+const payload_types = @import("execution/payload");
 
 const Address = primitives.Address;
 const B256 = primitives.B256;
@@ -378,8 +378,8 @@ pub fn encode(payload: ExecutionPayload, out: []u8) []u8 {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
-const fuzz = @import("../../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 const vectors = @import("vectors.zig");
 
 /// A payload with every field set from `prng`, storing variable data in `storage`.

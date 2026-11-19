@@ -13,8 +13,8 @@ const primitives = @import("primitives.zig");
 const state_module = @import("state.zig");
 const native = @import("native.zig");
 const tx_module = @import("eip8130_tx.zig");
-const eip8130 = @import("../../common/consensus/eip8130.zig");
-const common_primitives = @import("../../common/primitives/root.zig");
+const eip8130 = @import("common/consensus").eip8130;
+const common_primitives = @import("common/primitives");
 
 const Address = primitives.Address;
 const B256 = primitives.B256;
@@ -167,7 +167,7 @@ pub fn validate(
 
 const testing = std.testing;
 const memory_db = @import("memory_db.zig");
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 const Fixture = struct {
     database: memory_db.MemoryDatabase,

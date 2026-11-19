@@ -10,8 +10,8 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const protocol = @import("../protocol/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const protocol = @import("consensus/protocol");
+const primitives = @import("common/primitives");
 const errors = @import("errors.zig");
 const providers = @import("providers.zig");
 const blob = @import("blob.zig");
@@ -263,7 +263,7 @@ test "sources: blobs with mixed calldata, invalid blobs, and fill errors" {
 }
 
 test "sources: seeded fuzz over random transaction lists" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x534f5552);
+    var prng = @import("testing/prng").Prng.init(0x534f5552);
     var chain = TestChain.init(2, 0, 12);
     const rollup: RollupConfig = .{ .batch_inbox_address = inbox };
     var transactions: [16]L1Transaction = undefined;

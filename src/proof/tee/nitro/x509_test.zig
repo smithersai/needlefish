@@ -5,7 +5,7 @@ const std = @import("std");
 const testing = std.testing;
 const x509 = @import("x509.zig");
 const types = @import("types.zig");
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 const CertChain = x509.CertChain;
 const ChainResult = x509.ChainResult;

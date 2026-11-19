@@ -20,11 +20,11 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const assert = std.debug.assert;
-const primitives = @import("../../../common/primitives/root.zig");
-const keccak = @import("../../../common/crypto/keccak.zig");
-const sha256 = @import("../../../common/crypto/sha256.zig");
-const secp256k1 = @import("../../../common/crypto/secp256k1/root.zig");
-const rollup_config = @import("../../protocol/rollup_config.zig");
+const primitives = @import("common/primitives");
+const keccak = @import("common/crypto").keccak;
+const sha256 = @import("common/crypto").sha256;
+const secp256k1 = @import("common/crypto").secp256k1;
+const rollup_config = @import("consensus/protocol").rollup_config;
 const snappy = @import("snappy.zig");
 const ssz = @import("ssz_payload.zig");
 
@@ -307,8 +307,8 @@ pub fn encode_signed(
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
-const fuzz = @import("../../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 const vectors = @import("vectors.zig");
 const peers_secp256k1 = @import("../peers/secp256k1.zig");
 

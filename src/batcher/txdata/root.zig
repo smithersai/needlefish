@@ -7,10 +7,10 @@
 const std = @import("std");
 pub const blob = @import("blob.zig");
 const assert = std.debug.assert;
-const consensus = @import("../../common/consensus/root.zig");
+const consensus = @import("common/consensus");
 const signature = consensus.signature;
-const primitives = @import("../../common/primitives/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const primitives = @import("common/primitives");
+const Prng = @import("testing/prng").Prng;
 
 pub const Address = primitives.Address;
 pub const B256 = primitives.B256;
@@ -115,7 +115,7 @@ pub fn encode_raw(envelope: consensus.Envelope, buffer: []u8) []u8 {
 }
 
 const testing = std.testing;
-const accounts = @import("../devnet/accounts.zig");
+const accounts = @import("batcher/devnet").accounts;
 
 test "txdata: calldata gas follows the EIP-7623 floor" {
     try testing.expectEqual(@as(u64, 21_000), calldata_gas(&.{}));

@@ -10,9 +10,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const health = @import("../../utilities/health/root.zig");
-const http = @import("../../utilities/http/root.zig");
-const metrics = @import("../../utilities/metrics/root.zig");
+const health = @import("utilities/health");
+const http = @import("utilities/http");
+const metrics = @import("utilities/metrics");
 
 pub const server_options: http.server.Options = .{
     .connections_max = 4,

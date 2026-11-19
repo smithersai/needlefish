@@ -5,8 +5,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const consensus = @import("../consensus/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
 const request_module = @import("request.zig");
 const Address = primitives.Address;
 const B256 = primitives.B256;

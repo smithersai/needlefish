@@ -12,36 +12,36 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
-const preimage = @import("../preimage/root.zig");
-const host = @import("../host/root.zig");
-const program = @import("../program/root.zig");
-const executor = @import("../executor/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const chains = @import("../../common/chains/root.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const protocol = @import("../../consensus/protocol/root.zig");
-const derive = @import("../../consensus/derive/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const chainspec = @import("../../execution/chainspec/root.zig");
-const trie = @import("../../execution/trie/root.zig");
-const db_module = @import("../../execution/db/root.zig");
-const fixture = @import("../../execution/node/test_fixture.zig");
-const node_witness = @import("../../execution/node/witness.zig");
-const engine_types = @import("../../execution/engine/root.zig").types;
-const engine_json = @import("../../execution/rpc/engine_json.zig");
-const payload = @import("../../execution/payload/root.zig");
-const channel_manager = @import("../../batcher/channel/manager.zig");
-const batcher_source = @import("../../batcher/source/root.zig");
-const txdata = @import("../../batcher/txdata/root.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
-const channel_out = @import("../../batcher/channel/root.zig");
-const batcher_frame = @import("../../batcher/frame/root.zig");
-const batcher_blobs = @import("../../batcher/blobs/root.zig");
+const preimage = @import("proof/preimage");
+const host = @import("proof/host");
+const program = @import("proof/program");
+const executor = @import("proof/executor");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
+const chains = @import("common/chains");
+const kzg = @import("common/crypto").kzg;
+const keccak = @import("common/crypto").keccak;
+const protocol = @import("consensus/protocol");
+const derive = @import("consensus/derive");
+const json = @import("utilities/json");
+const chainspec = @import("execution/chainspec");
+const trie = @import("execution/trie");
+const db_module = @import("execution/db");
+const fixture = @import("execution/node").test_fixture;
+const node_witness = @import("execution/node").witness;
+const engine_types = @import("execution/engine").types;
+const engine_json = @import("execution/rpc").engine_json;
+const payload = @import("execution/payload");
+const channel_manager = @import("batcher/channel").manager;
+const batcher_source = @import("batcher/source");
+const txdata = @import("batcher/txdata");
+const accounts = @import("batcher/devnet").accounts;
+const channel_out = @import("batcher/channel");
+const batcher_frame = @import("batcher/frame");
+const batcher_blobs = @import("batcher/blobs");
 const client = @import("client.zig");
 
 const Hash = [32]u8;
@@ -1196,7 +1196,7 @@ test "e2e: seeded random scenarios prove against the node" {
 }
 
 test "e2e: the proposer's native prover proves a request and its archive replays" {
-    const proposer = @import("../proposer/root.zig");
+    const proposer = @import("proof/proposer");
     const self = try Fixture.create(.{ .blocks = 4, .interval = 2 });
     defer self.destroy();
     try self.put_boot(true);
@@ -1279,7 +1279,7 @@ const FixtureSource = struct {
 };
 
 test "e2e: the prover service's native backend proves a compressed range" {
-    const prover_service = @import("../prover_service/root.zig");
+    const prover_service = @import("proof/prover_service");
     const service_protocol = prover_service.protocol;
     const self = try Fixture.create(.{ .blocks = 4 });
     defer self.destroy();
@@ -1355,8 +1355,8 @@ fn witness_preimages(
     return preimages;
 }
 
-const enclave = @import("../tee/enclave/root.zig");
-const proof_primitives = @import("../primitives/root.zig");
+const enclave = @import("proof/tee").enclave;
+const proof_primitives = @import("proof/primitives");
 
 /// An enclave server (fake NSM), its handler and a host client, linked in process.
 const EnclaveLink = struct {
@@ -1490,11 +1490,11 @@ test "e2e: the TEE enclave refuses to sign a claim that does not hold" {
     try testing.expectEqualStrings("InvalidClaim", link.client.last_failure.?.message);
 }
 
-const tee_host = @import("../tee/host/root.zig");
-const sim_io = @import("../../utilities/io/root.zig");
-const sim_http = @import("../../utilities/http/root.zig");
-const service_root = @import("../prover_service/root.zig");
-const service_endpoint = @import("../rpc/endpoint.zig");
+const tee_host = @import("proof/tee").host;
+const sim_io = @import("utilities/io");
+const sim_http = @import("utilities/http");
+const service_root = @import("proof/prover_service");
+const service_endpoint = @import("proof/rpc").endpoint;
 
 /// The prover service on one simulated host; a requester and a TEE worker on another.
 const TeeService = struct {

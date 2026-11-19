@@ -7,12 +7,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
-const db_module = @import("../db/root.zig");
-const trie = @import("../trie/root.zig");
+const lazy = @import("utilities/lazy_alloc");
+const db_module = @import("execution/db");
+const trie = @import("execution/trie");
 const service = @import("service.zig");
-const http = @import("../../utilities/http/root.zig");
-const io = @import("../../utilities/io/root.zig");
+const http = @import("utilities/http");
+const io = @import("utilities/io");
 
 const witness = db_module.witness;
 const page_bytes = 4096;

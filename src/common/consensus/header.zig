@@ -8,8 +8,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../primitives/root.zig");
-const rlp = @import("../rlp/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 const hashing = @import("hashing.zig");
 const Address = primitives.Address;
 const B256 = primitives.B256;
@@ -126,7 +126,7 @@ pub const Header = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "header: mainnet genesis hash" {
     // Ethereum mainnet genesis header, a public constant.

@@ -4,13 +4,13 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const rpc = @import("../../batcher/rpc/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
+const rpc = @import("batcher/rpc");
+const consensus = @import("common/consensus");
+const accounts = @import("batcher/devnet").accounts;
 const driver_module = @import("driver.zig");
 const fees = @import("fees.zig");
-const rlp = @import("../../common/rlp/root.zig");
-const blobs_codec = @import("../../batcher/blobs/root.zig");
+const rlp = @import("common/rlp");
+const blobs_codec = @import("batcher/blobs");
 
 const Hash = driver_module.Hash;
 const Driver = driver_module.Driver(.{ .sends_max = 4, .hashes_max = 4 });

@@ -13,8 +13,8 @@ const assert = std.debug.assert;
 
 const primitives = @import("primitives.zig");
 const state_module = @import("state.zig");
-const eip8130 = @import("../../common/consensus/eip8130.zig");
-const keccak256 = @import("../../common/crypto/root.zig").keccak256;
+const eip8130 = @import("common/consensus").eip8130;
+const keccak256 = @import("common/crypto").keccak256;
 
 const Address = primitives.Address;
 const B256 = primitives.B256;

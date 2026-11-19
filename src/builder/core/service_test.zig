@@ -7,11 +7,11 @@ const std = @import("std");
 const testing = std.testing;
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const chainspec = @import("../../execution/chainspec/root.zig");
-const payload = @import("../../execution/payload/root.zig");
-const fixture = @import("../../execution/node/test_fixture.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const primitives = @import("common/primitives");
+const chainspec = @import("execution/chainspec");
+const payload = @import("execution/payload");
+const fixture = @import("execution/node").test_fixture;
+const Prng = @import("testing/prng").Prng;
 const best_txs = @import("best_txs.zig");
 const builder_module = @import("builder.zig");
 const builder_test = @import("builder_test.zig");

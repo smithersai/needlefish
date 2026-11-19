@@ -6,8 +6,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const aggregate_verifier = @import("../contracts/aggregate_verifier.zig");
-const factory = @import("../contracts/dispute_game_factory.zig");
+const aggregate_verifier = @import("proof/contracts").aggregate_verifier;
+const factory = @import("proof/contracts").dispute_game_factory;
 
 pub const KnownRevert = aggregate_verifier.KnownRevert;
 
@@ -107,7 +107,7 @@ test "submission classifier: data selector, selector text and error name" {
 }
 
 test "submission classifier: fuzz" {
-    const fuzz = @import("../../testing/fuzz.zig");
+    const fuzz = @import("testing/fuzz");
     try fuzz.run({}, struct {
         fn one(_: void, smith: *std.testing.Smith) anyerror!void {
             var message: [96]u8 = undefined;

@@ -6,8 +6,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const protocol = @import("../prover_service/protocol.zig");
-const primitives = @import("../primitives/root.zig");
+const protocol = @import("proof/prover_service").protocol;
+const primitives = @import("proof/primitives");
 const crypto = @import("enclave/crypto.zig");
 
 const Address = [20]u8;
@@ -81,7 +81,7 @@ pub fn recover_signer(
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 const Fixture = struct {
     roots: [2]Hash,

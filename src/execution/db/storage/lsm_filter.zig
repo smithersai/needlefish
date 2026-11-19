@@ -73,7 +73,7 @@ pub fn may_contain(words: []const u32, key_hash: u64) bool {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "lsm filter: no false negatives, about 1% false positives at 10 bits per key" {
     var prng = Prng.init(7);

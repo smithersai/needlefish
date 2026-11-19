@@ -7,8 +7,8 @@ const testing = std.testing;
 const state_module = @import("state.zig");
 const overlay_module = @import("overlay.zig");
 const changeset_module = @import("changeset.zig");
-const trie = @import("../trie/root.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const trie = @import("execution/trie");
+const Prng = @import("testing/prng").Prng;
 
 const State = state_module.State;
 const Overlay = overlay_module.Overlay;

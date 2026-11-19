@@ -26,7 +26,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const trie = @import("../trie/root.zig");
+const trie = @import("execution/trie");
 const witness_module = @import("witness.zig");
 
 const keccak256 = trie.node.keccak256;

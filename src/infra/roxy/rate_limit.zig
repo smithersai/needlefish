@@ -13,7 +13,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const io_common = @import("../../utilities/io/common.zig");
+const io_common = @import("utilities/io").common;
 
 pub const Address = io_common.Address;
 
@@ -155,7 +155,7 @@ fn check_rate(random: std.Random) !void {
 }
 
 test "rate limit: seeded fuzz never exceeds burst plus rate" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x7a7e);
+    var prng = @import("testing/prng").Prng.init(0x7a7e);
     for (0..200) |_| try check_rate(prng.random());
 }
 

@@ -94,7 +94,7 @@ fn is_in_subgroup_reference(point: G2Affine) bool {
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 test "g2: generator in subgroup, order r" {
     const g = G2.from_affine(generator);

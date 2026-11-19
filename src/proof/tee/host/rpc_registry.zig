@@ -6,9 +6,9 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const registration = @import("registration.zig");
-const clients = @import("../../rpc/clients.zig");
-const registry_abi = @import("../../contracts/tee_prover_registry.zig");
-const abi = @import("../../contracts/abi.zig");
+const clients = @import("proof/rpc").clients;
+const registry_abi = @import("proof/contracts").tee_prover_registry;
+const abi = @import("proof/contracts").abi;
 
 const Address = [20]u8;
 const Hash = [32]u8;
@@ -66,7 +66,7 @@ pub fn RpcRegistry(comptime EndpointType: type) type {
 }
 
 const testing = std.testing;
-const Param = @import("../../rpc/endpoint.zig").Param;
+const Param = @import("proof/rpc").endpoint.Param;
 
 /// Answers `eth_call` with one canned return word and records the calldata.
 const FakeEndpoint = struct {

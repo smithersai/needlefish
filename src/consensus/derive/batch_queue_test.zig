@@ -4,7 +4,7 @@
 const std = @import("std");
 const testing = std.testing;
 
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 const channel_reader = @import("channel_reader.zig");
 const batch_stage = @import("batch_stage.zig");
 const stubs = @import("batch_stage_test.zig");

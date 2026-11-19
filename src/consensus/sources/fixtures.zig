@@ -5,12 +5,12 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const format = @import("../../execution/rpc/format.zig");
-const ordered = @import("../../execution/trie/ordered.zig");
-const protocol = @import("../protocol/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const json = @import("utilities/json");
+const format = @import("execution/rpc").format;
+const ordered = @import("execution/trie").ordered;
+const protocol = @import("consensus/protocol");
 
 const Address = primitives.Address;
 const B256 = primitives.B256;

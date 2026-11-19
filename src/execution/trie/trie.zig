@@ -16,7 +16,7 @@ const assert = std.debug.assert;
 
 const node = @import("node.zig");
 const rlp = @import("rlp.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
+const keccak = @import("common/crypto").keccak;
 const nibbles_module = @import("nibbles.zig");
 const path_targets = @import("path_targets.zig");
 pub const PathTarget = path_targets.PathTarget;

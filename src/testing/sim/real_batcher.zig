@@ -10,13 +10,13 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rpc = @import("../../batcher/rpc/root.zig");
-const service_module = @import("../../batcher/service/root.zig");
-const accounts = @import("../../batcher/devnet/accounts.zig");
-const l1_info = @import("../../consensus/protocol/l1_info.zig");
-const tx_module = @import("../../common/consensus/tx.zig");
-const hex = @import("../../common/primitives/hex.zig");
-const Prng = @import("../prng.zig").Prng;
+const rpc = @import("batcher/rpc");
+const service_module = @import("batcher/service");
+const accounts = @import("batcher/devnet").accounts;
+const l1_info = @import("consensus/protocol").l1_info;
+const tx_module = @import("common/consensus").tx;
+const hex = @import("common/primitives").hex;
+const Prng = @import("testing/prng").Prng;
 const codec = @import("codec.zig");
 const nodes = @import("nodes.zig");
 

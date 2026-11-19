@@ -201,7 +201,7 @@ fn check_decode_any(input: []const u8) !void {
 }
 
 test "rlp: seeded fuzz roundtrip and canonical decode" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x7219);
+    var prng = @import("testing/prng").Prng.init(0x7219);
     var payload: [300]u8 = undefined;
     var iteration: u32 = 0;
     while (iteration < 2000) : (iteration += 1) {

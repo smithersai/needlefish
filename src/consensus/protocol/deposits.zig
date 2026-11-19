@@ -9,8 +9,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const rlp = @import("../../common/rlp/root.zig");
+const primitives = @import("common/primitives");
+const rlp = @import("common/rlp");
 const Address = primitives.Address;
 const B256 = primitives.B256;
 const Log = @import("log.zig").Log;
@@ -224,7 +224,7 @@ pub const DepositIterator = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn padded(address_hex: []const u8) B256 {
     var word: [32]u8 = @splat(0);

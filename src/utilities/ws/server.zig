@@ -10,8 +10,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const io_common = @import("../io/common.zig");
-const http_parser = @import("../http/parser.zig");
+const io_common = @import("utilities/io").common;
+const http_parser = @import("utilities/http").parser;
 const frame = @import("frame.zig");
 const stream_module = @import("stream.zig");
 

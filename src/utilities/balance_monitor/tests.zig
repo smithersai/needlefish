@@ -1,8 +1,8 @@
 const std = @import("std");
 
-const io = @import("../io/root.zig");
-const http = @import("../http/root.zig");
-const rpc = @import("../rpc/root.zig");
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const rpc = @import("utilities/rpc");
 const balance_monitor = @import("root.zig");
 
 const Address = io.Address;
@@ -168,7 +168,7 @@ fn fuzz_parse(context: void, smith: *std.testing.Smith) anyerror!void {
     const value = balance_monitor.parse_balance(buffer[0..size]) catch return;
     // Accepted inputs re-encode to the same digits.
     var out: [2 + 64]u8 = undefined;
-    const text = @import("../json/root.zig").format_quantity(value, &out);
+    const text = @import("utilities/json").format_quantity(value, &out);
     const trimmed = std.mem.trim(u8, buffer[0..size], " \t\r\n");
     try std.testing.expect(std.ascii.eqlIgnoreCase(text, trimmed[1 .. trimmed.len - 1]));
 }

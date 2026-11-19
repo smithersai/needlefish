@@ -8,8 +8,8 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 const archive_module = @import("root.zig");
-const SimStorage = @import("../db/storage/sim_storage.zig").SimStorage;
-const Prng = @import("../../testing/prng.zig").Prng;
+const SimStorage = @import("execution/db").storage.sim_storage.SimStorage;
+const Prng = @import("testing/prng").Prng;
 
 const Archive = archive_module.ArchiveType(SimStorage);
 const Kind = archive_module.Kind;

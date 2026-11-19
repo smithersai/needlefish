@@ -6,7 +6,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const telemetry = @import("../telemetry/root.zig");
+const telemetry = @import("proof/telemetry");
 const store_module = @import("store.zig");
 const worker_module = @import("worker.zig");
 

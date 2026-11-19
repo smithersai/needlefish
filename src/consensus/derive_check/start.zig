@@ -10,9 +10,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const chains = @import("../../common/chains/root.zig");
-const protocol = @import("../protocol/root.zig");
-const attributes_match = @import("../engine/attributes_match.zig");
+const chains = @import("common/chains");
+const protocol = @import("consensus/protocol");
+const attributes_match = @import("consensus/engine").attributes_match;
 
 const RollupConfig = protocol.rollup_config.RollupConfig;
 const UpgradeConfig = protocol.rollup_config.UpgradeConfig;
@@ -164,7 +164,7 @@ test "derive check start: blob window" {
 }
 
 test "derive check start: seeded fuzz of the range rules" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x5354_4152);
+    var prng = @import("testing/prng").Prng.init(0x5354_4152);
     for (0..2000) |_| {
         const safe = prng.below(10_000);
         const genesis = prng.below(100);

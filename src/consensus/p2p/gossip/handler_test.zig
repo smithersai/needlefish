@@ -8,11 +8,11 @@ const validity = @import("validity.zig");
 const ssz = @import("ssz_payload.zig");
 const rpc = @import("rpc.zig");
 const peer_id = @import("../peers/peer_id.zig");
-const primitives = @import("../../../common/primitives/root.zig");
-const consensus_types = @import("../../../common/consensus/root.zig");
-const rollup_config = @import("../../protocol/rollup_config.zig");
-const secp256k1 = @import("../../../common/crypto/secp256k1/root.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const primitives = @import("common/primitives");
+const consensus_types = @import("common/consensus");
+const rollup_config = @import("consensus/protocol").rollup_config;
+const secp256k1 = @import("common/crypto").secp256k1;
+const Prng = @import("testing/prng").Prng;
 
 const BlockGossip = handler.BlockGossip;
 const ns_per_s = std.time.ns_per_s;

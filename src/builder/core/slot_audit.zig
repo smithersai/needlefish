@@ -17,7 +17,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
+const primitives = @import("common/primitives");
 const service_module = @import("service.zig");
 const timing = @import("timing.zig");
 

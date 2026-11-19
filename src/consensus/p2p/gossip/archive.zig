@@ -16,8 +16,8 @@ const assert = std.debug.assert;
 const block = @import("block.zig");
 const validity = @import("validity.zig");
 const snappy = @import("snappy.zig");
-const primitives = @import("../../../common/primitives/root.zig");
-const rollup_config = @import("../../protocol/rollup_config.zig");
+const primitives = @import("common/primitives");
+const rollup_config = @import("consensus/protocol").rollup_config;
 
 pub const header_length = 17;
 /// Largest record body: the compressed form of the largest gossip message.
@@ -101,8 +101,8 @@ pub fn verify(
 }
 
 const testing = std.testing;
-const Prng = @import("../../../testing/prng.zig").Prng;
-const fuzz = @import("../../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 const ssz = @import("ssz_payload.zig");
 
 fn append(output: []u8, position: *usize, record: Record) void {
@@ -170,7 +170,7 @@ test "archive: verify checks the signer before anything else" {
     const record: Record = .{ .version = .v2, .received_ms = 0, .data = data };
     var decoded: [16384]u8 = undefined;
     const signer: primitives.Address = .{
-        .bytes = try @import("../../../common/crypto/secp256k1/root.zig").address(secret),
+        .bytes = try @import("common/crypto").secp256k1.address(secret),
     };
     try testing.expectError(error.Signer, verify(&config, .zero, record, &decoded));
     // The right signer gets past the signature; the random payload's hash is wrong.

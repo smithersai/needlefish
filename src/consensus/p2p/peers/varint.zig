@@ -70,8 +70,8 @@ pub fn decode(input: []const u8) Error!Decoded {
     return error.Overflow;
 }
 
-const fuzz = @import("../../../testing/fuzz.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 
 test "varint: known encodings" {
     var buffer: [length_max]u8 = undefined;

@@ -10,10 +10,10 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const utilities_metrics = @import("../../utilities/metrics/root.zig");
-const http = @import("../../utilities/http/root.zig");
+const utilities_metrics = @import("utilities/metrics");
+const http = @import("utilities/http");
 const driver_module = @import("driver.zig");
-const engine_state = @import("../engine/state.zig");
+const engine_state = @import("consensus/engine").state;
 
 const Counter = utilities_metrics.Counter;
 const Gauge = utilities_metrics.Gauge;
@@ -205,7 +205,7 @@ test "metrics: block labels, queue depth and driver counters" {
 }
 
 test "metrics: seeded fuzz, counters follow monotonic totals" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x3e7);
+    var prng = @import("testing/prng").Prng.init(0x3e7);
     var metrics: Metrics = .{};
     try metrics.register();
     var sample: Sample = .{ .sync_state = .{}, .l1_head = 0, .queue_depth = 0, .stats = .{} };

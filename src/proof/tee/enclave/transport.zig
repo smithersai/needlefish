@@ -45,7 +45,7 @@ pub fn read(reader: *std.Io.Reader, buffer: []u8) ReadError![]u8 {
 }
 
 const testing = std.testing;
-const fuzz = @import("../../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 test "enclave transport: a multi-segment frame round trips with a u64 length prefix" {
     const value_len = 3 * segment_bytes_max + 7;

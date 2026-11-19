@@ -17,22 +17,22 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const protocol = @import("../protocol/root.zig");
-const task = @import("../engine/task.zig");
-const attributes_match = @import("../engine/attributes_match.zig");
-const chains = @import("../../common/chains/root.zig");
+const protocol = @import("consensus/protocol");
+const task = @import("consensus/engine").task;
+const attributes_match = @import("consensus/engine").attributes_match;
+const chains = @import("common/chains");
 const conf_depth = @import("conf_depth.zig");
-const derive_errors = @import("../derive/errors.zig");
-const pipeline_module = @import("../derive/pipeline.zig");
-const attributes_module = @import("../derive/attributes.zig");
-const AttributesWithParent = @import("../derive/attributes_queue.zig").AttributesWithParent;
-const task_queue = @import("../engine/task_queue.zig");
-const sync_start = @import("../engine/sync_start.zig");
-const Finalizer = @import("../engine/finalizer.zig").Finalizer;
-const safedb_module = @import("../safedb/root.zig");
+const derive_errors = @import("consensus/derive").errors;
+const pipeline_module = @import("consensus/derive").pipeline;
+const attributes_module = @import("consensus/derive").attributes;
+const AttributesWithParent = @import("consensus/derive").attributes_queue.AttributesWithParent;
+const task_queue = @import("consensus/engine").task_queue;
+const sync_start = @import("consensus/engine").sync_start;
+const Finalizer = @import("consensus/engine").finalizer.Finalizer;
+const safedb_module = @import("consensus/safedb");
 const SafeDB = safedb_module.SafeDB;
-const OriginSelector = @import("../sequencer/origin.zig").OriginSelector;
-const sequencer_build = @import("../sequencer/build.zig");
+const OriginSelector = @import("consensus/sequencer").origin.OriginSelector;
+const sequencer_build = @import("consensus/sequencer").build;
 
 const BlockId = protocol.block.BlockId;
 const BlockInfo = protocol.block.BlockInfo;
@@ -43,9 +43,9 @@ const L1BlobSchedule = protocol.l1_info.L1BlobSchedule;
 const ProviderError = derive_errors.ProviderError;
 const Pipeline = pipeline_module.Pipeline;
 const EngineTaskQueue = task_queue.EngineTaskQueue;
-const SyncState = @import("../engine/state.zig").SyncState;
-const SyncStateUpdate = @import("../engine/state.zig").SyncStateUpdate;
-const InsertEnvelope = @import("../engine/insert_task.zig").Envelope;
+const SyncState = @import("consensus/engine").state.SyncState;
+const SyncStateUpdate = @import("consensus/engine").state.SyncStateUpdate;
+const InsertEnvelope = @import("consensus/engine").insert_task.Envelope;
 const UnsafeBuffer = @import("unsafe_buffer.zig").UnsafeBuffer;
 
 pub const Options = struct {
@@ -801,13 +801,13 @@ pub fn block_slot(rollup: *const RollupConfig, number: u64) BlockSlot {
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn ms(seconds: u64) u64 {
     return seconds * std.time.ms_per_s;
 }
-const TestChain = @import("../derive/test_chain.zig").TestChain;
-const MockEngine = @import("../engine/mock_engine.zig").MockEngine;
+const TestChain = @import("consensus/derive").test_chain.TestChain;
+const MockEngine = @import("consensus/engine").mock_engine.MockEngine;
 const SystemConfig = protocol.system_config.SystemConfig;
 const SafeBlock = protocol.span_batch.SafeBlock;
 
@@ -1399,7 +1399,7 @@ fn run_fuzz(bytes: []const u8) !void {
     var scenario: Scenario = undefined;
     try scenario.init(.{ .sequencer = true });
     defer scenario.deinit();
-    var prng = @import("../../testing/prng.zig").Prng.init(if (bytes.len > 0) bytes[0] else 1);
+    var prng = @import("testing/prng").Prng.init(if (bytes.len > 0) bytes[0] else 1);
     scenario.mock.prng = &prng;
     scenario.mock.not_available_percent = 30;
     var now_s: u64 = Scenario.genesis_time;
@@ -1415,7 +1415,7 @@ fn run_fuzz(bytes: []const u8) !void {
 }
 
 test "driver: seeded fuzz" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0xd21);
+    var prng = @import("testing/prng").Prng.init(0xd21);
     var bytes: [96]u8 = undefined;
     for (0..24) |_| {
         prng.fill(&bytes);

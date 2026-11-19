@@ -15,8 +15,8 @@ const config = @import("eip8130_config.zig");
 const abi = @import("native_abi.zig");
 const native = @import("native.zig");
 const state_module = @import("state.zig");
-const eip8130 = @import("../../common/consensus/eip8130.zig");
-const keccak256 = @import("../../common/crypto/root.zig").keccak256;
+const eip8130 = @import("common/consensus").eip8130;
+const keccak256 = @import("common/crypto").keccak256;
 
 const Address = primitives.Address;
 const B256 = primitives.B256;
@@ -595,7 +595,7 @@ test "eip8130 apply: create derives the CREATE2 address and authorizes sorted ac
     try fixture.init();
     defer fixture.deinit();
     const store = fixture.store();
-    const common = @import("../../common/primitives/root.zig");
+    const common = @import("common/primitives");
     const actors = [2]eip8130.InitialActor{
         .{
             .actor_id = .init(@splat(1)),

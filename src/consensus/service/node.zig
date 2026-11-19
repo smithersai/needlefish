@@ -11,39 +11,39 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
-const http = @import("../../utilities/http/root.zig");
-const http_client = @import("../../utilities/http/client.zig");
-const jwt = @import("../../utilities/jwt/root.zig");
-const log = @import("../../utilities/log/root.zig");
-const chains = @import("../../common/chains/root.zig");
-const protocol = @import("../protocol/root.zig");
-const rollup_rpc = @import("../rpc/rollup.zig");
-const admin_rpc = @import("../rpc/admin.zig");
-const safedb = @import("../safedb/root.zig");
-const l2_provider = @import("../sources/l2_provider.zig");
-const l2_block = @import("../sources/l2_block.zig");
-const message_passer_roots = @import("../sources/message_passer_roots.zig");
+const http = @import("utilities/http");
+const http_client = @import("utilities/http").client;
+const jwt = @import("utilities/jwt");
+const log = @import("utilities/log");
+const chains = @import("common/chains");
+const protocol = @import("consensus/protocol");
+const rollup_rpc = @import("consensus/rpc").rollup;
+const admin_rpc = @import("consensus/rpc").admin;
+const safedb = @import("consensus/safedb");
+const l2_provider = @import("consensus/sources").l2_provider;
+const l2_block = @import("consensus/sources").l2_block;
+const message_passer_roots = @import("consensus/sources").message_passer_roots;
 const l1_watcher = @import("l1_watcher.zig");
 const driver_module = @import("driver.zig");
-const l1_provider = @import("../sources/l1_provider.zig");
-const blob_provider = @import("../sources/blob_provider.zig");
-const engine_client = @import("../sources/engine_client.zig");
-const polling_client = @import("../engine/polling_client.zig");
-const kzg = @import("../../common/crypto/kzg/root.zig");
-const derive_errors = @import("../derive/errors.zig");
-const blob_module = @import("../derive/blob.zig");
-const p2p_network = @import("../p2p/network.zig");
-const p2p_rpc = @import("../p2p/rpc.zig");
+const l1_provider = @import("consensus/sources").l1_provider;
+const blob_provider = @import("consensus/sources").blob_provider;
+const engine_client = @import("consensus/sources").engine_client;
+const polling_client = @import("consensus/engine").polling_client;
+const kzg = @import("common/crypto").kzg;
+const derive_errors = @import("consensus/derive").errors;
+const blob_module = @import("consensus/derive").blob;
+const p2p_network = @import("consensus/p2p").network;
+const p2p_rpc = @import("consensus/p2p").rpc;
 /// `optimism_*`, `admin_*`, and (with p2p on) `opp2p_*` from one router.
 const RpcRouter = p2p_rpc.Merged(*const rollup_rpc.Backend, &rollup_rpc.node_methods);
-const RpcOutcome = @import("../../utilities/rpc/root.zig").Outcome;
-const p2p_options = @import("../p2p/options.zig");
-const secp256k1 = @import("../p2p/peers/secp256k1.zig");
-const enr = @import("../p2p/peers/enr.zig");
-const snappy = @import("../p2p/gossip/snappy.zig");
-const primitives = @import("../../common/primitives/root.zig");
+const RpcOutcome = @import("utilities/rpc").Outcome;
+const p2p_options = @import("consensus/p2p").options;
+const secp256k1 = @import("consensus/p2p").peers.secp256k1;
+const enr = @import("consensus/p2p").peers.enr;
+const snappy = @import("consensus/p2p").gossip.snappy;
+const primitives = @import("common/primitives");
 const gossip_bridge = @import("gossip_bridge.zig");
-const engine_json = @import("../sources/engine_json.zig");
+const engine_json = @import("consensus/sources").engine_json;
 const signer_watcher = @import("signer_watcher.zig");
 const checkpoint = @import("checkpoint.zig");
 const safedb_store = @import("safedb_store.zig");
@@ -53,8 +53,8 @@ const follow = @import("follow.zig");
 const conductor_module = @import("conductor.zig");
 const ws_rpc_module = @import("ws_rpc.zig");
 const OutputCache = @import("output_cache.zig").OutputCache;
-const upgrade_signal = @import("../../utilities/upgrade_signal/root.zig");
-const base_rpc = @import("../rpc/base.zig");
+const upgrade_signal = @import("utilities/upgrade_signal");
+const base_rpc = @import("consensus/rpc").base;
 
 const ProviderError = derive_errors.ProviderError;
 const BlockInfo = protocol.block.BlockInfo;
@@ -1379,9 +1379,9 @@ pub fn Node(comptime IO: type) type {
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
-const sim = @import("../../utilities/io/root.zig");
-const harness_module = @import("../sources/sim_harness.zig");
-const fixtures = @import("../sources/fixtures.zig");
+const sim = @import("utilities/io");
+const harness_module = @import("consensus/sources").sim_harness;
+const fixtures = @import("consensus/sources").fixtures;
 
 const FakeRpc = harness_module.FakeRpc;
 const Harness = harness_module.Harness(*FakeRpc, FakeRpc.handle);
@@ -1694,7 +1694,7 @@ test "node: output roots from Isthmus headers" {
 }
 
 test "node: output roots seeded fuzz, available iff the fork's storage root is known" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x0a7);
+    var prng = @import("testing/prng").Prng.init(0x0a7);
     for (0..256) |_| {
         var rollup: RollupConfig = .{ .block_time = 2 };
         const isthmus_time = prng.below(1000);
@@ -1730,7 +1730,7 @@ test "node: enode text parses back as a bootnode" {
     var text: [256]u8 = undefined;
     const enode = try enode_of(&text, &p2p);
     try testing.expect(std.mem.endsWith(u8, enode, "@127.0.0.1:9300"));
-    const boot = @import("../p2p/peers/boot.zig");
+    const boot = @import("consensus/p2p").peers.boot;
     const parsed = try boot.parse(enode);
     try testing.expect(parsed == .enode);
     p2p.options.advertise_ip = .{ .ip6 = @splat(1) };
@@ -1743,10 +1743,10 @@ fn gossip_payload(
     now_s: u64,
     storage: []u8,
     beacon_root: primitives.B256,
-) !@import("../p2p/gossip/block.zig").ExecutionPayload {
-    const ssz = @import("../p2p/gossip/ssz_payload.zig");
-    const validity = @import("../p2p/gossip/validity.zig");
-    const consensus_types = @import("../../common/consensus/root.zig");
+) !@import("consensus/p2p").gossip.block.ExecutionPayload {
+    const ssz = @import("consensus/p2p").gossip.ssz_payload;
+    const validity = @import("consensus/p2p").gossip.validity;
+    const consensus_types = @import("common/consensus");
     const deposit: consensus_types.Envelope = .{ .deposit = .{
         .source_hash = .{ .bytes = @splat(1) },
         .from = .zero,
@@ -1759,7 +1759,7 @@ fn gossip_payload(
     } };
     const transaction = deposit.encode_to(storage[128..]);
     var payload: ssz.ExecutionPayload = .{
-        .version = @import("../p2p/gossip/block.zig").version_at(rollup, now_s),
+        .version = @import("consensus/p2p").gossip.block.version_at(rollup, now_s),
         .block_number = 1,
         .timestamp = now_s,
         .gas_limit = 30_000_000,
@@ -1771,7 +1771,7 @@ fn gossip_payload(
 }
 
 test "node: receives gossiped unsafe blocks from a p2p peer" {
-    const common_secp256k1 = @import("../../common/crypto/secp256k1/root.zig");
+    const common_secp256k1 = @import("common/crypto").secp256k1;
     var sequencer_key: [32]u8 = @splat(0);
     sequencer_key[31] = 5;
     const signer: primitives.Address = .{ .bytes = try common_secp256k1.address(sequencer_key) };

@@ -10,10 +10,10 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rlp = @import("../../common/rlp/root.zig");
-const evm = @import("../evm/root.zig");
-const payload = @import("../payload/root.zig");
-const db_module = @import("../db/root.zig");
+const rlp = @import("common/rlp");
+const evm = @import("execution/evm");
+const payload = @import("execution/payload");
+const db_module = @import("execution/db");
 const chain_module = @import("chain.zig");
 
 const Hash = [32]u8;

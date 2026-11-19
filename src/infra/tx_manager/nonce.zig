@@ -205,7 +205,7 @@ fn check_unique(random: std.Random, steps: u32) !void {
 }
 
 test "nonce: seeded fuzz uniqueness" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x40_4ce);
+    var prng = @import("testing/prng").Prng.init(0x40_4ce);
     for (0..200) |_| try check_unique(prng.random(), 200);
 }
 

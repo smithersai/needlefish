@@ -73,7 +73,7 @@ test "observations: buckets, overflow, and sums" {
 }
 
 test "observations: seeded fuzz keeps count >= bucket total" {
-    var prng = @import("../../testing/prng.zig").Prng.init(0x0b5e);
+    var prng = @import("testing/prng").Prng.init(0x0b5e);
     const random = prng.random();
     var scores: Scores = .{};
     for (0..2000) |_| {

@@ -4,8 +4,8 @@
 
 const std = @import("std");
 
-pub const core = @import("core/root.zig");
-pub const metering = @import("metering/root.zig");
+pub const core = @import("builder/core");
+pub const metering = @import("builder/metering");
 
 test {
     std.testing.refAllDecls(@This());

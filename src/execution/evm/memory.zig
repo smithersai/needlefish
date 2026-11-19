@@ -8,7 +8,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const gas = @import("gas.zig");
 
 pub const SharedMemory = struct {

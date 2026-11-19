@@ -525,7 +525,7 @@ test "blob: inverse width constant" {
 }
 
 const builtin = @import("builtin");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// Full MSM-heavy coverage runs outside Debug; Debug keeps one case per code path
 /// (an MSM over 4096 points takes seconds unoptimised).

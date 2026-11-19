@@ -4,13 +4,13 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const json = @import("../../utilities/json/root.zig");
-const node = @import("../node/root.zig");
-const evm = @import("../evm/root.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const json = @import("utilities/json");
+const node = @import("execution/node");
+const evm = @import("execution/evm");
 const op_receipt = @import("op_receipt.zig");
-const chainspec = @import("../chainspec/root.zig");
+const chainspec = @import("execution/chainspec");
 
 const Hash = [32]u8;
 const Writer = json.Writer;
@@ -569,7 +569,7 @@ test "format: deposit transaction and receipt carry the OP fields" {
 }
 
 fn timestamp_scenario(seed: u64) !void {
-    var prng = @import("../../testing/prng.zig").Prng.init(seed);
+    var prng = @import("testing/prng").Prng.init(seed);
     const number = prng.below(1 << 40);
     const timestamp = prng.below(1 << 40);
     var buffer: [256]u8 = undefined;

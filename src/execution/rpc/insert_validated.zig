@@ -12,9 +12,9 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const primitives = @import("../../common/primitives/root.zig");
-const rpc = @import("../../utilities/rpc/root.zig");
-const json = @import("../../utilities/json/root.zig");
+const primitives = @import("common/primitives");
+const rpc = @import("utilities/rpc");
+const json = @import("utilities/json");
 const eth = @import("eth.zig");
 
 const Api = eth.Api;

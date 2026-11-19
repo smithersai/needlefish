@@ -20,14 +20,14 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const archive_module = @import("archive.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const consensus = @import("../../common/consensus/root.zig");
-const evm = @import("../../execution/evm/root.zig");
-const chainspec = @import("../../execution/chainspec/root.zig");
-const db = @import("../../execution/db/root.zig");
-const trie = @import("../../execution/trie/root.zig");
-const node_executor = @import("../../execution/node/executor.zig");
-const chain_module = @import("../../execution/node/chain.zig");
+const primitives = @import("common/primitives");
+const consensus = @import("common/consensus");
+const evm = @import("execution/evm");
+const chainspec = @import("execution/chainspec");
+const db = @import("execution/db");
+const trie = @import("execution/trie");
+const node_executor = @import("execution/node").executor;
+const chain_module = @import("execution/node").chain;
 
 const Archive = archive_module.Archive;
 const SparseState = db.witness.SparseState;
@@ -513,7 +513,7 @@ pub const Replayer = struct {
             self.prefilled = index + 1;
         }
         // Base blocks carry an empty withdrawals list from Canyon on.
-        const withdrawals: ?[]const @import("../../execution/payload/root.zig").Withdrawal =
+        const withdrawals: ?[]const @import("execution/payload").Withdrawal =
             if (header.withdrawals_root != null) &.{} else null;
         const env = chain_module.env_of(header);
         const executed = self.executor.execute_block(&env, transactions, withdrawals) catch |err| {

@@ -4,8 +4,8 @@
 const std = @import("std");
 const testing = std.testing;
 
-const trie = @import("../execution/trie/root.zig");
-const preimage = @import("preimage/root.zig");
+const trie = @import("execution/trie");
+const preimage = @import("proof/preimage");
 const Hash = trie.Hash;
 
 /// Preimages keyed by their rendered oracle key.

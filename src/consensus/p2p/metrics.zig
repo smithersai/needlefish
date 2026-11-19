@@ -14,7 +14,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const metrics = @import("../../utilities/metrics/root.zig");
+const metrics = @import("utilities/metrics");
 const service_module = @import("service.zig");
 const router_module = @import("gossip/router.zig");
 const validity = @import("gossip/validity.zig");

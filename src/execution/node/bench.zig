@@ -7,10 +7,10 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const consensus = @import("../../common/consensus/root.zig");
-const primitives = @import("../../common/primitives/root.zig");
-const chainspec = @import("../chainspec/root.zig");
-const Case = @import("../../testing/bench.zig").Case;
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const chainspec = @import("execution/chainspec");
+const Case = @import("testing/bench").Case;
 const StateDb = @import("state_db.zig").StateDb;
 const executor_module = @import("executor.zig");
 const Executor = executor_module.Executor;

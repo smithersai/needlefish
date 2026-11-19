@@ -8,10 +8,10 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const rlp = @import("../../common/rlp/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const ordered = @import("../trie/ordered.zig");
-const Nibbles = @import("../trie/nibbles.zig").Nibbles;
+const rlp = @import("common/rlp");
+const keccak = @import("common/crypto").keccak;
+const ordered = @import("execution/trie").ordered;
+const Nibbles = @import("execution/trie").nibbles.Nibbles;
 
 pub const p2p_version = 5;
 pub const eth_version = 68;
@@ -279,7 +279,7 @@ test "eth: messages round trip through their decoders" {
 
 test "eth: transactions root of the empty list is the empty trie root" {
     const root = transactions_root(&.{});
-    const empty = @import("../../common/primitives/root.zig").empty_root_hash;
+    const empty = @import("common/primitives").empty_root_hash;
     try testing.expectEqualSlices(u8, &empty.bytes, &root);
     // A body with one typed and one legacy transaction yields their 2718 bytes.
     const body = [_]u8{ 0xc6, 0xc4, 0x82, 0x02, 0xc0, 0xc0, 0xc0 };
@@ -291,7 +291,7 @@ test "eth: transactions root of the empty list is the empty trie root" {
     try testing.expect(result.ommers_empty);
 }
 
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 /// Every decoder on hostile bytes: errors, never panics, and bounded outputs.
 fn fuzz_decoders(_: void, data: []const u8) !void {

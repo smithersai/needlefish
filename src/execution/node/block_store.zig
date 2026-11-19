@@ -4,7 +4,7 @@
 //! so memory is fixed at init. Persistent storage replaces this with the db lane.
 
 const std = @import("std");
-const lazy = @import("../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 const assert = std.debug.assert;
 
 const Hash = [32]u8;
@@ -154,7 +154,7 @@ pub const BlockStore = struct {
 };
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 fn test_ref(n: u64) Ref {
     var hash: Hash = @splat(0);

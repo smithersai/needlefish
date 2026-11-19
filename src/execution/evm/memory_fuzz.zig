@@ -12,8 +12,8 @@ const assert = std.debug.assert;
 const op = @import("opcode.zig");
 const evm_module = @import("evm.zig");
 const primitives = @import("primitives.zig");
-const fuzz = @import("../../testing/fuzz.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const fuzz = @import("testing/fuzz");
+const Prng = @import("testing/prng").Prng;
 const Harness = @import("evm_test.zig").Harness;
 
 const contract = primitives.address_from_int(0x3e3e);

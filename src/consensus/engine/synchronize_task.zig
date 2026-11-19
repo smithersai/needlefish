@@ -14,7 +14,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const task = @import("task.zig");
-const protocol = @import("../protocol/root.zig");
+const protocol = @import("consensus/protocol");
 
 const L2BlockInfo = protocol.block.L2BlockInfo;
 const EngineState = task.EngineState;

@@ -8,7 +8,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const montgomery = @import("../montgomery.zig");
-const Prng = @import("../../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 pub const p = (0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf << 192) |
     0x6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab;

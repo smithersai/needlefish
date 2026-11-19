@@ -7,7 +7,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const interfaces = @import("../proposer/interfaces.zig");
+const interfaces = @import("proof/proposer").interfaces;
 const protocol = @import("protocol.zig");
 const client_module = @import("client.zig");
 

@@ -14,7 +14,7 @@ const reconciler = @import("reconciler.zig");
 const fakes = @import("fakes.zig");
 const signer_manager = @import("signer_manager.zig");
 const nitro_verify = @import("../nitro/verify.zig");
-const registry_abi = @import("../../contracts/tee_prover_registry.zig");
+const registry_abi = @import("proof/contracts").tee_prover_registry;
 
 const Address = types.Address;
 const Hash = types.Hash;

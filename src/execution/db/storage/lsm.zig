@@ -56,7 +56,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const lazy = @import("../../../utilities/lazy_alloc/root.zig");
+const lazy = @import("utilities/lazy_alloc");
 
 const storage = @import("storage.zig");
 const grid_module = @import("grid.zig");

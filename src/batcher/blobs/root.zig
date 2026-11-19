@@ -11,7 +11,7 @@
 const std = @import("std");
 pub const kzg = @import("kzg.zig");
 const assert = std.debug.assert;
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 
 pub const bytes_per_blob = 131_072;
 pub const field_elements_per_blob = 4096;

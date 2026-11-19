@@ -8,7 +8,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const abi = @import("../../proof/contracts/abi.zig");
+const abi = @import("proof/contracts").abi;
 const withdrawal_module = @import("withdrawal.zig");
 
 const Address = withdrawal_module.Address;
@@ -344,7 +344,7 @@ pub fn decode_withdrawal_finalized(
 }
 
 const testing = std.testing;
-const fuzz = @import("../../testing/fuzz.zig");
+const fuzz = @import("testing/fuzz");
 
 fn hex_selector(comptime text: []const u8) [4]u8 {
     var out: [4]u8 = undefined;

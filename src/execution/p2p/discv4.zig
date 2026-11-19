@@ -11,9 +11,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const curve = @import("../../common/crypto/secp256k1/root.zig");
-const keccak = @import("../../common/crypto/keccak.zig");
-const rlp = @import("../../common/rlp/root.zig");
+const curve = @import("common/crypto").secp256k1;
+const keccak = @import("common/crypto").keccak;
+const rlp = @import("common/rlp");
 
 pub const PublicKey = curve.PublicKey;
 /// discv4 caps packets at 1280 bytes.
@@ -226,8 +226,8 @@ pub fn decode_eth_entry(value: []const u8) Error!ForkId {
 }
 
 const testing = std.testing;
-const Prng = @import("../../testing/prng.zig").Prng;
-const fuzz = @import("../../testing/fuzz.zig");
+const Prng = @import("testing/prng").Prng;
+const fuzz = @import("testing/fuzz");
 
 fn secret_from(prng: *Prng) [32]u8 {
     while (true) {

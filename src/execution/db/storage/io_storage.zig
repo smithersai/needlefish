@@ -27,7 +27,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 const storage = @import("storage.zig");
-const io_common = @import("../../../utilities/io/common.zig");
+const io_common = @import("utilities/io").common;
 
 const sector_size = storage.sector_size;
 const Completion = storage.Completion;

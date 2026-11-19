@@ -2,11 +2,11 @@
 
 const std = @import("std");
 const testing = std.testing;
-const primitives = @import("../primitives/root.zig");
+const primitives = @import("common/primitives");
 const signature = @import("signature.zig");
 const eip8130 = @import("eip8130.zig");
 const predeploys = @import("predeploys.zig");
-const Prng = @import("../../testing/prng.zig").Prng;
+const Prng = @import("testing/prng").Prng;
 const Address = primitives.Address;
 const B256 = primitives.B256;
 const TxEip8130 = eip8130.TxEip8130;
@@ -125,7 +125,7 @@ test "eip8130: payer and sender field encodings" {
     try testing.expectEqualSlices(u8, &.{ 0xc0, 0xc0, 0x80, 0x00, 0xb8 }, encoded[12..17]);
     // A 20-byte zero payer is non-canonical.
     var long: [256]u8 = undefined;
-    var encoder = @import("../rlp/root.zig").Encoder.init(&long);
+    var encoder = @import("common/rlp").Encoder.init(&long);
     encoder.raw(&.{eip8130.tx_type});
     const fields = [_]u8{ 0x01, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0xc0, 0xc0, 0x80 };
     encoder.list_header(fields.len + 21 + 1 + 1);
@@ -281,7 +281,7 @@ test "eip8130: fuzz decode" {
 
 test "eip8130: envelope integration" {
     const Envelope = @import("tx.zig").Envelope;
-    const rlp = @import("../rlp/root.zig");
+    const rlp = @import("common/rlp");
     const tx: TxEip8130 = .{ .chain_id = 8453, .nonce_sequence = 3, .gas_limit = 50_000 };
     const auth = try eip8130.sign_sender(tx, key_0);
     const envelope: Envelope = .{ .eip8130 = .{ .tx = tx, .sender_auth = &auth } };
