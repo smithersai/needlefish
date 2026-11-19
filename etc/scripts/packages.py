@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""needlefish packages: the package-to-package import graph and its cycle check.
+"""needlefish packages: what a package is, the import graph, and the package table.
 
 A package is a folder of src/ two levels deep, plus the files under it:
   src/<group>/<name>/**          package "<group>/<name>"
@@ -18,8 +18,13 @@ import that closes a cycle and is due to be removed. A line may be deleted, neve
 `check` also fails on a line whose edge no longer exists or no longer closes a cycle, so
 the list only shrinks and a broken cycle cannot quietly come back.
 
+`convert` makes every package a Zig module (build.zig): inside a package, imports stay
+relative paths; across packages they name the package, `@import("common/rlp")`. It also
+writes packages.zon, which lists every package, its root file, and the names it imports.
+
 usage: python3 -I etc/scripts/packages.py check      (run by etc/scripts/tidy.sh)
        python3 -I etc/scripts/packages.py allowlist  (bootstrap only: print a new list)
+       python3 -I etc/scripts/packages.py convert    (named cross-package imports; packages.zon)
 """
 import collections
 import os
@@ -28,6 +33,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ALLOW = 'etc/import-cycles.allow'
+TABLE = 'packages.zon'
 LEAVES = {
     'src/testing/prng.zig': 'testing/prng',
     'src/testing/fuzz.zig': 'testing/fuzz',
@@ -69,29 +75,41 @@ def source_files():
     return sorted(out)
 
 
+Import = collections.namedtuple('Import', 'kind spec line start end')
+
+
 def imports(text):
-    """(kind, spec, line) for every @import/@embedFile with a literal path, comments skipped."""
-    text = COMMENT.sub('', text)
-    return [(m.group(1), m.group(2), text.count('\n', 0, m.start()) + 1)
+    """Every @import/@embedFile of a literal path, comment lines skipped; offsets into text."""
+    text = COMMENT.sub(lambda m: ' ' * len(m.group(0)), text)
+    return [Import(m.group(1), m.group(2), text.count('\n', 0, m.start()) + 1, m.start(), m.end())
             for m in IMPORT.finditer(text)]
+
+
+def read_sources():
+    """{path: text} for every .zig file under src/, the tool files, and the package set."""
+    texts = {}
+    for f in source_files():
+        with open(os.path.join(ROOT, f), encoding='utf-8') as handle:
+            texts[f] = handle.read()
+    tools = {f for f in texts if any(i.spec == 'base' for i in imports(texts[f]))}
+    packages = {package_of(f) for f in texts if f not in tools}
+    return texts, tools, packages
 
 
 def scan():
     """Package graph: {from: {to: [evidence]}}, the package set, and the tool files."""
-    files = source_files()
-    texts = {f: open(os.path.join(ROOT, f), encoding='utf-8').read() for f in files}
-    tools = {f for f in files if any(s == 'base' for _, s, _ in imports(texts[f]))}
-    packages = {package_of(f) for f in files if f not in tools}
+    texts, tools, packages = read_sources()
+    files = sorted(texts)
     graph = collections.defaultdict(lambda: collections.defaultdict(list))
     for f in files:
         if f in tools:
             continue
         here = package_of(f)
         graph[here]
-        for kind, spec, line in imports(texts[f]):
-            there = target_package(f, kind, spec, packages)
+        for i in imports(texts[f]):
+            there = target_package(f, i.kind, i.spec, packages)
             if there is not None and there != here:
-                graph[here][there].append('%s:%d %s' % (f, line, spec))
+                graph[here][there].append('%s:%d %s' % (f, i.line, i.spec))
     return graph, packages, tools
 
 
@@ -102,10 +120,15 @@ def target_package(path, kind, spec, packages):
             return None
         assert spec in packages, '%s: unknown module %r' % (path, spec)
         return spec
+    return package_of(resolve(path, spec))
+
+
+def resolve(path, spec):
+    """Repo-relative file a relative @import/@embedFile path names."""
     target = os.path.normpath(os.path.join(os.path.dirname(path), spec)).replace(os.sep, '/')
     assert target.startswith('src/'), '%s: %s leaves src/' % (path, spec)
     assert os.path.exists(os.path.join(ROOT, target)), '%s: %s is missing' % (path, spec)
-    return package_of(target)
+    return target
 
 
 def read_allowlist():
@@ -242,8 +265,169 @@ def allowlist():
     return 0
 
 
+# `convert`: rewrite every import that crosses a package boundary to the package's name.
+#   @import("../../common/rlp/root.zig")      -> @import("common/rlp")
+#   @import("../primitives/hex.zig")          -> @import("common/primitives").hex
+#   @embedFile("../withdrawer/testdata/x.json") -> @import("infra/withdrawer").x_json
+# A file reached through a package's pub declarations keeps that path; any other file (and
+# every embedded data file) gets a `pub const` re-export added to the package root. Then
+# write packages.zon, the package table build.zig reads. A second run changes nothing.
+
+PUB_IMPORT = re.compile(r'^pub const (\w+) = @import\("([^"]+\.zig)"\);$', re.M)
+EXPORTED = re.compile(r'^pub const (\w+) =\s*@(import|embedFile)\("([^"]+)"\);$', re.M)
+TOP_NAME = re.compile(r'^(?:pub )?(?:extern )?(?:inline )?(?:const|var|fn) (\w+)', re.M)
+ANCHOR = re.compile(r'^(?:pub )?const \w+ = @(?:import|embedFile)\("[^"]*"\)[\w.]*;$', re.M)
+IDENTIFIER = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
+
+
+class Exports:
+    """The pub declarations other packages reach a package's files through, and the
+    re-exports `convert` adds to package roots."""
+
+    def __init__(self, texts):
+        self.texts = texts
+        self.added = collections.defaultdict(dict)  # root -> {relative path: name}
+        self.embedded = collections.defaultdict(dict)  # root -> {relative path: name}
+
+    def chain(self, package, target):
+        """Field path from the package root to `target` over `pub const x = @import(...)`
+        declarations of that package (shortest, declaration order), or None."""
+        root = package_root(package)
+        paths, frontier = {root: []}, [root]
+        while frontier:
+            following = []
+            for f in frontier:
+                found = PUB_IMPORT.findall(self.texts[f])
+                if f == root:
+                    found += [(n, r) for r, n in self.added.get(root, {}).items()]
+                for name, relative in found:
+                    t = resolve(f, relative)
+                    if t not in paths and package_of(t) == package:
+                        paths[t] = paths[f] + [name]
+                        following.append(t)
+            frontier = following
+        return paths.get(target)
+
+    def add(self, package, target, embed):
+        """Name of the package root's `pub const` for `target`; a new one when it has none."""
+        root = package_root(package)
+        relative = os.path.relpath(target, os.path.dirname(root)).replace(os.sep, '/')
+        kind = 'embedFile' if embed else 'import'
+        for name, found_kind, found in EXPORTED.findall(self.texts[root]):
+            if (found_kind, found) == (kind, relative):
+                return name
+        table = self.embedded[root] if embed else self.added[root]
+        if relative in table:
+            return table[relative]
+        taken = set(TOP_NAME.findall(self.texts[root]))
+        taken |= set(self.added[root].values()) | set(self.embedded[root].values())
+        stem = relative if embed else relative[:-len('.zig')]
+        for name in (os.path.basename(stem), stem):
+            name = re.sub(r'[^A-Za-z0-9_]', '_', name)
+            if IDENTIFIER.match(name) and name not in taken:
+                table[relative] = name
+                return name
+        raise AssertionError('%s: no free name for %s' % (root, relative))
+
+    def apply(self, root, text):
+        """Root text with its new re-exports inserted after the last top-level import."""
+        lines = ['pub const %s = @import("%s");' % (n, r) for r, n in self.added[root].items()]
+        lines += ['pub const %s = @embedFile("%s");' % (n, r)
+                  for r, n in self.embedded[root].items()]
+        if not lines:
+            return text
+        lines = [l if len(l) <= 100 else l.replace(' = ', ' =\n    ', 1) for l in sorted(lines)]
+        anchors = list(ANCHOR.finditer(text))
+        assert anchors, '%s: no top-level import to add re-exports after' % root
+        at = anchors[-1].end() + 1
+        return text[:at] + '\n'.join(lines) + '\n' + text[at:]
+
+
+def named(exports, path, item):
+    """The named-import expression for one cross-package import, or None."""
+    target = resolve(path, item.spec)
+    package = package_of(target)
+    if package == package_of(path):
+        return None
+    if item.kind == 'embedFile':
+        return '@import("%s").%s' % (package, exports.add(package, target, embed=True))
+    if target == package_root(package):
+        return '@import("%s")' % package
+    fields = exports.chain(package, target)
+    if fields is None:
+        fields = [exports.add(package, target, embed=False)]
+    return '@import("%s").%s' % (package, '.'.join(fields))
+
+
+def rewrite(texts, tools):
+    """{path: new text} for every file with a cross-package import, roots included."""
+    exports, out = Exports(texts), {}
+    for f in sorted(texts):
+        if f in tools:
+            continue
+        text = texts[f]
+        for item in reversed(imports(text)):
+            if item.kind == 'import' and not item.spec.endswith('.zig'):
+                continue
+            replacement = named(exports, f, item)
+            if replacement is not None:
+                text = text[:item.start] + replacement + text[item.end:]
+        if text != texts[f]:
+            out[f] = text
+    for root in set(exports.added) | set(exports.embedded):
+        text = exports.apply(root, out.get(root, texts[root]))
+        if text != texts[root]:
+            out[root] = text
+    return out
+
+
+def table(texts, tools, packages):
+    """packages.zon text: every package, its root when not src/<name>/root.zig, its deps."""
+    deps = {p: set() for p in packages}
+    for f, text in texts.items():
+        if f in tools:
+            continue
+        for item in imports(text):
+            if item.kind == 'import' and not item.spec.endswith('.zig'):
+                if item.spec == 'build_options' or item.spec in packages:
+                    deps[package_of(f)].add(item.spec)
+    lines = ['// Generated by `etc/scripts/packages.py convert`: one Zig module per package.',
+             '// `deps` are the named imports of its files; build.zig reads this table.',
+             '.{']
+    for p in sorted(packages):
+        root = package_root(p)
+        head = '.name = "%s"' % p
+        if root != 'src/%s/root.zig' % p:
+            head += ', .root = "%s"' % root
+        names = ', '.join('"%s"' % d for d in sorted(deps[p]))
+        names = ' %s ' % names if len(deps[p]) > 1 else names  # as zig fmt prints it
+        line = '    .{ %s, .deps = .{%s} },' % (head, names)
+        if len(line) <= 100:
+            lines.append(line)
+            continue
+        lines.append('    .{')
+        lines.append('        %s,' % head.replace(', .root', ',\n        .root'))
+        lines.append('        .deps = .{')
+        lines += ['            "%s",' % d for d in sorted(deps[p])]
+        lines += ['        },', '    },']
+    return '\n'.join(lines + ['}', ''])
+
+
+def convert():
+    texts, tools, packages = read_sources()
+    changed = rewrite(texts, tools)
+    for f, text in sorted(changed.items()):
+        with open(os.path.join(ROOT, f), 'w', encoding='utf-8') as handle:
+            handle.write(text)
+    texts.update(changed)
+    with open(os.path.join(ROOT, TABLE), 'w', encoding='utf-8') as handle:
+        handle.write(table(texts, tools, packages))
+    print('packages: %d files rewritten, %d packages in %s' % (len(changed), len(packages), TABLE))
+    return 0
+
+
 if __name__ == '__main__':
-    commands = {'check': check, 'allowlist': allowlist}
+    commands = {'check': check, 'allowlist': allowlist, 'convert': convert}
     if len(sys.argv) != 2 or sys.argv[1] not in commands:
         sys.exit(__doc__)
     sys.exit(commands[sys.argv[1]]())
