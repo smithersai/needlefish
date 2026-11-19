@@ -1,5 +1,5 @@
 //! `utilities` group. Mirrors base/base `crates/utilities`. Sub-modules are re-exported
-//! here as they land, e.g. `pub const rlp = @import("rlp/root.zig");`.
+//! here by package name as they land, e.g. `pub const rlp = @import("utilities/rlp");`.
 
 const std = @import("std");
 

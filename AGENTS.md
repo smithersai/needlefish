@@ -73,7 +73,9 @@ Read this whole file before you change anything. These rules are not optional.
 
 ## Testing
 
-- `zig build test` — every module has unit tests next to the code.
+- `zig build test` — every package has unit tests next to the code and its own test binary;
+  a binary reruns only when a file it compiles changed. `zig build test:common/rlp` runs one
+  package's tests.
 - **Fuzz**: every parser/decoder/state machine gets a `std.testing.fuzz` test and a
   deterministic seeded fuzz (via `base.testing.Prng`) that runs in normal `zig build test`.
   Long fuzz: `zig build test --fuzz -Doptimize=ReleaseSafe`.
@@ -90,7 +92,7 @@ Read this whole file before you change anything. These rules are not optional.
 
 ```
 bin/<name>/main.zig        binaries (base, node, consensus, batcher, ...)
-src/base.zig               root of the single `base` module
+src/base.zig               root of the `base` module binaries import (re-exports every group)
 src/common/                shared protocol types: primitives, rlp, crypto, consensus, genesis, chains
 src/utilities/             io (io_uring/kqueue/sim), time, net, http, json, rpc, jwt, metrics, cli, log
 src/execution/             evm, trie, db, chainspec, txpool, payload, engine, rpc, node
@@ -102,8 +104,13 @@ etc/                       devnet configs, scripts, docker
 docs/                      architecture, style, lanes
 ```
 
-Each sub-module is a directory with `root.zig`, e.g. `src/common/rlp/root.zig`, and is
-re-exported from its group's `root.zig`. Cross-module imports use relative paths.
+Each package is a directory with `root.zig`, e.g. `src/common/rlp/root.zig`, is its own Zig
+module, and is re-exported from its group's `root.zig`. Inside a package, imports are relative
+paths. Across packages they are named, `@import("common/rlp")`, and every name a package
+imports is listed in `packages.zon`; the compiler rejects any other. After adding or moving a
+cross-package import, run `python3 -I etc/scripts/packages.py convert` (rewrites relative
+cross-package imports, regenerates `packages.zon`). `just tidy` fails on a package import
+cycle not in `etc/import-cycles.allow`; delete lines from that file, never add them.
 
 ## Commits
 

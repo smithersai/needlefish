@@ -1179,6 +1179,21 @@ long simulations belong in `zig build sim` / swarm, not the unit suite.
 
 2026-11-05: suite ~90 s run time; 73 s in one p2p discv5 cluster test (flagged to the lane).
 
+2026-11-19, one test binary per package (16-core Mac, Debug, empty `.zig-cache`, warm global
+cache). Each binary reruns only when a file it compiles changed, and binaries run in parallel.
+
+| Run | Wall | Test binaries rerun / cached | Tests run |
+| --- | ---: | ---: | ---: |
+| One binary for all of `src/` (before) | 721 s | 4 / 0 | 3,348 |
+| Per package, empty cache | 327 s | 116 / 0 | 3,348 |
+| Edit `src/common/rlp/root.zig` (72 packages import it) | 337 s | 75 / 41 | 2,738 |
+| Edit `src/infra/sidecrush/root.zig` (a leaf) | 50 s | 6 / 110 | 180 |
+
+The empty-cache run peaks at a 2.1 GiB `.zig-cache` (the single binary: 0.5 GiB) and 2 GiB
+per compile (single binary: 5 GiB). Its wall time is the slowest binaries: `execution/db`
+and `infra/tx_manager` run about 2 min each. Every edit also rebuilds `test-base` (37 s
+compile) and the `statetest` runner (28 s), which import all of `base`.
+
 ## 2026-11-06 db witness: key hash memo in `SparseState` (aarch64-macos, Apple M4 Pro, ReleaseFast)
 
 `witness.KeyMemo` memoizes keccak256 of storage slots and addresses, so `apply_evm` and
