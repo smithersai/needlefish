@@ -68,7 +68,7 @@ bench *args:
 
 # Format sources
 fmt:
-    zig fmt build.zig build.zig.zon src bin
+    zig fmt build.zig build.zig.zon packages.zon src bin
 
 # Formatting, line length, secrets, and dependency checks
 tidy:

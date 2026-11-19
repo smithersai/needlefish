@@ -22,6 +22,9 @@ the list only shrinks and a broken cycle cannot quietly come back.
 relative paths; across packages they name the package, `@import("common/rlp")`. It also
 writes packages.zon, which lists every package, its root file, and the names it imports.
 
+`check` also fails on a relative import that crosses a package boundary and on a
+packages.zon that `convert` would change.
+
 usage: python3 -I etc/scripts/packages.py check      (run by etc/scripts/tidy.sh)
        python3 -I etc/scripts/packages.py allowlist  (bootstrap only: print a new list)
        python3 -I etc/scripts/packages.py convert    (named cross-package imports; packages.zon)
@@ -207,6 +210,8 @@ def check():
         if (a, b) not in present:
             errors.append('%s:%d: %s -> %s no longer exists; delete the line' %
                           (ALLOW, allowed[(a, b)], a, b))
+    if os.path.exists(os.path.join(ROOT, TABLE)):
+        errors += table_errors()
     cycle = find_cycle(graph, lambda a: [b for b in graph[a] if (a, b) not in allowed])
     if cycle:
         errors.append('import cycle outside %s (break one edge; never add a line):' % ALLOW)
@@ -411,6 +416,26 @@ def table(texts, tools, packages):
         lines += ['            "%s",' % d for d in sorted(deps[p])]
         lines += ['        },', '    },']
     return '\n'.join(lines + ['}', ''])
+
+
+def table_errors():
+    """Relative imports that cross a package boundary, and a stale packages.zon."""
+    texts, tools, packages = read_sources()
+    errors = []
+    for f in sorted(texts):
+        if f in tools:
+            continue
+        for item in imports(texts[f]):
+            if item.kind == 'import' and not item.spec.endswith('.zig'):
+                continue
+            target = package_of(resolve(f, item.spec))
+            if target != package_of(f):
+                errors.append('%s:%d: %s is in package %s; import it by name (convert)' %
+                              (f, item.line, item.spec, target))
+    with open(os.path.join(ROOT, TABLE), encoding='utf-8') as handle:
+        if handle.read() != table(texts, tools, packages):
+            errors.append('%s is stale; run etc/scripts/packages.py convert' % TABLE)
+    return errors
 
 
 def convert():

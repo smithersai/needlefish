@@ -6,8 +6,8 @@ cd "$(git rev-parse --show-toplevel)"
 
 fail=0
 
-if ! zig fmt --check build.zig src bin >/dev/null; then
-  echo "tidy: zig fmt needed:"; zig fmt --check build.zig src bin || true
+if ! zig fmt --check build.zig packages.zon src bin >/dev/null; then
+  echo "tidy: zig fmt needed:"; zig fmt --check build.zig packages.zon src bin || true
   fail=1
 fi
 
