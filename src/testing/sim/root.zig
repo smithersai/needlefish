@@ -13,6 +13,7 @@ pub const real_gossip = @import("real_gossip.zig");
 pub const nodes = @import("nodes.zig");
 pub const cluster = @import("cluster.zig");
 pub const swarm = @import("swarm.zig");
+pub const bench = @import("bench.zig");
 pub const Cluster = cluster.Cluster;
 
 test {

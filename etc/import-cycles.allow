@@ -20,4 +20,3 @@ proof/proposer -> proof/host
 proof/prover_service -> proof/challenger
 proof/prover_service -> proof/client
 proof/prover_service -> proof/host
-testing/bench -> testing/sim

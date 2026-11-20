@@ -14,7 +14,6 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const rlp = @import("common/rlp");
-const swarm = @import("testing/sim").swarm;
 
 pub const sample_count = 5;
 pub const sample_ns_target: u64 = 50 * std.time.ns_per_ms;
@@ -138,17 +137,6 @@ fn bench_rlp_reencode(iterations: u32) u64 {
     return accumulator;
 }
 
-fn bench_sim_seed(iterations: u32) u64 {
-    var accumulator: u64 = 0;
-    var seed: u64 = 0;
-    while (seed < iterations) : (seed += 1) {
-        const config = swarm.config_for_seed(seed);
-        const outcome = swarm.run_config(std.heap.page_allocator, seed, config);
-        accumulator +%= @backingInt(outcome catch unreachable); // Allocation only.
-    }
-    return accumulator;
-}
-
 const list_bytes = 64 * 33 + 3;
 
 pub const cases = [_]Case{
@@ -164,12 +152,10 @@ pub const cases = [_]Case{
         .run = bench_rlp_reencode,
         .bytes_per_op = list_bytes,
     },
-    .{ .name = "sim/cluster seed (16 sim-minutes)", .iterations = 100, .run = bench_sim_seed },
 };
 
 test "bench: cases run" {
     for (cases) |case| {
-        if (std.mem.startsWith(u8, case.name, "sim/")) continue; // Covered by sim tests.
         _ = case.run(2);
     }
     try std.testing.expect(matches("rlp/validate", "rlp"));

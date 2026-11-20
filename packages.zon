@@ -1117,14 +1117,7 @@
             "utilities/ws",
         },
     },
-    .{
-        .name = "testing/bench",
-        .root = "src/testing/bench.zig",
-        .deps = .{
-            "common/rlp",
-            "testing/sim",
-        },
-    },
+    .{ .name = "testing/bench", .root = "src/testing/bench.zig", .deps = .{"common/rlp"} },
     .{
         .name = "testing/fuzz",
         .root = "src/testing/fuzz.zig",
@@ -1158,6 +1151,7 @@
             "execution/node",
             "execution/payload",
             "execution/txpool",
+            "testing/bench",
             "testing/fuzz",
             "testing/prng",
         },
