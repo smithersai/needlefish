@@ -10,7 +10,8 @@ const assert = std.debug.assert;
 
 const bench = @import("testing/bench");
 const chainspec = @import("execution/chainspec");
-const replay = @import("root.zig");
+const archive_module = @import("archive.zig");
+const replayer_module = @import("replayer.zig");
 const node_executor = @import("execution/node").executor;
 const mainnet = @import("mainnet_test.zig");
 
@@ -26,13 +27,13 @@ pub fn run(io: std.Io, filter: ?[]const u8) void {
 
 fn replay_samples(io: std.Io) !void {
     const allocator = std.heap.page_allocator;
-    var archive = try replay.archive.Archive.init(allocator, mainnet.fixture_config);
+    var archive = try archive_module.Archive.init(allocator, mainnet.fixture_config);
     defer archive.deinit(allocator);
-    try replay.archive.decode(allocator, mainnet.fixture, &archive);
-    const replayer = try allocator.create(replay.replayer.Replayer);
+    try archive_module.decode(allocator, mainnet.fixture, &archive);
+    const replayer = try allocator.create(replayer_module.Replayer);
     defer allocator.destroy(replayer);
     const spec = &chainspec.ChainSpec.presets.base_mainnet;
-    var config = replay.replayer.config_for(&archive);
+    var config = replayer_module.config_for(&archive);
     // As `base node`: one sender-recovery worker per spare core, at most 7.
     const cores: u32 = @intCast(@max(std.Thread.getCpuCount() catch 1, 1));
     config.executor.recovery_threads = @min(cores - 1, 7);
@@ -67,12 +68,12 @@ test "bench_replay: mainnet blocks replay identically with parallel sender recov
     // Recovery workers only change who recovers each sender; every header field, receipt
     // and state root must still match mainnet.
     const allocator = std.testing.allocator;
-    var archive = try replay.archive.Archive.init(allocator, mainnet.fixture_config);
+    var archive = try archive_module.Archive.init(allocator, mainnet.fixture_config);
     defer archive.deinit(allocator);
-    try replay.archive.decode(allocator, mainnet.fixture, &archive);
-    const replayer = try allocator.create(replay.replayer.Replayer);
+    try archive_module.decode(allocator, mainnet.fixture, &archive);
+    const replayer = try allocator.create(replayer_module.Replayer);
     defer allocator.destroy(replayer);
-    var config = replay.replayer.config_for(&archive);
+    var config = replayer_module.config_for(&archive);
     config.executor.recovery_threads = 3;
     const spec = &chainspec.ChainSpec.presets.base_mainnet;
     try replayer.init(allocator, spec, &archive, config);
