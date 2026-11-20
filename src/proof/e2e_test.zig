@@ -1190,9 +1190,53 @@ fn prove_random(seed: u64) !void {
     }
 }
 
-test "e2e: seeded random scenarios prove against the node" {
-    const seeds: u64 = 12;
-    for (1..seeds + 1) |seed| try prove_random(seed);
+// Seeds 1..12, one test each so the test shards spread them.
+test "e2e: seeded random scenarios prove against the node [1]" {
+    try prove_random(1);
+}
+
+test "e2e: seeded random scenarios prove against the node [2]" {
+    try prove_random(2);
+}
+
+test "e2e: seeded random scenarios prove against the node [3]" {
+    try prove_random(3);
+}
+
+test "e2e: seeded random scenarios prove against the node [4]" {
+    try prove_random(4);
+}
+
+test "e2e: seeded random scenarios prove against the node [5]" {
+    try prove_random(5);
+}
+
+test "e2e: seeded random scenarios prove against the node [6]" {
+    try prove_random(6);
+}
+
+test "e2e: seeded random scenarios prove against the node [7]" {
+    try prove_random(7);
+}
+
+test "e2e: seeded random scenarios prove against the node [8]" {
+    try prove_random(8);
+}
+
+test "e2e: seeded random scenarios prove against the node [9]" {
+    try prove_random(9);
+}
+
+test "e2e: seeded random scenarios prove against the node [10]" {
+    try prove_random(10);
+}
+
+test "e2e: seeded random scenarios prove against the node [11]" {
+    try prove_random(11);
+}
+
+test "e2e: seeded random scenarios prove against the node [12]" {
+    try prove_random(12);
 }
 
 test "e2e: the proposer's native prover proves a request and its archive replays" {
