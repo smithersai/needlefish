@@ -10,9 +10,9 @@ const assert = std.debug.assert;
 
 const bench = @import("testing/bench");
 const chainspec = @import("execution/chainspec");
-const replay = @import("infra/replay");
-const node_executor = @import("executor.zig");
-const mainnet = @import("infra/replay").mainnet_fixture;
+const replay = @import("root.zig");
+const node_executor = @import("execution/node").executor;
+const mainnet = @import("mainnet_test.zig");
 
 const name = "node: replay 10 Base mainnet blocks (Mgas/s)";
 const samples = 30;

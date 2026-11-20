@@ -14,6 +14,8 @@ pub const Archive = archive.Archive;
 pub const Replayer = replayer.Replayer;
 /// The committed 10-block mainnet fixture and the limits that hold it (tests only).
 pub const mainnet_fixture = @import("mainnet_test.zig");
+/// Replay benchmark: the mainnet fixture through the node's executor (`zig build bench`).
+pub const bench_replay = @import("bench_replay.zig");
 
 test {
     std.testing.refAllDecls(@This());
