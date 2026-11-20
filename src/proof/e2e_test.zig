@@ -42,7 +42,7 @@ const accounts = @import("batcher/devnet").accounts;
 const channel_out = @import("batcher/channel");
 const batcher_frame = @import("batcher/frame");
 const batcher_blobs = @import("batcher/blobs");
-const client = @import("client.zig");
+const client = @import("proof/client").client;
 
 const Hash = [32]u8;
 const B256 = primitives.B256;

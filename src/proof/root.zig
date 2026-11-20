@@ -22,4 +22,7 @@ pub const primitives = @import("proof/primitives");
 
 test {
     std.testing.refAllDecls(@This());
+    // The fault-proof client's end-to-end test drives the host, the proposer, the prover
+    // service and the TEE, so it sits here, above every package it imports.
+    _ = @import("e2e_test.zig");
 }

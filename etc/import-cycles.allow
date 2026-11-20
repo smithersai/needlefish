@@ -9,10 +9,3 @@ execution/db -> execution/import
 execution/node -> builder/core
 execution/node -> execution/rpc
 infra/replay -> execution/node
-proof/client -> proof/host
-proof/client -> proof/tee
-proof/proposer -> proof/client
-proof/proposer -> proof/host
-proof/prover_service -> proof/challenger
-proof/prover_service -> proof/client
-proof/prover_service -> proof/host

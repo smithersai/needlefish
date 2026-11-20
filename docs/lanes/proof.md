@@ -36,7 +36,7 @@ program can run against an in-memory oracle in tests and the cluster simulator.
 - [x] `proof/e2e`: node-built L2 blocks (derived attributes + user transfers), batcher
   frames signed to the inbox on L1, everything served through the host handler from an
   empty store; the client derives + executes to the claim and matches the node's output
-  root (`client/e2e_test.zig`).
+  root (`e2e_test.zig`, in the proof group package).
 - [x] `proof/e2e-2`: extend the e2e: epoch change across L1 blocks, span batches, blob
   batches (l1-blob through the host), a Holocene deposit-only retry (invalid user tx in a
   batch).
