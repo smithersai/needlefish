@@ -7,9 +7,9 @@ const testing = std.testing;
 
 const io = @import("utilities/io");
 const protocol = @import("consensus/protocol");
-const harness_module = @import("sim_harness.zig");
+const harness_module = @import("consensus/sources").sim_harness;
 const fixtures = @import("fixtures.zig");
-const l2_provider = @import("l2_provider.zig");
+const l2_provider = @import("consensus/sources").l2_provider;
 const Prng = @import("testing/prng").Prng;
 
 const FakeRpc = harness_module.FakeRpc;

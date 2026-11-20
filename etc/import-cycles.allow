@@ -2,5 +2,4 @@
 # Delete a line when its cycle is gone. Never add one: break the cycle instead.
 common/genesis -> common/consensus
 consensus/protocol -> common/consensus
-consensus/sources -> execution/rpc
 infra/replay -> execution/node

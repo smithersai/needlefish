@@ -154,7 +154,7 @@ pub fn L1Watcher(comptime IO: type) type {
 const testing = std.testing;
 const sim = @import("utilities/io");
 const harness_module = @import("consensus/sources").sim_harness;
-const fixtures = @import("consensus/sources").fixtures;
+const fixtures = @import("consensus/sources_fixtures").fixtures;
 
 const FakeRpc = harness_module.FakeRpc;
 const Harness = harness_module.Harness(*FakeRpc, FakeRpc.handle);

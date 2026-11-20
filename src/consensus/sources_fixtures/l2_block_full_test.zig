@@ -11,7 +11,7 @@ const primitives = @import("common/primitives");
 const consensus = @import("common/consensus");
 const protocol = @import("consensus/protocol");
 const fixtures = @import("fixtures.zig");
-const l2_block_full = @import("l2_block_full.zig");
+const l2_block_full = @import("consensus/sources").l2_block_full;
 const Prng = @import("testing/prng").Prng;
 
 const B256 = primitives.B256;

@@ -16,9 +16,6 @@ pub const validity = @import("validity.zig");
 pub const archive = @import("archive.zig");
 
 test {
-    _ = @import("router_test.zig");
-}
-
-test {
     std.testing.refAllDecls(@This());
+    _ = @import("router_test.zig");
 }

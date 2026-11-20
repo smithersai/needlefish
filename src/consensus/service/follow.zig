@@ -272,7 +272,7 @@ test "follow: seeded fuzz over verify_label" {
 }
 
 const sim_harness = @import("consensus/sources").sim_harness;
-const fixtures = @import("consensus/sources").fixtures;
+const fixtures = @import("consensus/sources_fixtures").fixtures;
 const FakeRpc = sim_harness.FakeRpc;
 const SimFollower = Follower(@import("utilities/io").SimIo);
 

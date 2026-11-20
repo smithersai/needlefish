@@ -10,10 +10,10 @@ const jwt = @import("utilities/jwt");
 const primitives = @import("common/primitives");
 const format = @import("execution/rpc").format;
 const protocol = @import("consensus/protocol");
-const harness_module = @import("sim_harness.zig");
-const engine_json = @import("engine_json.zig");
-const engine_client = @import("engine_client.zig");
-const l2_block = @import("l2_block.zig");
+const harness_module = @import("consensus/sources").sim_harness;
+const engine_json = @import("consensus/sources").engine_json;
+const engine_client = @import("consensus/sources").engine_client;
+const l2_block = @import("consensus/sources").l2_block;
 const Prng = @import("testing/prng").Prng;
 
 const FakeRpc = harness_module.FakeRpc;

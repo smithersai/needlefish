@@ -22,16 +22,12 @@ pub const EngineClient = engine_client.EngineClient;
 pub const l2_provider = @import("l2_provider.zig");
 pub const L2Provider = l2_provider.L2Provider;
 pub const message_passer_roots = @import("message_passer_roots.zig");
-pub const fixtures = @import("fixtures.zig");
 pub const sepolia_l1_12090253_header_json = @embedFile("testdata/sepolia_l1_12090253_header.json");
 pub const sim_harness = @import("sim_harness.zig");
 
+// The JSON fixtures, which execution/rpc's formatter writes, and the tests that read them
+// live in consensus/sources_fixtures, above both packages.
 test {
     std.testing.refAllDecls(@This());
-    _ = @import("l1_json_test.zig");
-    _ = @import("l1_provider_test.zig");
     _ = @import("blob_provider_test.zig");
-    _ = @import("engine_test.zig");
-    _ = @import("l2_block_full_test.zig");
-    _ = @import("l2_provider_test.zig");
 }

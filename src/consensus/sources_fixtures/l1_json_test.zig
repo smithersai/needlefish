@@ -5,9 +5,9 @@ const std = @import("std");
 const testing = std.testing;
 
 const fixtures = @import("fixtures.zig");
-const header_json = @import("header_json.zig");
-const transaction_json = @import("transaction_json.zig");
-const receipt_json = @import("receipt_json.zig");
+const header_json = @import("consensus/sources").header_json;
+const transaction_json = @import("consensus/sources").transaction_json;
+const receipt_json = @import("consensus/sources").receipt_json;
 const json = @import("utilities/json");
 const primitives = @import("common/primitives");
 const Prng = @import("testing/prng").Prng;
@@ -227,7 +227,7 @@ test "l1 json: fuzz decoders" {
 // Ethereum Sepolia block 12090253 (public), an Amsterdam header: `blockAccessListHash`
 // (EIP-7928) and `slotNumber` (EIP-7843) follow `requestsHash` and are part of the hash.
 // The transaction list is truncated and withdrawals dropped: neither is hashed here.
-const amsterdam_header = @embedFile("testdata/sepolia_l1_12090253_header.json");
+const amsterdam_header = @import("consensus/sources").sepolia_l1_12090253_header_json;
 
 test "l1 json: amsterdam header fields are hashed" {
     var extra: [header_json.extra_data_size_max]u8 = undefined;

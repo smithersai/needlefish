@@ -203,23 +203,8 @@ pub fn transactions_raw(raw: []const u8) Error!?[]const u8 {
 }
 
 const testing = std.testing;
-const fixtures = @import("fixtures.zig");
 
-test "header json: decodes and verifies the hash" {
-    const header = fixtures.header_for(&.{}, 42, .init(@splat(3)));
-    var buffer: [4096]u8 = undefined;
-    const text = try fixtures.block_json(&buffer, &header, &.{}, false);
-    var extra: [extra_data_size_max]u8 = undefined;
-    const decoded = try decode(text, &extra);
-    try testing.expect(decoded.hash.eql(header.hash()));
-    try testing.expectEqualStrings("needlefish", decoded.header.extra_data);
-    try testing.expectEqual(@as(u64, 42), decoded.block_info().number);
-    try testing.expectEqual(@as(?u64, 0), decoded.l1_header().excess_blob_gas);
-    try testing.expectEqualStrings("[]", (try transactions_raw(text)).?);
-    const at = std.mem.indexOf(u8, text, "\"timestamp\":\"0x").? + 15;
-    buffer[at] = if (buffer[at] == '1') '2' else '1';
-    try testing.expectError(error.HashMismatch, decode(text, &extra));
-}
+// Decoding a block that execution/rpc wrote: consensus/sources_fixtures/header_json_test.zig.
 
 test "header json: rejects missing, duplicate, and null fields" {
     var extra: [extra_data_size_max]u8 = undefined;
