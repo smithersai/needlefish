@@ -8,7 +8,8 @@
 //!
 //! Steps:
 //!   zig build              install every binary into zig-out/bin
-//!   zig build test         run all unit tests, one binary per package (-Dtest-filter=...)
+//!   zig build test         run all unit tests, one binary per package (-Dtest-filter=...);
+//!                          a slow binary runs as parallel shards (`test_shards`)
 //!   zig build test:common/rlp  run one package's tests (reruns only when its inputs change)
 //!   zig build fuzz         build fuzz smoke tests (use `zig build test --fuzz`)
 //!   zig build sim -- SEED  run the deterministic simulator (DST) for SEED
@@ -34,6 +35,26 @@ const Package = struct {
 };
 
 const packages: []const Package = @import("packages.zon");
+
+/// A package whose test binary runs too long on one core, and how many shards it runs as.
+const Shards = struct { package: []const u8, count: u32 };
+
+/// The only place shard counts live. Each package here compiles its test binary once and runs
+/// it `count` times in parallel; each run executes the tests whose name hashes to its shard
+/// (src/testing/test_runner.zig), so the run costs its slowest shard, not the sum. Every
+/// other package runs its binary once with Zig's default runner. A count is the smallest whose
+/// slowest shard is within 5% of the package's slowest test (per-test CPU seconds): no count
+/// makes a run shorter than its slowest test.
+const test_shards = [_]Shards{
+    .{ .package = "execution/db", .count = 9 },
+};
+
+fn shard_count(package: []const u8) u32 {
+    for (test_shards) |shards| {
+        if (std.mem.eql(u8, shards.package, package)) return shards.count;
+    }
+    return 1;
+}
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -161,16 +182,36 @@ fn add_package_tests(
     check_step: *std.Build.Step,
 ) void {
     std.debug.assert(modules.len == packages.len);
+    for (test_shards) |shards| {
+        std.debug.assert(shards.count >= 2);
+        _ = package_index(shards.package);
+    }
     // etc/scripts/test-times.sh runs each installed binary to time its tests.
     const install_step = b.step("test-bins", "Install every package's test binary in zig-out/test");
     for (packages, modules) |package, module| {
         const name = b.allocator.dupe(u8, package.name) catch @panic("OOM");
         std.mem.replaceScalar(u8, name, '/', '-');
-        const unit_tests = b.addTest(.{ .name = name, .root_module = module, .filters = filters });
-        const run_tests = b.addRunArtifact(unit_tests);
-        test_step.dependOn(&run_tests.step);
+        const shards = shard_count(package.name);
+        const unit_tests = b.addTest(.{
+            .name = name,
+            .root_module = module,
+            .filters = filters,
+            .test_runner = if (shards == 1) null else .{
+                .path = b.path("src/testing/test_runner.zig"),
+                .mode = .server,
+            },
+        });
         const description = b.fmt("Run the {s} package's tests", .{package.name});
-        b.step(b.fmt("test:{s}", .{package.name}), description).dependOn(&run_tests.step);
+        const package_step = b.step(b.fmt("test:{s}", .{package.name}), description);
+        for (0..shards) |shard| {
+            const run_tests = b.addRunArtifact(unit_tests);
+            if (shards > 1) {
+                run_tests.setName(b.fmt("run test {s} shard {d}/{d}", .{ name, shard, shards }));
+                run_tests.addArg(b.fmt("--shard={d}/{d}", .{ shard, shards }));
+            }
+            test_step.dependOn(&run_tests.step);
+            package_step.dependOn(&run_tests.step);
+        }
         check_step.dependOn(&unit_tests.step);
         install_step.dependOn(&b.addInstallArtifact(unit_tests, .{
             .dest_dir = .{ .override = .{ .custom = "test" } },
