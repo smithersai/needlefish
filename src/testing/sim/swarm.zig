@@ -280,7 +280,42 @@ test "swarm: reductions shrink and stay valid" {
     try std.testing.expect(!config.real_gossip);
 }
 
-test "swarm: seed range" {
-    const result = try run_range(std.testing.allocator, 100, 8);
+/// Seeds 100..107, one test each so the test shards spread them: `run_range(100, 8)`.
+fn check_seed_range(seed: u64) !void {
+    assert(seed >= 100 and seed < 108);
+    const result = try run_range(std.testing.allocator, seed, 1);
+    assert(result.passed + result.failed == 1);
     try std.testing.expectEqual(@as(u64, 0), result.failed);
+}
+
+test "swarm: seed range [100]" {
+    try check_seed_range(100);
+}
+
+test "swarm: seed range [101]" {
+    try check_seed_range(101);
+}
+
+test "swarm: seed range [102]" {
+    try check_seed_range(102);
+}
+
+test "swarm: seed range [103]" {
+    try check_seed_range(103);
+}
+
+test "swarm: seed range [104]" {
+    try check_seed_range(104);
+}
+
+test "swarm: seed range [105]" {
+    try check_seed_range(105);
+}
+
+test "swarm: seed range [106]" {
+    try check_seed_range(106);
+}
+
+test "swarm: seed range [107]" {
+    try check_seed_range(107);
 }
