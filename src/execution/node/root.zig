@@ -21,20 +21,12 @@ pub const test_fixture = @import("test_fixture.zig");
 pub const genesis = @import("genesis.zig");
 pub const beacon = @import("beacon.zig");
 pub const bench = @import("bench.zig");
-pub const bench_engine = @import("bench_engine.zig");
 pub const bench_replay = @import("bench_replay.zig");
 pub const senders = @import("senders.zig");
 pub const durable = @import("durable.zig");
 pub const Durable = durable.Durable;
-pub const service = @import("service.zig");
-pub const Service = service.Service;
-test {
-    _ = @import("service_test.zig");
-    _ = @import("durable_test.zig");
-    _ = @import("witness_memory_test.zig");
-    _ = @import("history_test.zig");
-}
-
 test {
     std.testing.refAllDecls(@This());
+    _ = @import("durable_test.zig");
+    _ = @import("history_test.zig");
 }

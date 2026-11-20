@@ -37,7 +37,7 @@ const contracts_count = 24;
 /// EIP-170 maximum code size.
 const code_bytes = 24 * 1024;
 const call_gas_limit: u64 = 100_000;
-/// The node's default connection send buffer (`node.service`): the path before large
+/// The node's default connection send buffer (`execution/service`): the path before large
 /// send buffers existed.
 const send_buffer_size = 1 << 20;
 const large_send_buffer_size = 2 << 20;

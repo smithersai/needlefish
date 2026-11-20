@@ -5,6 +5,4 @@ consensus/p2p -> consensus/service
 consensus/protocol -> common/consensus
 consensus/sources -> consensus/engine
 consensus/sources -> execution/rpc
-execution/node -> builder/core
-execution/node -> execution/rpc
 infra/replay -> execution/node

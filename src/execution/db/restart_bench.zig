@@ -4,7 +4,7 @@
 //! filled, then `window_blocks` typical blocks (1k account writes + 1k slot writes, ~200
 //! transactions) are committed, a checkpoint is taken, and `replay_blocks` more blocks are
 //! committed so `open` replays a journal tail. With history on (the node's byte budget,
-//! `node.service.history_config` reproduced here) `open` also rebuilds the window from the
+//! `service.history_config` reproduced here) `open` also rebuilds the window from the
 //! retained changesets. The database is then dropped and reopened `samples` times per load
 //! variant; `Database.open_trace` reports each step's end and the bench reads the clock:
 //! checkpoint read (superblock, stream, verify), snapshot decode into the flat tables, trie
@@ -162,7 +162,7 @@ fn body_size_max(shape: Shape) u32 {
     return @intCast(storage_module.sector_ceil(size));
 }
 
-/// `node.service.history_config` with the default limits (1 GiB budget, 1k versions per
+/// `service.history_config` with the default limits (1 GiB budget, 1k versions per
 /// block) over this state's trie bounds.
 fn history_config(shape: Shape, window: u32) history.Config {
     const state = bench.state_config(shape);

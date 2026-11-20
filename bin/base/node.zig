@@ -24,7 +24,8 @@ const Io = std.Io;
 const io = base.utilities.io;
 const log = base.utilities.log;
 const node = base.execution.node;
-const Service = node.Service(io.IO);
+const node_service = base.execution.service.service;
+const Service = node_service.Service(io.IO);
 
 const usage =
     \\usage: base node --chain GENESIS.json [--datadir DIR] [--http.addr IP] [--http.port P]
@@ -49,7 +50,7 @@ pub const Flags = struct {
     jwt_secret_path: ?[]const u8 = null,
     log_level: log.Level = .info,
     proofs_history: bool = false,
-    proofs_history_window: u32 = node.service.proofs_history_window_default,
+    proofs_history_window: u32 = node_service.proofs_history_window_default,
     /// Storage-rehash workers; null picks `state_db.rehash_threads_auto` from the cores.
     rehash_threads: ?u32 = null,
     builder: bool = false,
@@ -137,7 +138,7 @@ const ttl_s_max: u64 = 365 * 24 * 60 * 60;
 
 /// `schedule_json` is the resource-metering schedule file's contents (read only when
 /// metering is enabled).
-fn builder_config(flags: Flags, schedule_json: ?[]const u8) ?node.service.NodeBuilderConfig {
+fn builder_config(flags: Flags, schedule_json: ?[]const u8) ?node_service.NodeBuilderConfig {
     if (!flags.builder) return null;
     std.debug.assert(flags.builder_rejection_cache_capacity > 0);
     std.debug.assert(flags.builder_rejection_cache_ttl_s <= ttl_s_max);
@@ -180,8 +181,8 @@ const rehash_threads_max = base.execution.trie.state_trie.rehash_threads_max;
 
 /// Default limits, plus one sender-recovery thread per spare core (at most 7) and the
 /// storage-rehash workers (`--rehash-threads`, else one per spare core, at most 4).
-fn limits(flags: Flags) base.execution.node.service.Limits {
-    var result: base.execution.node.service.Limits = .{};
+fn limits(flags: Flags) node_service.Limits {
+    var result: node_service.Limits = .{};
     const cores: u32 = @intCast(@max(std.Thread.getCpuCount() catch 1, 1));
     result.executor.recovery_threads = @min(cores - 1, 7);
     result.executor.state_gas_basis = node.executor.default_state_gas_basis;

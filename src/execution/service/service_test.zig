@@ -367,7 +367,7 @@ test "service: dev L1 keeps blob sidecars of mined blob transactions" {
     try testing.expectEqual(@as(u64, 1), service.blocks_mined);
     try testing.expectEqual(@as(u32, 0), service.pool.count());
     const entries = service.beacon.?.sidecars(1).?;
-    try testing.expectEqual(@as(usize, @import("beacon.zig").entry_size), entries.len);
+    try testing.expectEqual(@as(usize, @import("execution/node").beacon.entry_size), entries.len);
     try testing.expectEqualSlices(u8, blob, entries[0..validate.bytes_per_blob]);
     const head = service.chain.header(service.chain.head_hash()).?;
     try testing.expectEqual(@as(?u64, 131_072), head.blob_gas_used);
@@ -470,7 +470,7 @@ test "service: L2 engine API requires a valid JWT" {
 }
 
 test "service: --builder.enabled routes FCU and getPayload through the payload service" {
-    const fixture = @import("test_fixture.zig");
+    const fixture = @import("execution/node").test_fixture;
     const types = @import("execution/engine").types;
     var world = try io.SimWorld.init(testing.allocator, .{ .seed = 6 });
     defer world.deinit();

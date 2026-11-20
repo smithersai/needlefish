@@ -15,6 +15,7 @@ pub const rpc = @import("execution/rpc");
 pub const evm = @import("execution/evm");
 pub const import = @import("execution/import");
 pub const p2p = @import("execution/p2p");
+pub const service = @import("execution/service");
 
 test {
     std.testing.refAllDecls(@This());
