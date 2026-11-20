@@ -12,11 +12,11 @@ Files that `@import("base")` are tool entry points (`*_main.zig`), not package m
 
 Edge A -> B: a file of package A imports (`@import`, `@embedFile`) a file of package B.
 
-The rule (`check`): the import graph minus the edges listed in etc/import-cycles.allow
-must be acyclic. That graph is the "downward" order; an allowlisted edge is an "upward"
-import that closes a cycle and is due to be removed. A line may be deleted, never added:
-`check` also fails on a line whose edge no longer exists or no longer closes a cycle, so
-the list only shrinks and a broken cycle cannot quietly come back.
+The rule (`check`): the import graph is acyclic, with no exception. Packages in a cycle
+rerun each other's tests on every edit. For each cycle, `check` names its packages, a
+shortest cycle among them, and the files whose imports form each edge of that cycle.
+Break one edge: move the declaration both packages use down into the lower package, or
+move the test that imports the upper package up, into it or a package above both.
 
 `convert` makes every package a Zig module (build.zig): inside a package, imports stay
 relative paths; across packages they name the package, `@import("common/rlp")`. It also
@@ -25,9 +25,8 @@ writes packages.zon, which lists every package, its root file, and the names it 
 `check` also fails on a relative import that crosses a package boundary and on a
 packages.zon that `convert` would change.
 
-usage: python3 -I etc/scripts/packages.py check      (run by etc/scripts/tidy.sh)
-       python3 -I etc/scripts/packages.py allowlist  (bootstrap only: print a new list)
-       python3 -I etc/scripts/packages.py convert    (named cross-package imports; packages.zon)
+usage: python3 -I etc/scripts/packages.py check    (run by etc/scripts/tidy.sh)
+       python3 -I etc/scripts/packages.py convert  (named cross-package imports; packages.zon)
 """
 import collections
 import os
@@ -35,8 +34,8 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-ALLOW = 'etc/import-cycles.allow'
 TABLE = 'packages.zon'
+CYCLE_FILES_SHOWN = 5  # importing files `check` lists per edge of a cycle
 LEAVES = {
     'src/testing/prng.zig': 'testing/prng',
     'src/testing/fuzz.zig': 'testing/fuzz',
@@ -134,140 +133,82 @@ def resolve(path, spec):
     return target
 
 
-def read_allowlist():
-    """{(from, to): line number}; malformed lines are reported and fail the check."""
-    edges, errors = {}, []
-    with open(os.path.join(ROOT, ALLOW), encoding='utf-8') as f:
-        for number, raw in enumerate(f, 1):
-            line = raw.split('#', 1)[0].strip()
-            if not line:
-                continue
-            parts = [p.strip() for p in line.split('->')]
-            if len(parts) != 2 or not all(parts):
-                errors.append('%s:%d: expected "from -> to": %s' % (ALLOW, number, raw.strip()))
-            elif tuple(parts) in edges:
-                errors.append('%s:%d: duplicate edge %s' % (ALLOW, number, line))
-            else:
-                edges[tuple(parts)] = number
-    return edges, errors
-
-
-def find_cycle(nodes, successors):
-    """One cycle as a node list (first == last), or None. Iterative DFS, sorted order."""
-    state = {}  # absent: unvisited, 1: on the stack, 2: done
-    for start in sorted(nodes):
-        if start in state:
-            continue
-        stack = [(start, iter(sorted(successors(start))))]
-        state[start] = 1
-        while stack:
-            node, children = stack[-1]
-            child = next(children, None)
-            if child is None:
-                state[node] = 2
-                stack.pop()
-            elif state.get(child) == 1:
-                path = [n for n, _ in stack]
-                return path[path.index(child):] + [child]
-            elif child not in state:
-                state[child] = 1
-                stack.append((child, iter(sorted(successors(child)))))
-    return None
-
-
-def reaches(graph, removed, source, target):
-    """True when `target` is reachable from `source` over edges not in `removed`."""
-    seen, frontier = {source}, [source]
+def reachable(graph, source):
+    """Every package reachable from `source` over one or more import edges."""
+    seen, frontier = set(), [source]
     while frontier:
-        node = frontier.pop()
-        for child in graph.get(node, ()):
-            if (node, child) not in removed and child not in seen:
-                if child == target:
-                    return True
+        for child in graph.get(frontier.pop(), ()):
+            if child not in seen:
                 seen.add(child)
                 frontier.append(child)
-    return False
+    return seen
 
 
-def unneeded(graph, edges):
-    """Allowlisted edges, tested in order, that close no cycle. A needed edge stays removed;
-    an unneeded one goes back into the graph before the next test, so deleting every
-    unneeded line still leaves the graph acyclic."""
-    removed, out = set(edges), []
-    for a, b in edges:
-        if not reaches(graph, removed, b, a):
-            removed.discard((a, b))
-            out.append((a, b))
+def cycles(graph):
+    """Each set of packages that all reach each other (a strongly connected component of
+    two or more packages), sorted; an empty list when the graph is acyclic."""
+    reach = {node: reachable(graph, node) for node in graph}
+    out, placed = [], set()
+    for node in sorted(graph):
+        if node in reach[node] and node not in placed:
+            component = sorted(b for b in reach[node] if node in reach.get(b, ()))
+            placed.update(component)
+            out.append(component)
     return out
+
+
+def shortest_cycle(graph, component):
+    """A shortest cycle among the component's packages: a list whose last is its first."""
+    inside, best = set(component), None
+    for start in component:
+        parent, order = {start: None}, [start]
+        for node in order:  # breadth first: `order` grows while the loop reads it
+            if start in graph[node]:
+                path, at = [], node
+                while at is not None:
+                    path.append(at)
+                    at = parent[at]
+                if best is None or len(path) + 1 < len(best):
+                    best = path[::-1] + [start]
+                break
+            for child in sorted(graph[node]):
+                if child in inside and child not in parent:
+                    parent[child] = node
+                    order.append(child)
+    assert best is not None and len(best) >= 3, component
+    return best
+
+
+def cycle_errors(graph, component):
+    """Lines that report one cycle: its packages, a shortest cycle, the importing files."""
+    cycle = shortest_cycle(graph, component)
+    lines = ['import cycle among %d packages: %s' % (len(component), ', '.join(component)),
+             '  shortest cycle: ' + ' -> '.join(cycle)]
+    for a, b in zip(cycle, cycle[1:]):
+        first = {}  # importing file -> its first import of b, as file:line
+        for site in graph[a][b]:
+            first.setdefault(site.split(':', 1)[0], site.split(' ', 1)[0])
+        sites = list(first.values())
+        lines.append('  %s -> %s, imported in %d file%s:' %
+                     (a, b, len(sites), '' if len(sites) == 1 else 's'))
+        lines += ['    ' + site for site in sites[:CYCLE_FILES_SHOWN]]
+        if len(sites) > CYCLE_FILES_SHOWN:
+            lines.append('    and %d more' % (len(sites) - CYCLE_FILES_SHOWN))
+    return lines + [
+        '  No import cycle is allowed: packages in a cycle rerun each other\'s tests.',
+        '  Break one edge: move the declaration both sides use down into the lower package,',
+        '  or move the test that imports the upper package up, into it or a package above both.',
+    ]
 
 
 def check():
     graph, _, _ = scan()
-    allowed, errors = read_allowlist()
-    in_order = sorted(allowed, key=lambda edge: allowed[edge])
-    present = [(a, b) for a, b in in_order if b in graph.get(a, {})]
-    for a, b in in_order:
-        if (a, b) not in present:
-            errors.append('%s:%d: %s -> %s no longer exists; delete the line' %
-                          (ALLOW, allowed[(a, b)], a, b))
-    if os.path.exists(os.path.join(ROOT, TABLE)):
-        errors += table_errors()
-    cycle = find_cycle(graph, lambda a: [b for b in graph[a] if (a, b) not in allowed])
-    if cycle:
-        errors.append('import cycle outside %s (break one edge; never add a line):' % ALLOW)
-        for a, b in zip(cycle, cycle[1:]):
-            errors.append('  %s -> %s   %s' % (a, b, graph[a][b][0]))
-    else:
-        for a, b in unneeded(graph, present):
-            errors.append('%s:%d: %s -> %s closes no cycle now; delete the line' %
-                          (ALLOW, allowed[(a, b)], a, b))
+    errors = table_errors() if os.path.exists(os.path.join(ROOT, TABLE)) else []
+    for component in cycles(graph):
+        errors += cycle_errors(graph, component)
     for e in errors:
         print('packages: ' + e)
     return 1 if errors else 0
-
-
-def feedback_edges(graph):
-    """Edges whose removal leaves the graph acyclic: Eades-Lin-Smyth order weighted by import
-    count, then adjacent swaps while they lower the weight of the backward edges."""
-    weight = lambda a, b: len(graph[a].get(b, ()))
-    left, head, tail = set(graph), [], []
-    while left:
-        moved = True
-        while moved:
-            moved = False
-            for v in sorted(left):
-                if not any(b in left for b in graph[v]):
-                    tail.insert(0, v); left.discard(v); moved = True
-            for v in sorted(left):
-                if not any(v in graph[a] for a in left if a != v):
-                    head.append(v); left.discard(v); moved = True
-        if left:
-            delta = lambda v: (sum(weight(v, b) for b in graph[v] if b in left) -
-                               sum(weight(a, v) for a in left if v in graph[a]))
-            v = max(sorted(left), key=delta)
-            head.append(v); left.discard(v)
-    order = head + tail
-    improved = True
-    while improved:
-        improved = False
-        for i in range(len(order) - 1):
-            a, b = order[i], order[i + 1]
-            if weight(b, a) > weight(a, b):
-                order[i], order[i + 1] = b, a; improved = True
-    position = {v: i for i, v in enumerate(order)}
-    return sorted((a, b) for a in graph for b in graph[a] if position[a] > position[b])
-
-
-def allowlist():
-    graph, _, _ = scan()
-    print('# Package imports that close a cycle (from -> to): etc/scripts/packages.py check.')
-    print('# Delete a line when its cycle is gone. Never add one: break the cycle instead.')
-    edges = feedback_edges(graph)
-    drop = set(unneeded(graph, edges))
-    for a, b in edges:
-        if (a, b) not in drop:
-            print('%s -> %s' % (a, b))
-    return 0
 
 
 # `convert`: rewrite every import that crosses a package boundary to the package's name.
@@ -452,7 +393,7 @@ def convert():
 
 
 if __name__ == '__main__':
-    commands = {'check': check, 'allowlist': allowlist, 'convert': convert}
+    commands = {'check': check, 'convert': convert}
     if len(sys.argv) != 2 or sys.argv[1] not in commands:
         sys.exit(__doc__)
     sys.exit(commands[sys.argv[1]]())

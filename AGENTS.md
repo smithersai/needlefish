@@ -109,8 +109,9 @@ module, and is re-exported from its group's `root.zig`. Inside a package, import
 paths. Across packages they are named, `@import("common/rlp")`, and every name a package
 imports is listed in `packages.zon`; the compiler rejects any other. After adding or moving a
 cross-package import, run `python3 -I etc/scripts/packages.py convert` (rewrites relative
-cross-package imports, regenerates `packages.zon`). `just tidy` fails on a package import
-cycle not in `etc/import-cycles.allow`; delete lines from that file, never add them.
+cross-package imports, regenerates `packages.zon`). `just tidy` fails on any import cycle
+between packages. Break one by moving the declaration both packages use down into the lower
+package, or the test that imports the upper package up into it.
 
 ## Commits
 
