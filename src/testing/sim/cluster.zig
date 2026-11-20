@@ -1693,58 +1693,77 @@ test "cluster: real p2p gossip carries every block to every verifier without fau
     }
 }
 
-test "cluster: real p2p gossip survives crashes, partitions, drops, and clock skew" {
-    for ([_]u64{ 72, 73, 74 }) |seed| {
-        var cluster = try Cluster.init(std.testing.allocator, seed, .{
-            .verifier_count = 3,
-            .network = .{ .latency_ns_max = 300 * std.time.ns_per_ms, .drop_ppm = 100_000 },
-            .crashes_per_minute = 4,
-            .partitions_per_minute = 3,
-            .disk_fault_ppm = 300_000,
-            .clock_skew_ns_max = gossip_clock_skew_ns_max,
-            .real_verifier = true,
-            .real_sequencer = true,
-            .real_execution = true,
-            .real_gossip = true,
-            .fault_end_ns = 240 * ns_per_s,
-            .production_end_ns = 300 * ns_per_s,
-            .settle_end_ns = 700 * ns_per_s,
-        });
-        defer cluster.deinit(std.testing.allocator);
-        const report = try cluster.run();
-        const gossip = cluster.gossip.?;
-        try std.testing.expect(gossip.stats.resets_crash + gossip.stats.resets_stall > 0);
-        try std.testing.expect(gossip.stats.connects > gossip.pair_count);
-        for (1..gossip.peer_count) |peer| {
-            try std.testing.expectEqual(report.sequencer_head, gossip.head_popped[peer]);
-        }
-        try std.testing.expectEqual(report.sequencer_head, cluster.real_verifier.?.safe_number());
+/// Seeds 72, 73 and 74, one test each so the test shards spread them.
+fn check_gossip_survives(seed: u64) !void {
+    assert(seed >= 72 and seed <= 74);
+    var cluster = try Cluster.init(std.testing.allocator, seed, .{
+        .verifier_count = 3,
+        .network = .{ .latency_ns_max = 300 * std.time.ns_per_ms, .drop_ppm = 100_000 },
+        .crashes_per_minute = 4,
+        .partitions_per_minute = 3,
+        .disk_fault_ppm = 300_000,
+        .clock_skew_ns_max = gossip_clock_skew_ns_max,
+        .real_verifier = true,
+        .real_sequencer = true,
+        .real_execution = true,
+        .real_gossip = true,
+        .fault_end_ns = 240 * ns_per_s,
+        .production_end_ns = 300 * ns_per_s,
+        .settle_end_ns = 700 * ns_per_s,
+    });
+    defer cluster.deinit(std.testing.allocator);
+    const report = try cluster.run();
+    const gossip = cluster.gossip.?;
+    try std.testing.expect(gossip.stats.resets_crash + gossip.stats.resets_stall > 0);
+    try std.testing.expect(gossip.stats.connects > gossip.pair_count);
+    for (1..gossip.peer_count) |peer| {
+        try std.testing.expectEqual(report.sequencer_head, gossip.head_popped[peer]);
     }
+    try std.testing.expectEqual(report.sequencer_head, cluster.real_verifier.?.safe_number());
 }
 
-test "cluster: BUG(p2p) stale catch-up gossip graylists the sequencer" {
-    // Seed 27: the real sequencer loses L1 behind partitions, falls more than 60 s behind,
-    // and catches up publishing stale blocks; the gate (`publish_stale_gossip`) skips them.
+test "cluster: real p2p gossip survives crashes, partitions, drops, and clock skew [72]" {
+    try check_gossip_survives(72);
+}
+
+test "cluster: real p2p gossip survives crashes, partitions, drops, and clock skew [73]" {
+    try check_gossip_survives(73);
+}
+
+test "cluster: real p2p gossip survives crashes, partitions, drops, and clock skew [74]" {
+    try check_gossip_survives(74);
+}
+
+/// Seed 27: the real sequencer loses L1 behind partitions, falls more than 60 s behind, and
+/// catches up publishing stale blocks; the gate (`publish_stale_gossip`) skips them. One test
+/// per value of the gate so the test shards spread them.
+fn check_stale_gossip(stale: bool) !void {
     const config = @import("swarm.zig").config_for_seed(27);
     try std.testing.expect(config.real_gossip and !config.publish_stale_gossip);
-    for ([_]bool{ false, true }) |stale| {
-        var gated = config;
-        gated.publish_stale_gossip = stale;
-        var cluster = try Cluster.init(std.testing.allocator, 27, gated);
-        defer cluster.deinit(std.testing.allocator);
-        cluster.log_failures = false;
-        const outcome = cluster.run();
-        const gossip = cluster.gossip.?;
-        if (!stale) {
-            _ = try outcome;
-            try std.testing.expect(gossip.stats.stale_skipped > 0);
-            try std.testing.expect(!gossip.graylists_sequencer(1));
-            continue;
-        }
-        // Without the gate the first verifier graylists the sequencer and never sees the
-        // newest block over gossip.
-        try std.testing.expectError(error.LivenessViolation, outcome);
-        try std.testing.expect(gossip.graylists_sequencer(1));
-        try std.testing.expect(gossip.head_popped[1] < cluster.sequencer.head);
+    var gated = config;
+    gated.publish_stale_gossip = stale;
+    var cluster = try Cluster.init(std.testing.allocator, 27, gated);
+    defer cluster.deinit(std.testing.allocator);
+    cluster.log_failures = false;
+    const outcome = cluster.run();
+    const gossip = cluster.gossip.?;
+    if (!stale) {
+        _ = try outcome;
+        try std.testing.expect(gossip.stats.stale_skipped > 0);
+        try std.testing.expect(!gossip.graylists_sequencer(1));
+        return;
     }
+    // Without the gate the first verifier graylists the sequencer and never sees the
+    // newest block over gossip.
+    try std.testing.expectError(error.LivenessViolation, outcome);
+    try std.testing.expect(gossip.graylists_sequencer(1));
+    try std.testing.expect(gossip.head_popped[1] < cluster.sequencer.head);
+}
+
+test "cluster: BUG(p2p) stale catch-up gossip graylists the sequencer [false]" {
+    try check_stale_gossip(false);
+}
+
+test "cluster: BUG(p2p) stale catch-up gossip graylists the sequencer [true]" {
+    try check_stale_gossip(true);
 }
