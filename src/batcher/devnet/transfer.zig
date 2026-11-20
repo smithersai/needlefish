@@ -5,7 +5,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const rpc = @import("batcher/rpc");
 const txdata = @import("batcher/txdata");
-const accounts = @import("accounts.zig");
+const accounts = @import("batcher/devnet_accounts");
 const primitives = @import("common/primitives");
 
 pub const Params = struct {

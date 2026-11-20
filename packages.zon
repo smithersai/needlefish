@@ -69,6 +69,7 @@
         .deps = .{
             "batcher/blobs",
             "batcher/channel",
+            "batcher/devnet_accounts",
             "batcher/rpc",
             "batcher/source",
             "batcher/txdata",
@@ -78,6 +79,7 @@
             "testing/prng",
         },
     },
+    .{ .name = "batcher/devnet_accounts", .deps = .{"common/primitives"} },
     .{ .name = "batcher/frame", .deps = .{ "consensus/protocol", "testing/prng" } },
     .{
         .name = "batcher/metrics",
@@ -113,7 +115,7 @@
     .{
         .name = "batcher/source",
         .deps = .{
-            "batcher/devnet",
+            "batcher/devnet_accounts",
             "batcher/rpc",
             "batcher/txdata",
             "common/consensus",
@@ -129,7 +131,7 @@
         .name = "batcher/txdata",
         .deps = .{
             "batcher/blobs",
-            "batcher/devnet",
+            "batcher/devnet_accounts",
             "common/consensus",
             "common/primitives",
             "common/rlp",

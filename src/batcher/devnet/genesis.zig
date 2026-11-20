@@ -9,7 +9,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Writer = std.Io.Writer;
 const primitives = @import("common/primitives");
-const accounts = @import("accounts.zig");
+const accounts = @import("batcher/devnet_accounts");
 const portal = @import("portal.zig");
 const common_genesis = @import("common/genesis");
 

@@ -4,6 +4,10 @@
 //! Ethereum dev tool (anvil, hardhat, op devnets) prefunds. Its keys are public by
 //! design; deriving them here (BIP39 seed, BIP32 path m/44'/60'/0'/0/i) avoids
 //! committing key material and lets `--key-index N` pick a role.
+//!
+//! A package of its own below `batcher/devnet`, which re-exports it as `accounts`:
+//! the tests of `batcher/txdata` and `batcher/source` derive dev keys here, and
+//! `batcher/devnet` imports both of those packages.
 
 const std = @import("std");
 const assert = std.debug.assert;

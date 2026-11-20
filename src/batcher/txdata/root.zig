@@ -115,7 +115,7 @@ pub fn encode_raw(envelope: consensus.Envelope, buffer: []u8) []u8 {
 }
 
 const testing = std.testing;
-const accounts = @import("batcher/devnet").accounts;
+const accounts = @import("batcher/devnet_accounts");
 
 test "txdata: calldata gas follows the EIP-7623 floor" {
     try testing.expectEqual(@as(u64, 21_000), calldata_gas(&.{}));

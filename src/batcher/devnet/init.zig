@@ -5,7 +5,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const Writer = std.Io.Writer;
 const genesis = @import("genesis.zig");
-const accounts = @import("accounts.zig");
+const accounts = @import("batcher/devnet_accounts");
 
 pub const Ports = struct {
     l1_http: u16 = 8545,

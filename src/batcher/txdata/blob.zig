@@ -148,7 +148,7 @@ pub fn blob_base_fee(excess_blob_gas: u64) u128 {
 }
 
 const testing = std.testing;
-const accounts = @import("batcher/devnet").accounts;
+const accounts = @import("batcher/devnet_accounts");
 
 test "blob tx: base fee matches the EIP-4844 reference points" {
     try testing.expectEqual(@as(u128, 1), blob_base_fee(0));

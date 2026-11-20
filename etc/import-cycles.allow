@@ -1,7 +1,5 @@
 # Package imports that close a cycle (from -> to): etc/scripts/packages.py check.
 # Delete a line when its cycle is gone. Never add one: break the cycle instead.
-batcher/source -> batcher/devnet
-batcher/txdata -> batcher/devnet
 common/genesis -> common/consensus
 consensus/p2p -> consensus/service
 consensus/protocol -> common/consensus

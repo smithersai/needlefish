@@ -294,7 +294,7 @@ fn legacy_from_json(
 
 const testing = std.testing;
 const txdata = @import("batcher/txdata");
-const accounts = @import("batcher/devnet").accounts;
+const accounts = @import("batcher/devnet_accounts");
 
 /// Writes the JSON object for a signed typed or legacy transaction, as a node would.
 fn write_tx_json(w: *std.Io.Writer, envelope: consensus.Envelope) !void {
