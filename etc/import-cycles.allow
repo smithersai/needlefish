@@ -11,7 +11,6 @@ execution/node -> execution/rpc
 infra/replay -> execution/node
 proof/client -> proof/host
 proof/client -> proof/tee
-proof/primitives -> proof/prover_service
 proof/proposer -> proof/client
 proof/proposer -> proof/host
 proof/prover_service -> proof/challenger

@@ -9,7 +9,8 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const proof_encoder = @import("proof/primitives").proof_encoder;
+const proof_primitives = @import("proof/primitives");
+const proof_encoder = proof_primitives.proof_encoder;
 
 pub const Hash = [32]u8;
 pub const Address = [20]u8;
@@ -49,8 +50,8 @@ pub const lock_id_bytes_max = 64;
 pub const error_message_bytes_max = 256;
 pub const backend_session_id_bytes_max = 128;
 /// The dispute game factory's bound on intermediate roots.
-pub const intermediate_root_count_max = 512;
-pub const signature_bytes_max = 128;
+pub const intermediate_root_count_max = proof_primitives.proposal.intermediate_roots_max;
+pub const signature_bytes_max = proof_primitives.proposal.signature_bytes_max;
 pub const list_limit_max = 1000;
 pub const list_limit_default = 50;
 
@@ -200,18 +201,8 @@ pub const ZkProofResult = struct {
 
 pub const SnarkPlonkProofResult = struct { proof: ZkProofResult };
 
-/// base/base `base_proof_primitives::Proposal`.
-pub const Proposal = struct {
-    pub const signature_max = signature_bytes_max;
-    output_root: Hash,
-    signature: []const u8,
-    l1_origin_hash: Hash,
-    l1_origin_number: u64,
-    l2_block_number: u64,
-    prev_output_root: Hash,
-    config_hash: Hash,
-    schedule_id: Hash = @splat(0),
-};
+/// base/base `base_proof_primitives::Proposal` (`proof/primitives`).
+pub const Proposal = proof_primitives.Proposal;
 
 pub const TeeProofResult = struct {
     pub const intermediate_roots_max = intermediate_root_count_max;

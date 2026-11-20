@@ -952,7 +952,6 @@
             "common/crypto",
             "common/primitives",
             "consensus/protocol",
-            "proof/prover_service",
             "testing/fuzz",
         },
     },

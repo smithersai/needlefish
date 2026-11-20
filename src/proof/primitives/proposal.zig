@@ -9,22 +9,23 @@
 //!   || imageHash(32) || scheduleId(32)
 //! ```
 //!
-//! The proposal type itself is the prover service's (`prover_service/protocol.zig`).
+//! The proposal type is here too; the prover service's protocol
+//! (`prover_service/protocol.zig`) re-exports it.
 
 const std = @import("std");
 const assert = std.debug.assert;
 
 const proof_encoder = @import("proof_encoder.zig");
-const service_protocol = @import("proof/prover_service").protocol;
 
 pub const Hash = [32]u8;
 pub const Address = [20]u8;
-pub const Proposal = service_protocol.Proposal;
 
 /// address(20) + 6 x bytes32(32) + 2 x uint64(8).
 pub const proof_journal_base_length = 228;
 /// The dispute game factory's bound on intermediate roots.
-pub const intermediate_roots_max = service_protocol.intermediate_root_count_max;
+pub const intermediate_roots_max = 512;
+/// Largest proposal signature.
+pub const signature_bytes_max = 128;
 /// Largest encoded journal.
 pub const proof_journal_length_max = proof_journal_base_length + 32 * intermediate_roots_max;
 
@@ -68,6 +69,19 @@ pub const ProofJournal = struct {
         assert(offset == length);
         return out[0..length];
     }
+};
+
+/// base/base `base_proof_primitives::Proposal`.
+pub const Proposal = struct {
+    pub const signature_max = signature_bytes_max;
+    output_root: Hash,
+    signature: []const u8,
+    l1_origin_hash: Hash,
+    l1_origin_number: u64,
+    l2_block_number: u64,
+    prev_output_root: Hash,
+    config_hash: Hash,
+    schedule_id: Hash = @splat(0),
 };
 
 /// The 130-byte proof data for `AggregateVerifier.initialize()`:

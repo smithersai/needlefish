@@ -1,6 +1,6 @@
 //! `proof/primitives`: shared proof types (base/base `crates/proof/primitives`): the
-//! per-chain config hash, the TEE proof journal, and the `AggregateVerifier` proof bytes.
-//! The proposal and proof result types are the prover service's
+//! per-chain config hash, the TEE proof journal and proposal, and the `AggregateVerifier`
+//! proof bytes. The proof result types are the prover service's
 //! (`prover_service/protocol.zig`).
 
 const std = @import("std");
