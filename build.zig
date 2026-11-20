@@ -42,11 +42,25 @@ const Shards = struct { package: []const u8, count: u32 };
 /// The only place shard counts live. Each package here compiles its test binary once and runs
 /// it `count` times in parallel; each run executes the tests whose name hashes to its shard
 /// (src/testing/test_runner.zig), so the run costs its slowest shard, not the sum. Every
-/// other package runs its binary once with Zig's default runner. A count is the smallest whose
-/// slowest shard is within 5% of the package's slowest test (per-test CPU seconds): no count
-/// makes a run shorter than its slowest test.
+/// other package runs its binary once with Zig's default runner. A count is the smallest, up to
+/// 16, whose slowest shard is within 5% of the package's slowest test (per-test CPU seconds),
+/// else the count up to 16 with the shortest slowest shard: no count makes a run shorter than
+/// its slowest test.
 const test_shards = [_]Shards{
+    .{ .package = "batcher/blobs", .count = 4 },
+    .{ .package = "batcher/devnet", .count = 3 },
+    .{ .package = "batcher/txmgr", .count = 4 },
+    .{ .package = "common/crypto", .count = 16 },
+    .{ .package = "consensus/p2p", .count = 10 },
     .{ .package = "execution/db", .count = 9 },
+    .{ .package = "execution/import", .count = 14 },
+    .{ .package = "execution/node", .count = 13 },
+    .{ .package = "execution/trie", .count = 7 },
+    .{ .package = "infra/replay", .count = 7 },
+    .{ .package = "proof", .count = 4 },
+    .{ .package = "proof/tee", .count = 4 },
+    .{ .package = "testing", .count = 10 },
+    .{ .package = "testing/sim", .count = 9 },
 };
 
 fn shard_count(package: []const u8) u32 {
