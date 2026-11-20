@@ -12,6 +12,7 @@ pub const engine = @import("consensus/engine");
 pub const rpc = @import("consensus/rpc");
 pub const sequencer = @import("consensus/sequencer");
 pub const sources = @import("consensus/sources");
+pub const sources_fixtures = @import("consensus/sources_fixtures");
 pub const service = @import("consensus/service");
 
 test {

@@ -25,6 +25,7 @@
             "batcher/channel",
             "batcher/comp",
             "batcher/devnet",
+            "batcher/devnet_accounts",
             "batcher/frame",
             "batcher/metrics",
             "batcher/parity",
@@ -255,6 +256,7 @@
             "consensus/sequencer",
             "consensus/service",
             "consensus/sources",
+            "consensus/sources_fixtures",
         },
     },
     .{

@@ -8,6 +8,7 @@ pub const blobs = @import("batcher/blobs");
 pub const comp = @import("batcher/comp");
 pub const channel = @import("batcher/channel");
 pub const devnet = @import("batcher/devnet");
+pub const devnet_accounts = @import("batcher/devnet_accounts");
 pub const txdata = @import("batcher/txdata");
 pub const rpc = @import("batcher/rpc");
 pub const source = @import("batcher/source");
