@@ -307,10 +307,22 @@ fn simulate(seed: u64) !Hash {
     return digest;
 }
 
-test "registrar driver: seeded simulation converges and reproduces" {
-    for ([_]u64{ 1, 2, 3 }) |seed| {
-        const first = try simulate(seed);
-        const second = try simulate(seed);
-        try testing.expectEqualSlices(u8, &first, &second);
-    }
+/// Seeds 1, 2 and 3, one test each so the test shards spread them.
+fn check_seed_reproduces(seed: u64) !void {
+    assert(seed >= 1 and seed <= 3);
+    const first = try simulate(seed);
+    const second = try simulate(seed);
+    try testing.expectEqualSlices(u8, &first, &second);
+}
+
+test "registrar driver: seeded simulation converges and reproduces [1]" {
+    try check_seed_reproduces(1);
+}
+
+test "registrar driver: seeded simulation converges and reproduces [2]" {
+    try check_seed_reproduces(2);
+}
+
+test "registrar driver: seeded simulation converges and reproduces [3]" {
+    try check_seed_reproduces(3);
 }
