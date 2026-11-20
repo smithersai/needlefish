@@ -8,12 +8,13 @@ const std = @import("std");
 const assert = std.debug.assert;
 const bls = @import("../bls12_381/root.zig");
 const setup = @import("root.zig");
+const prepared_lines = @import("prepared_lines.zig");
 
 pub const VerifyError = error{ InvalidPoint, InvalidFieldElement };
 
 /// [tau]G2 from the trusted setup (G2 monomial point 1), decoded ahead of time so
 /// verification skips an Fp2 square root. A test checks it against the setup bytes.
-const tau_g2: bls.G2Affine = .{
+pub const tau_g2: bls.G2Affine = .{
     .x = bls.Fp2.from_ints_comptime(
         0x185cbfee53492714734429b7b38608e23926c911cceceac9 << 192 |
             0xa36851477ba4c60b087041de621000edc98edada20c1def2,
@@ -70,16 +71,33 @@ pub fn verify_kzg_proof_points(
     return pairing_check_fixed_g2(left, proof);
 }
 
-/// Miller loop lines of the two fixed G2 points, computed at compile time (the generator
-/// lines are shared with the EIP-7594 cell verifier).
-pub const prepared_generator: bls.pairing.PreparedG2 = blk: {
-    @setEvalBranchQuota(100_000_000);
-    break :blk bls.pairing.prepare(bls.g2.generator);
-};
-const prepared_tau: bls.pairing.PreparedG2 = blk: {
-    @setEvalBranchQuota(100_000_000);
-    break :blk bls.pairing.prepare(tau_g2);
-};
+/// Miller loop lines of the two fixed G2 points (the generator lines are shared with the
+/// EIP-7594 cell verifier): `bls.pairing.prepare` of each, precomputed in
+/// prepared_lines.zig (`zig build kzg-lines`). Evaluated at compile time, `prepare` was
+/// most of the compile time of every test binary that reaches this verifier. A test
+/// recomputes both at runtime and compares.
+pub const prepared_generator: bls.pairing.PreparedG2 = prepared(&prepared_lines.generator);
+const prepared_tau: bls.pairing.PreparedG2 = prepared(&prepared_lines.tau);
+
+/// Limbs of one point in prepared_lines.zig: per line, three Fp2 coefficients of two Fp.
+pub const point_limbs: u32 = @as(u32, bls.pairing.line_count) * 3 * 2 * bls.Fp.limbs;
+
+/// A `PreparedG2` from its lines' Montgomery limbs, in prepared_lines.zig order.
+fn prepared(limbs: *const [point_limbs]u64) bls.pairing.PreparedG2 {
+    @setEvalBranchQuota(100_000);
+    var out: bls.pairing.PreparedG2 = .{ .lines = undefined, .infinity = false };
+    var at: usize = 0;
+    for (&out.lines) |*line| {
+        for (line) |*coefficient| {
+            coefficient.c0 = .{ .limbs_value = limbs[at..][0..bls.Fp.limbs].* };
+            coefficient.c1 = .{ .limbs_value = limbs[at + bls.Fp.limbs ..][0..bls.Fp.limbs].* };
+            assert(coefficient.c0.is_canonical() and coefficient.c1.is_canonical());
+            at += 2 * bls.Fp.limbs;
+        }
+    }
+    assert(at == limbs.len);
+    return out;
+}
 
 /// True when e(left, G2) * e(-proof, [tau]G2) == 1 (the shared form of every KZG check).
 pub fn pairing_check_fixed_g2(left: bls.G1Affine, proof: bls.G1Affine) bool {

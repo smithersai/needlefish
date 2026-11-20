@@ -124,6 +124,9 @@ pub fn build(b: *std.Build) void {
     check_step.dependOn(&sim.step);
     check_step.dependOn(&bench.step);
     check_step.dependOn(&statetest.step);
+    // Generated tables: each generator gets a step that prints its file, and
+    // `zig build check` runs it against the committed output.
+    add_generators(b, uses_base, target, optimize, check_step);
 }
 
 const Configured = struct {
@@ -360,6 +363,35 @@ const Tool = struct {
     step: []const u8,
     description: []const u8,
 };
+
+/// The tools that generate committed tables. Each gets a step that prints its file and a
+/// run on `check_step` that fails when the committed file differs from what it prints.
+fn add_generators(
+    b: *std.Build,
+    imports: []const std.Build.Module.Import,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    check_step: *std.Build.Step,
+) void {
+    // Regenerates the KZG verifier's precomputed pairing lines (src/common/crypto/kzg).
+    const kzg_lines = add_tool(b, imports, target, optimize, .{
+        .name = "kzg-lines",
+        .path = "src/common/crypto/kzg/prepared_lines_main.zig",
+        .step = "kzg-lines",
+        .description = "Print prepared_lines.zig: zig build kzg-lines > <that file>",
+    });
+    check_step.dependOn(check_generated(b, kzg_lines, "src/common/crypto/kzg/prepared_lines.zig"));
+}
+
+/// A run of `tool --check <path>`: fails when the committed file differs from the tool's output.
+fn check_generated(b: *std.Build, tool: *std.Build.Step.Compile, path: []const u8) *std.Build.Step {
+    const run = b.addRunArtifact(tool);
+    run.setName(b.fmt("check {s}", .{path}));
+    run.addArg("--check");
+    run.addFileArg(b.path(path));
+    run.expectExitCode(0);
+    return &run.step;
+}
 
 /// An executable over the given modules with a run step that forwards `-- args`.
 fn add_tool(
