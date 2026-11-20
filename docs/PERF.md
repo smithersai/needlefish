@@ -1194,6 +1194,36 @@ per compile (single binary: 5 GiB). Its wall time is the slowest binaries: `exec
 and `infra/tx_manager` run about 2 min each. Every edit also rebuilds `test-base` (37 s
 compile) and the `statetest` runner (28 s), which import all of `base`.
 
+2026-11-20, slow binaries run as parallel shards (16-core Mac, Debug, empty `.zig-cache`).
+The 14 packages in `build.zig`'s `test_shards` compile their test binary once and run it as
+N shards in parallel (`src/testing/test_runner.zig` splits the tests by a hash of their
+name). The empty-cache suite took 266 s before and 236 s and 272 s in two runs after: it is
+bound by compiles, not by these runs. Run seconds as `--summary all` prints them (the 236 s
+run), and the one test that the slowest shard waits for:
+
+| Binary | Tests | Before | Shards | Slowest shard | Slowest test in it |
+| --- | ---: | ---: | ---: | ---: | --- |
+| execution-db | 211 | 2m | 9 | 47 s | digest table: matches a hash map across growth, ... |
+| proof-tee | 236 | 1m | 4 | 33 s | registrar driver: seeded simulation converges ... |
+| testing-sim | 44 | 54 s | 9 | 28 s | swarm: seed range |
+| execution-import | 41 | 1m | 14 | 17 s | disk state: seeded blocks, unwinds, checkpoints, ... |
+| consensus-p2p | 291 | 37 s | 10 | 14 s | disc service: lookup results are published even ... |
+| batcher-txmgr | 20 | 28 s | 4 | 13 s | txmgr: blob mode packs up to blobs_per_tx frames ... |
+| proof | 20 | 17 s | 4 | 12 s | e2e: seeded random scenarios prove against the node |
+| batcher-blobs | 8 | 12 s | 4 | 10 s | kzg prover: proofs verify with verify_blob_kzg_proof |
+| common-crypto | 187 | 1m | 16 | 10 s | spread over many tests |
+| infra-replay | 16 | 19 s | 7 | 7 s | replay: a second replay, in probe mode, computes ... |
+| batcher-devnet | 18 | 11 s | 3 | 7 s | genesis: seeded fuzz of the subsecond schedule |
+| execution-trie | 52 | 9 s | 7 | 6 s | state trie: parallel account rehash matches serial ... |
+| testing | 45 | 21 s | 10 | 5 s | spread |
+| execution-node | 85 | 7 s | 13 | 2 s | spread |
+
+Not sharded, because one test is the run: `infra-tx_manager` (2m; "driver: blob sends carry
+a v1 (cell proof) sidecar" is 94% of it), `infra-follow` (20 s; "follow: ten Base mainnet
+blocks verify with the witness fetched on demand") and `proof-challenger` (10 s; "challenger
+sim: seeded runs keep the invariants"). No shard count makes a run shorter than its slowest
+test, so the tests named here now set the wall time of the edits that rerun them.
+
 ## 2026-11-06 db witness: key hash memo in `SparseState` (aarch64-macos, Apple M4 Pro, ReleaseFast)
 
 `witness.KeyMemo` memoizes keccak256 of storage slots and addresses, so `apply_evm` and

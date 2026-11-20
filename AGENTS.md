@@ -75,7 +75,8 @@ Read this whole file before you change anything. These rules are not optional.
 
 - `zig build test` — every package has unit tests next to the code and its own test binary;
   a binary reruns only when a file it compiles changed. `zig build test:common/rlp` runs one
-  package's tests.
+  package's tests. A slow binary runs as parallel shards of one compile (`test_shards` in
+  `build.zig`), but no shard is shorter than its slowest test: keep each test short.
 - **Fuzz**: every parser/decoder/state machine gets a `std.testing.fuzz` test and a
   deterministic seeded fuzz (via `base.testing.Prng`) that runs in normal `zig build test`.
   Long fuzz: `zig build test --fuzz -Doptimize=ReleaseSafe`.
