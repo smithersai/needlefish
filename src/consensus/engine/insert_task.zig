@@ -23,10 +23,8 @@ pub const Safety = enum { unsafe_payload, safe_payload };
 pub const Policy = enum { extending_only, authoritative };
 
 /// An execution payload with the parent beacon block root sent alongside it (V3+).
-pub const Envelope = struct {
-    payload: ExecutionPayload,
-    parent_beacon_block_root: ?B256 = null,
-};
+/// Defined in consensus/sources beside its decoder (`l2_block_full`).
+pub const Envelope = @import("consensus/sources").l2_block_full.PayloadEnvelope;
 
 pub const InsertTask = struct {
     /// Borrowed from the owner (queue slot or seal task).

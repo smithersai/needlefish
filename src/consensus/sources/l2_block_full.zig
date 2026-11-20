@@ -1,5 +1,5 @@
 //! Decodes a full L2 `eth_getBlockByNumber(n, true)` result into the consolidation view
-//! (`attributes_match.L2Block`): the hash-verified header fields, the withdrawals, and
+//! (`L2Block` below): the hash-verified header fields, the withdrawals, and
 //! every transaction rebuilt as EIP-2718 bytes, including OP deposits (type 0x7e). Each
 //! rebuilt transaction must hash to its reported `hash` and the rebuilt list must match the
 //! header's transactions root, so the returned bytes are the bytes of that block.
@@ -21,18 +21,40 @@ const primitives = @import("common/primitives");
 const consensus = @import("common/consensus");
 const ordered = @import("execution/trie").ordered;
 const protocol = @import("consensus/protocol");
-const attributes_match = @import("consensus/engine").attributes_match;
-const insert_task = @import("consensus/engine").insert_task;
+const derive_attributes = @import("consensus/derive").attributes;
 
+const Address = primitives.Address;
 const B256 = primitives.B256;
 const Envelope = consensus.Envelope;
 const L2BlockInfo = protocol.block.L2BlockInfo;
 const ChainGenesis = protocol.rollup_config.ChainGenesis;
 const L1BlockInfo = protocol.l1_info.L1BlockInfo;
+const ExecutionPayload = engine_json.ExecutionPayload;
+const Withdrawal = derive_attributes.Withdrawal;
 
-pub const L2Block = attributes_match.L2Block;
-/// A block as an engine insert (`newPayload`) envelope, for follow mode.
-pub const PayloadEnvelope = insert_task.Envelope;
+/// The fields of an L2 block that consolidation compares against derived attributes.
+/// `transactions` are EIP-2718 encoded. Slices borrow the engine client's memory.
+/// Defined here, beside its decoder, so this package need not import consensus/engine;
+/// the engine's `attributes_match.L2Block` names this type.
+pub const L2Block = struct {
+    info: L2BlockInfo,
+    prev_randao: B256 = .zero,
+    gas_limit: u64 = 0,
+    fee_recipient: Address = .zero,
+    extra_data: []const u8 = &.{},
+    withdrawals_root: ?B256 = null,
+    parent_beacon_block_root: ?B256 = null,
+    withdrawals: ?[]const Withdrawal = null,
+    transactions: []const []const u8 = &.{},
+};
+
+/// A block as an engine insert (`newPayload`) envelope, for follow mode: an execution
+/// payload with the parent beacon block root sent alongside it (V3+). The engine's
+/// `insert_task.Envelope` names this type.
+pub const PayloadEnvelope = struct {
+    payload: ExecutionPayload,
+    parent_beacon_block_root: ?B256 = null,
+};
 
 pub const Error = l2_block.Error || transaction_json.Error;
 

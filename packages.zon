@@ -387,7 +387,6 @@
             "common/primitives",
             "common/rlp",
             "consensus/derive",
-            "consensus/engine",
             "consensus/protocol",
             "execution/engine",
             "execution/payload",

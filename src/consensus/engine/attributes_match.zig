@@ -24,18 +24,8 @@ const Withdrawal = derive_attributes.Withdrawal;
 pub const deposit_tx_type: u8 = 0x7e;
 
 /// The fields of an L2 block that consolidation compares against derived attributes.
-/// `transactions` are EIP-2718 encoded. Slices borrow the engine client's memory.
-pub const L2Block = struct {
-    info: L2BlockInfo,
-    prev_randao: B256 = .zero,
-    gas_limit: u64 = 0,
-    fee_recipient: Address = .zero,
-    extra_data: []const u8 = &.{},
-    withdrawals_root: ?B256 = null,
-    parent_beacon_block_root: ?B256 = null,
-    withdrawals: ?[]const Withdrawal = null,
-    transactions: []const []const u8 = &.{},
-};
+/// Defined in consensus/sources beside its decoder (`l2_block_full`).
+pub const L2Block = @import("consensus/sources").l2_block_full.L2Block;
 
 /// EIP-1559 parameters as compared by consolidation (`BaseFeeParams`).
 pub const FeeParams = struct {
