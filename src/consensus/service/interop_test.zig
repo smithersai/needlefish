@@ -4,18 +4,19 @@
 //! `gossip_bridge` (gossip envelope -> engine envelope -> gossip payload) and must
 //! re-hash to the block hash that was published, so the p2p wire format and the
 //! consensus types agree end to end. Covers the Ecotone (v3) and Isthmus (v4) topics.
+//! It lives in consensus/service, above both the p2p package and the bridge it drives.
 
 const std = @import("std");
 const assert = std.debug.assert;
 const io_module = @import("utilities/io");
-const network_module = @import("network.zig");
-const options_module = @import("options.zig");
-const enr = @import("peers/enr.zig");
-const secp256k1 = @import("peers/secp256k1.zig");
-const block = @import("gossip/block.zig");
-const ssz = @import("gossip/ssz_payload.zig");
-const validity = @import("gossip/validity.zig");
-const gossip_bridge = @import("consensus/service").gossip_bridge;
+const network_module = @import("consensus/p2p").network;
+const options_module = @import("consensus/p2p").options;
+const enr = @import("consensus/p2p").peers.enr;
+const secp256k1 = @import("consensus/p2p").peers.secp256k1;
+const block = @import("consensus/p2p").gossip.block;
+const ssz = @import("consensus/p2p").gossip.ssz_payload;
+const validity = @import("consensus/p2p").gossip.validity;
+const gossip_bridge = @import("gossip_bridge.zig");
 const primitives = @import("common/primitives");
 const common_secp256k1 = @import("common/crypto").secp256k1;
 const consensus_types = @import("common/consensus");
@@ -354,7 +355,7 @@ test "p2p interop: a restarted node finds its peer again from the bootstore file
     try testing.expectEqual(@as(u64, 0), restarted.bootstore_invalid);
     try testing.expect(restarted.store.?.count >= 1);
     try testing.expectEqual(@as(u32, 1), restarted.peer_count());
-    var cells: @import("metrics.zig").Metrics = .{};
+    var cells: @import("consensus/p2p").metrics.Metrics = .{};
     restarted.update_metrics(&cells);
     try testing.expectEqual(@as(u64, 1), cells.bootstore_file[1].get()); // load
     try testing.expect(cells.bootstore_records.get() >= 1);

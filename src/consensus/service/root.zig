@@ -32,4 +32,5 @@ test {
     _ = follow;
     _ = conductor;
     _ = ws_rpc;
+    _ = @import("interop_test.zig");
 }

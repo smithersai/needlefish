@@ -308,7 +308,6 @@
             "common/primitives",
             "common/rlp",
             "consensus/protocol",
-            "consensus/service",
             "execution/payload",
             "execution/trie",
             "testing/fuzz",
