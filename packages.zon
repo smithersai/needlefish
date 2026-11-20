@@ -220,7 +220,7 @@
         },
     },
     .{ .name = "common/l1_fees", .deps = .{ "common/flz", "testing/prng" } },
-    .{ .name = "common/primitives", .deps = .{ "common/crypto", "testing/prng" } },
+    .{ .name = "common/primitives", .deps = .{"testing/prng"} },
     .{ .name = "common/rlp", .deps = .{ "common/primitives", "testing/prng" } },
     .{
         .name = "common/rpc_types",

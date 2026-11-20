@@ -9,7 +9,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const keccak = @import("../keccak.zig");
+const keccak = @import("common/primitives").keccak;
 
 pub const field = @import("field.zig");
 pub const scalar = @import("scalar.zig");

@@ -4,7 +4,7 @@
 
 const std = @import("std");
 
-pub const keccak = @import("keccak.zig");
+pub const keccak = @import("common/primitives").keccak;
 pub const keccak256 = keccak.keccak256;
 pub const sha256 = @import("sha256.zig");
 pub const ripemd160 = @import("ripemd160.zig");

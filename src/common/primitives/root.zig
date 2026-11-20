@@ -5,6 +5,7 @@
 const std = @import("std");
 
 pub const hex = @import("hex.zig");
+pub const keccak = @import("keccak.zig");
 pub const bytes = @import("bytes.zig");
 pub const contract_address = @import("contract_address.zig");
 

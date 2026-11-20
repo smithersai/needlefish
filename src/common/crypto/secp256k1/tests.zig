@@ -6,7 +6,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 const secp = @import("root.zig");
-const keccak = @import("../keccak.zig");
+const keccak = @import("common/primitives").keccak;
 const Prng = @import("testing/prng").Prng;
 
 const Scalar = secp.scalar.Scalar;

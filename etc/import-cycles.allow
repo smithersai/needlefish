@@ -3,7 +3,6 @@
 batcher/source -> batcher/devnet
 batcher/txdata -> batcher/devnet
 common/genesis -> common/consensus
-common/primitives -> common/crypto
 consensus/p2p -> consensus/service
 consensus/protocol -> common/consensus
 consensus/sources -> consensus/engine

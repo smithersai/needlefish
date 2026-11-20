@@ -5,7 +5,7 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const keccak = @import("keccak.zig");
+const keccak = @import("common/primitives").keccak;
 const secp256k1 = @import("secp256k1/root.zig");
 const montgomery = @import("montgomery.zig");
 const bls_bench = @import("bls12_381/bench.zig");
