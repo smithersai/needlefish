@@ -1,4 +1,4 @@
-//! Room before a block (`run.zig`'s runner, and `db/disk_state_bench.zig`): a disk-mode
+//! Room before a block (`run.zig`'s runner, and `disk_state_bench.zig`): a disk-mode
 //! database takes the next block only if its entry fits the journal queue and the journal
 //! (with a largest entry to spare), and its branch writes and a rollback's fit the replay
 //! admission (`DiskStateConfig.replay_record_writes_max`: the writes of the two newest

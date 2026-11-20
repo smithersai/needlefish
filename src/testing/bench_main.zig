@@ -20,6 +20,7 @@ pub fn main(init: std.process.Init) !void {
     bench.run_cases(init.io, base.execution.trie.bench.cases, filter);
     bench.run_cases(init.io, base.execution.db.bench.cases, filter);
     base.execution.db.bench.run_commit(init.io, filter);
+    base.execution.import.disk_state_bench.run(init.io, filter);
     base.execution.db.bench.witness.run(init.io, filter);
     base.execution.db.bench.witness_rpc.run(init.io, filter);
     base.execution.db.bench.read.run(init.io, filter);

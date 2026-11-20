@@ -5,7 +5,7 @@
 //! straight into their last level: `hashed_state.compute` streams the leaves (`LeafSink`:
 //! every slot, then every account with its storage root) and `StateRootBuilder`'s record sink
 //! streams the branch records, each stream ascending, into the `FlatTrees` bulk loaders. This
-//! is the same emission `db/disk_state_test.zig` imports (`branch_record.encode` at
+//! is the same emission `disk_state_test.zig` imports (`branch_record.encode` at
 //! `path_key` / `storage_key`), so `DiskState` resolves the root from what is written.
 //! `Bytecodes` go into the state's code arena first (each checked against its key), and every
 //! account's code hash must name a loaded code. With codes out of RAM (pinned mode, the

@@ -1,4 +1,4 @@
-//! Disk-mode block apply benchmark (filter "db/disk-state"), run by `bench.run_commit`.
+//! Disk-mode block apply benchmark (filter "db/disk-state"), run after `db.bench.run_commit`.
 //!
 //! The shape of executing real Base Sepolia blocks on an imported disk-mode database
 //! (`import/run.zig`), without the EVM and without the real database: a synthetic state of
@@ -55,15 +55,15 @@ const std = @import("std");
 const builtin = @import("builtin");
 const assert = std.debug.assert;
 
-const bench = @import("bench.zig");
-const changeset_module = @import("changeset.zig");
-const overlay_module = @import("overlay.zig");
-const branch_record = @import("branch_record.zig");
-const to_disk = @import("execution/import").to_disk;
-const room_module = @import("execution/import").room;
-const hashed_state = @import("execution/import").hashed_state;
-const SimStorage = @import("storage/sim_storage.zig").SimStorage;
-const IoStorageType = @import("storage/io_storage.zig").IoStorageType;
+const bench = @import("execution/db").bench;
+const changeset_module = @import("execution/db").changeset;
+const overlay_module = @import("execution/db").overlay;
+const branch_record = @import("execution/db").branch_record;
+const to_disk = @import("to_disk.zig");
+const room_module = @import("room.zig");
+const hashed_state = @import("hashed_state.zig");
+const SimStorage = @import("execution/db").storage.sim_storage.SimStorage;
+const IoStorageType = @import("execution/db").storage.io_storage.IoStorageType;
 const io_root = @import("utilities/io");
 const node = @import("execution/trie").node;
 const Prng = @import("testing/prng").Prng;
@@ -654,7 +654,7 @@ fn RunType(comptime Storage: type) type {
         /// Drop the page cache before every block (the cold blocks).
         drop_each: bool = false,
         shape: Shape,
-        config: @import("database.zig").Config,
+        config: @import("execution/db").database.Config,
         db: Database,
         overlay: Overlay,
         changeset: Changeset,
@@ -679,7 +679,7 @@ fn RunType(comptime Storage: type) type {
             driver: to_disk.Driver,
             drop: ?Drop,
             source: Source,
-            config: @import("database.zig").Config,
+            config: @import("execution/db").database.Config,
         ) !void {
             const shape = source.shape;
             assert(config.engine.size_bytes() <= storage.size_bytes());
@@ -1138,7 +1138,7 @@ fn run_on(
     io: std.Io,
     setup: Setup(Storage),
     source: Source,
-    config: @import("database.zig").Config,
+    config: @import("execution/db").database.Config,
     reuse: bool,
     report: bool,
 ) !void {
@@ -1184,7 +1184,7 @@ fn database_config(
     comptime Storage: type,
     source: *const Source,
     shape: to_disk.Shape,
-) !@import("database.zig").Config {
+) !@import("execution/db").database.Config {
     const counts: to_disk.Counts = .{
         .accounts = source.shape.accounts,
         .slots = source.slots_total,
@@ -1326,7 +1326,7 @@ fn run_sim(allocator: std.mem.Allocator, io: std.Io, sim: bool) !void {
     const bench_shape = if (sim) shape_sim else shape_test;
     var source = try Source.init(allocator, bench_shape);
     defer source.deinit(allocator);
-    var shape = @import("execution/import").to_disk_test.shape_test;
+    var shape = @import("to_disk_test.zig").shape_test;
     const record_writes_max: u32 = 512;
     shape.changeset.accounts_max = 64;
     shape.changeset.storage_max = 256;

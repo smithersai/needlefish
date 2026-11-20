@@ -41,6 +41,7 @@ pub const database = @import("database.zig");
 pub const bench = @import("bench.zig");
 pub const branch_record_test = @import("branch_record_test.zig");
 pub const witness_header_chain = @import("witness_header_chain.zig");
+pub const database_test = @import("database_test.zig");
 
 pub const Changeset = changeset.Changeset;
 pub const AccountInfo = changeset.AccountInfo;
@@ -68,6 +69,4 @@ test {
     _ = @import("database_code_test.zig");
     _ = @import("database_flat_test.zig");
     _ = @import("branch_record_test.zig");
-    _ = @import("disk_state_test.zig");
-    _ = @import("database_disk_test.zig");
 }
