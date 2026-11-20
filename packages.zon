@@ -204,7 +204,6 @@
             "common/l1_fees",
             "common/primitives",
             "common/rlp",
-            "consensus/protocol",
             "execution/trie",
             "testing/prng",
         },

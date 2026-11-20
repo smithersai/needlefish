@@ -363,6 +363,13 @@ test "deposits: source hash domains differ" {
     try testing.expect(!upgrade_source_hash("x").eql(base_time_source_hash(0)));
 }
 
+test "base time: source hash matches consensus deposits" {
+    const base_time = @import("common/consensus").base_time;
+    for ([_]u64{ 0, 1, 1_000_000, std.math.maxInt(u64) }) |number| {
+        try testing.expect(base_time.source_hash(number).eql(base_time_source_hash(number)));
+    }
+}
+
 fn check_decode(data: []const u8, topics: []const B256) !void {
     const log: Log = .{ .address = .zero, .topics = topics, .data = data };
     const tx = decode_deposit_log(.zero, 0, log) catch return;

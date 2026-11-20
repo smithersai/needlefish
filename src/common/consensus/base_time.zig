@@ -179,13 +179,6 @@ test "base time: deposit round trip and validation" {
     try testing.expectEqual(@as(u64, 1_800_000_000_400), timestamp_ms(1_800_000_000, 400));
 }
 
-test "base time: source hash matches consensus deposits" {
-    const deposits = @import("consensus/protocol").deposits;
-    for ([_]u64{ 0, 1, 1_000_000, std.math.maxInt(u64) }) |number| {
-        try testing.expect(source_hash(number).eql(deposits.base_time_source_hash(number)));
-    }
-}
-
 test "base time: seeded fuzz decode" {
     var prng = Prng.init(0xba5e);
     var calldata: [calldata_length]u8 = undefined;

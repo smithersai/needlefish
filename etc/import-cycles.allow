@@ -1,5 +1,3 @@
 # Package imports that close a cycle (from -> to): etc/scripts/packages.py check.
 # Delete a line when its cycle is gone. Never add one: break the cycle instead.
-common/genesis -> common/consensus
-consensus/protocol -> common/consensus
 infra/replay -> execution/node
