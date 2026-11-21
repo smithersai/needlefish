@@ -30,6 +30,11 @@ if ! python3 -I etc/scripts/packages.py check; then
   echo "tidy: package import graph (etc/scripts/packages.py)"; fail=1
 fi
 
+# CI shards: every step `just ci` covers is in exactly one shard, for every shard count.
+if ! python3 -I etc/scripts/ci-shards.py check; then
+  echo "tidy: CI shards (etc/scripts/ci-shards.py)"; fail=1
+fi
+
 # Secrets and private data. Patterns are assembled so this file does not match itself.
 p_home='/Us''ers/'
 p_internal='cb''hq|coinbase\.g''he|\.g''he\.com'
