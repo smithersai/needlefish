@@ -1,7 +1,7 @@
 //! Shared fuzz helpers.
 //!
 //! One fuzz body serves two drivers:
-//!   - `std.testing.fuzz` (coverage guided, `zig build test --fuzz`), and
+//!   - `std.testing.fuzz` (coverage guided, `zig build test --fuzz -Dtest-shards=false`), and
 //!   - a seeded deterministic driver that runs on every `zig build test`, feeding
 //!     `std.testing.Smith` from `Prng` bytes so a failure reproduces from
 //!     `(seed, iteration)` alone.

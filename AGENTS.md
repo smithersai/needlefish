@@ -79,7 +79,8 @@ Read this whole file before you change anything. These rules are not optional.
   `build.zig`), but no shard is shorter than its slowest test: keep each test short.
 - **Fuzz**: every parser/decoder/state machine gets a `std.testing.fuzz` test and a
   deterministic seeded fuzz (via `base.testing.Prng`) that runs in normal `zig build test`.
-  Long fuzz: `zig build test --fuzz -Doptimize=ReleaseSafe`.
+  Long fuzz: `zig build test --fuzz -Doptimize=ReleaseSafe -Dtest-shards=false` (`just fuzz`;
+  without the flag, sharded test binaries are not fuzzed).
 - **DST**: components are written as state machines over an injected IO/time
   interface. `zig build sim -- <seed>` runs the full cluster in simulation; same seed,
   same execution. A failing seed is a bug report.

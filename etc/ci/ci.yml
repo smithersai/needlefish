@@ -53,7 +53,7 @@ jobs:
           sh etc/scripts/install-zig.sh "$HOME/zig"
           echo "$HOME/zig" >> "$GITHUB_PATH"
       - name: fuzz
-        run: zig build test --fuzz=200000 -Doptimize=ReleaseSafe
+        run: zig build test --fuzz=200000 -Doptimize=ReleaseSafe -Dtest-shards=false
       - name: seeded fuzz soak (fresh seed per run, replay with -Dfuzz-seed)
         run: >-
           zig build test -Doptimize=ReleaseSafe -Dtest-filter=fuzz -Dfuzz-soak=50

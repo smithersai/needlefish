@@ -39,9 +39,9 @@ test-linux:
       alpine:3.20 sh -c 'apk add --no-cache curl xz >/dev/null && \
       etc/scripts/install-zig.sh /tmp/zig && /tmp/zig/zig build test -Drequire-io-uring=true'
 
-# Coverage-guided fuzzing of all fuzz tests
+# Coverage-guided fuzzing of all fuzz tests (shards off: Zig fuzzes one run step per binary)
 fuzz:
-    zig build test --fuzz -Doptimize=ReleaseSafe
+    zig build test --fuzz -Doptimize=ReleaseSafe -Dtest-shards=false
 
 # Seeded fuzz soak: every seeded fuzz test, `factor` times the iterations, fresh seed
 fuzz-soak factor='100' seed='1':

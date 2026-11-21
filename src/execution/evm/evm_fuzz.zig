@@ -5,7 +5,7 @@
 //!   - gas: intrinsic <= gas used <= gas limit,
 //!   - value: no execution creates ether (the balance sum never grows),
 //!   - atomicity: a reverted or halted top frame leaves the target's storage untouched.
-//! Seeded on every `zig build test`; coverage guided with `zig build test --fuzz`.
+//! Seeded on every `zig build test`; coverage guided with `just fuzz`.
 
 const std = @import("std");
 const assert = std.debug.assert;

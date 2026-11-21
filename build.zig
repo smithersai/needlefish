@@ -9,9 +9,11 @@
 //! Steps:
 //!   zig build              install every binary into zig-out/bin
 //!   zig build test         run all unit tests, one binary per package (-Dtest-filter=...);
-//!                          a slow binary runs as parallel shards (`test_shards`)
+//!                          a slow binary runs as parallel shards (`test_shards`;
+//!                          -Dtest-shards=false runs every binary once)
 //!   zig build test:common/rlp  run one package's tests (reruns only when its inputs change)
-//!   zig build fuzz         build fuzz smoke tests (use `zig build test --fuzz`)
+//!   zig build fuzz         build fuzz smoke tests (fuzz: `zig build test --fuzz
+//!                          -Dtest-shards=false`; shards are never fuzzed)
 //!   zig build sim -- SEED  run the deterministic simulator (DST) for SEED
 //!   zig build bench        run micro benchmarks (ReleaseFast recommended)
 //!   zig build -Ddiff-coverage  instrument `base diff-adapter` for coverage-guided fuzzing
@@ -84,7 +86,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run unit tests");
     // Compile-only check for editors and CI speed.
     const check_step = b.step("check", "Compile everything without running");
-    add_package_tests(b, modules, filters, test_step, check_step);
+    add_package_tests(b, modules, filters, configured.test_shards, test_step, check_step);
 
     // The edge counters (`-ffuzz`) need the LLVM backend and linker.
     const use_llvm: ?bool = if (configured.diff_coverage) true else null;
@@ -118,7 +120,12 @@ pub fn build(b: *std.Build) void {
     check_step.dependOn(&statetest.step);
 }
 
-const Configured = struct { options: *std.Build.Step.Options, diff_coverage: bool };
+const Configured = struct {
+    options: *std.Build.Step.Options,
+    diff_coverage: bool,
+    /// Packages in `test_shards` run as shards; false runs every test binary once.
+    test_shards: bool,
+};
 
 /// Build options shared by every compilation (`build_options`).
 fn build_options(b: *std.Build) Configured {
@@ -145,7 +152,19 @@ fn build_options(b: *std.Build) Configured {
     const diff_coverage = b.option(bool, "diff-coverage", "Diff-adapter coverage") orelse false;
     options.addOption(bool, "diff_coverage", diff_coverage);
 
-    return .{ .options = options, .diff_coverage = diff_coverage };
+    // Zig's build runner keeps fuzzing state per run step, and `build.zig` cannot see
+    // `--fuzz`: every fuzz command passes -Dtest-shards=false (src/testing/test_runner.zig).
+    // A fuzz-instrumented build (-Ddiff-coverage) never shards either.
+    const shards_on = b.option(
+        bool,
+        "test-shards",
+        "Run slow test binaries as parallel shards (default); false with --fuzz",
+    ) orelse true;
+    return .{
+        .options = options,
+        .diff_coverage = diff_coverage,
+        .test_shards = shards_on and !diff_coverage,
+    };
 }
 
 /// One module per row of packages.zon, wired to the modules its files import by name.
@@ -187,11 +206,13 @@ fn package_index(name: []const u8) usize {
 }
 
 /// One test binary per package, named after the package with `/` as `-`, and a
-/// `test:<package>` step that runs only it: `zig build test:common/rlp`.
+/// `test:<package>` step that runs only it: `zig build test:common/rlp`. With `sharded`, a
+/// package in `test_shards` runs its binary as that many shards.
 fn add_package_tests(
     b: *std.Build,
     modules: []const *std.Build.Module,
     filters: []const []const u8,
+    sharded: bool,
     test_step: *std.Build.Step,
     check_step: *std.Build.Step,
 ) void {
@@ -205,7 +226,7 @@ fn add_package_tests(
     for (packages, modules) |package, module| {
         const name = b.allocator.dupe(u8, package.name) catch @panic("OOM");
         std.mem.replaceScalar(u8, name, '/', '-');
-        const shards = shard_count(package.name);
+        const shards = if (sharded) shard_count(package.name) else 1;
         const unit_tests = b.addTest(.{
             .name = name,
             .root_module = module,

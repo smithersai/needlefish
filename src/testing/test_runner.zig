@@ -8,8 +8,21 @@
 //! nothing but its name and N: it is the same on every machine, and a new test lands in a
 //! shard by itself. Each shard tells the build runner only its own tests, so `--summary`
 //! counts every test once and a failure names its test. Without `--shard` every test runs,
-//! as with the default runner. Fuzzing (`zig build test --fuzz`) names its tests and is
-//! unchanged.
+//! as with the default runner.
+//!
+//! Not fuzzing. The build runner keeps fuzzing state per run step (a rebuild in fuzz mode,
+//! its workers, the cache files it recovers a crashing input from), and shards of one binary
+//! would share that state and race on it. So this runner reports no test as a fuzz test:
+//! `zig build test --fuzz` never rebuilds or fuzzes a sharded binary; it fuzzes only the
+//! unsharded ones. To fuzz everything, build with `-Dtest-shards=false`: every binary then
+//! runs once with the default runner, as `just fuzz` and CI do. Fuzz-instrumented builds
+//! (`-ffuzz`, `-Ddiff-coverage`) never use this runner. A fuzz test still runs its corpus and
+//! the empty input, as in any unfuzzed build.
+//!
+//! Not the protocol-less fallback. On the stage2_aarch64, stage2_loongarch, stage2_powerpc
+//! and stage2_riscv64 backends the default runner skips the build runner's protocol and runs
+//! every test in one loop (`mainSimple`). A shard reports its own tests through that protocol,
+//! so this runner does not compile there; build with `-Dtest-shards=false` on those backends.
 
 const builtin = @import("builtin");
 const std = @import("std");
@@ -17,21 +30,20 @@ const Io = std.Io;
 const testing = std.testing;
 const assert = std.debug.assert;
 const panic = std.debug.panic;
-const fuzz_abi = std.Build.abi.fuzz;
 
 pub const std_options: std.Options = .{
     .logFn = log,
 };
 
 comptime {
-    // The default runner falls back to a protocol-less loop on these backends; a shard needs
-    // the build runner's protocol to report its own test count.
     switch (builtin.zig_backend) {
         .stage2_aarch64, .stage2_loongarch, .stage2_powerpc, .stage2_riscv64 => @compileError(
-            "the shard test runner needs a backend that runs the default runner's server mode",
+            "the shard test runner needs the build runner's protocol, which the default " ++
+                "runner skips on this backend: build with -Dtest-shards=false",
         ),
         else => {},
     }
+    if (builtin.fuzz) @compileError("the shard test runner does not fuzz: -Dtest-shards=false");
 }
 
 var log_err_count: usize = 0;
@@ -54,11 +66,11 @@ pub const Shard = struct {
 
     pub const all: Shard = .{ .index = 0, .count = 1 };
 
-    /// Parses "K/N" (decimal, N >= 1, K < N).
+    /// Parses "K/N": two plain decimal numbers (digits only), N >= 1 and K < N.
     pub fn parse(text: []const u8) ?Shard {
         const slash = std.mem.indexOfScalar(u8, text, '/') orelse return null;
-        const index = std.fmt.parseUnsigned(u32, text[0..slash], 10) catch return null;
-        const count = std.fmt.parseUnsigned(u32, text[slash + 1 ..], 10) catch return null;
+        const index = parse_decimal(text[0..slash]) orelse return null;
+        const count = parse_decimal(text[slash + 1 ..]) orelse return null;
         if (count == 0 or index >= count) return null;
         const shard: Shard = .{ .index = index, .count = count };
         assert(shard.index < shard.count);
@@ -73,6 +85,18 @@ pub const Shard = struct {
         return std.hash.Fnv1a_64.hash(name) % shard.count == shard.index;
     }
 };
+
+/// A u32 written as 1 to 10 ASCII digits and nothing else: no sign, no `_` separator.
+fn parse_decimal(text: []const u8) ?u32 {
+    if (text.len == 0 or text.len > 10) return null;
+    var value: u64 = 0;
+    for (text) |char| {
+        if (char < '0' or char > '9') return null;
+        value = value * 10 + (char - '0');
+    }
+    assert(value < 10_000_000_000);
+    return std.math.cast(u32, value);
+}
 
 /// Fills `shard_tests` with the tests of `shard`.
 fn select(shard: Shard) void {
@@ -91,12 +115,11 @@ fn select(shard: Shard) void {
 }
 
 pub fn main(init: std.process.Init.Minimal) void {
-    @disableInstrumentation();
     const args = init.args.toSlice(fba.allocator()) catch |err|
         panic("unable to parse command line args: {t}", .{err});
 
     var listen = false;
-    var opt_cache_dir: ?[]const u8 = null;
+    var shard_given = false;
     var shard: Shard = .all;
     for (args[1..]) |arg| {
         if (std.mem.eql(u8, arg, "--listen=-")) {
@@ -105,8 +128,10 @@ pub fn main(init: std.process.Init.Minimal) void {
             testing.random_seed = std.fmt.parseUnsigned(u32, arg["--seed=".len..], 0) catch
                 @panic("unable to parse --seed command line argument");
         } else if (std.mem.startsWith(u8, arg, "--cache-dir")) {
-            opt_cache_dir = arg["--cache-dir=".len..];
+            // The build runner always passes it; only fuzzing reads it.
         } else if (std.mem.startsWith(u8, arg, "--shard=")) {
+            if (shard_given) panic("--shard given twice: {s}", .{arg});
+            shard_given = true;
             shard = Shard.parse(arg["--shard=".len..]) orelse
                 panic("invalid argument {s}: expected --shard=K/N with K < N", .{arg});
         } else {
@@ -114,11 +139,6 @@ pub fn main(init: std.process.Init.Minimal) void {
         }
     }
     select(shard);
-
-    if (builtin.fuzz) {
-        const cache_dir = opt_cache_dir orelse @panic("missing --cache-dir=[path] argument");
-        fuzz_abi.fuzzer_init(.fromSlice(cache_dir));
-    }
 
     if (listen) {
         return main_server(init) catch |err| panic("internal test runner failure: {t}", .{err});
@@ -128,7 +148,6 @@ pub fn main(init: std.process.Init.Minimal) void {
 }
 
 fn main_server(init: std.process.Init.Minimal) !void {
-    @disableInstrumentation();
     stdin_reader = .initStreaming(.stdin(), runner_threaded_io, &stdin_buffer);
     stdout_writer = .initStreaming(.stdout(), runner_threaded_io, &stdout_buffer);
     var server: std.zig.Server = .{
@@ -143,13 +162,8 @@ fn main_server(init: std.process.Init.Minimal) !void {
             .exit => return std.process.exit(0),
             .query_test_metadata => try serve_test_metadata(&server),
             .run_test => try serve_run_test(&server, init),
-            .start_fuzzing => {
-                // This ensures that this code won't be analyzed and hence reference fuzzer
-                // symbols since they are not present.
-                if (!builtin.fuzz) unreachable;
-                try serve_start_fuzzing(&server, init);
-            },
             else => {
+                // Includes start_fuzzing, which no shard asks for: it reports no fuzz test.
                 std.debug.print("unsupported message: {x}\n", .{@backingInt(hdr.tag)});
                 std.process.exit(1);
             },
@@ -228,7 +242,8 @@ fn serve_run_test(server: *std.zig.Server, init: std.process.Init.Minimal) !void
         .index = index,
         .flags = .{
             .status = status,
-            .fuzz = is_fuzz_test,
+            // Never a fuzz test: see "Not fuzzing" at the top of this file.
+            .fuzz = false,
             .log_err_count = std.math.lossyCast(
                 @FieldType(TestResults.Flags, "log_err_count"),
                 log_err_count,
@@ -241,86 +256,6 @@ fn serve_run_test(server: *std.zig.Server, init: std.process.Init.Minimal) !void
     });
 }
 
-fn serve_start_fuzzing(server: *std.zig.Server, init: std.process.Init.Minimal) !void {
-    var gpa_instance: std.heap.SafeAllocator = .init(std.heap.page_allocator, .{});
-    defer if (gpa_instance.deinit() != 0) {
-        @panic("internal test runner memory leak");
-    };
-    const gpa = gpa_instance.allocator();
-    var io_instance: Io.Threaded = .init(gpa, .{
-        .argv0 = .init(init.args),
-        .environ = init.environ,
-    });
-    defer io_instance.deinit();
-
-    const mode: fuzz_abi.LimitKind = @fromBackingInt(@intCast(try server.receiveBody_u8()));
-    const amount_or_instance = try server.receiveBody_u64();
-    const main_instance = mode == .iterations or amount_or_instance == 0;
-
-    if (main_instance) {
-        const coverage = fuzz_abi.fuzzer_coverage();
-        try server.serveCoverageIdMessage(
-            coverage.id,
-            coverage.runs,
-            coverage.unique,
-            coverage.seen,
-        );
-    }
-
-    const n_tests: u32 = try server.receiveBody_u32();
-    const test_indexes = try gpa.alloc(u32, n_tests);
-    defer gpa.free(test_indexes);
-    fuzz_runner = .{
-        .indexes = test_indexes,
-        .server = server,
-        .gpa = gpa,
-        .threaded_io = &io_instance,
-        .input_poller = undefined,
-    };
-    try receive_fuzz_tests(server, gpa, test_indexes, main_instance);
-
-    fuzz_abi.fuzzer_main(n_tests, testing.random_seed, mode, amount_or_instance);
-
-    assert(mode != .forever);
-    std.process.exit(0);
-}
-
-/// Fuzzing names its tests: they are found among every test of the binary, not the shard.
-fn receive_fuzz_tests(
-    server: *std.zig.Server,
-    gpa: std.mem.Allocator,
-    test_indexes: []u32,
-    main_instance: bool,
-) !void {
-    var large_name_buf: std.ArrayList(u8) = .empty;
-    defer large_name_buf.deinit(gpa);
-    for (test_indexes) |*i| {
-        const name_len = try server.receiveBody_u32();
-        const name = if (name_len <= server.in.buffer.len)
-            try server.in.take(name_len)
-        else large_name: {
-            try large_name_buf.resize(gpa, name_len);
-            try server.in.readSliceAll(large_name_buf.items);
-            break :large_name large_name_buf.items;
-        };
-
-        for (0.., builtin.test_functions) |test_i, test_fn| {
-            if (std.mem.eql(u8, name, test_fn.name)) {
-                i.* = @intCast(test_i);
-                break;
-            }
-        } else {
-            panic("fuzz test {s} no longer exists", .{name});
-        }
-
-        if (main_instance) {
-            const relocated_entry_addr = @intFromPtr(builtin.test_functions[i.*].func);
-            const entry_addr = fuzz_abi.fuzzer_unslide_address(relocated_entry_addr);
-            try server.serveU64Message(.fuzz_start_addr, entry_addr);
-        }
-    }
-}
-
 const Counts = struct {
     ok: u32 = 0,
     skip: u32 = 0,
@@ -330,9 +265,6 @@ const Counts = struct {
 };
 
 fn main_terminal(init: std.process.Init.Minimal) void {
-    @disableInstrumentation();
-    if (builtin.fuzz) @panic("fuzz test requires server");
-
     var counts: Counts = .{};
     const root_node = std.Progress.start(runner_threaded_io, .{
         .root_name = "Test",
@@ -431,7 +363,6 @@ pub fn log(
     comptime format: []const u8,
     args: anytype,
 ) void {
-    @disableInstrumentation();
     if (@backingInt(message_level) <= @backingInt(std.log.Level.err)) {
         log_err_count +|= 1;
     }
@@ -443,165 +374,22 @@ pub fn log(
     }
 }
 
+/// Set when a test calls `std.testing.fuzz`; counted in terminal mode, never reported.
 var is_fuzz_test: bool = undefined;
-var fuzz_runner: if (builtin.fuzz) struct {
-    indexes: []u32,
-    server: *std.zig.Server,
-    gpa: std.mem.Allocator,
-    threaded_io: *Io.Threaded,
-    input_poller: Io.Future(Io.Cancelable!void),
 
-    comptime {
-        assert(builtin.fuzz); // `fuzz_runner` was analyzed in non-fuzzing compilation
-    }
-
-    export fn runner_test_run(i: u32) void {
-        @disableInstrumentation();
-
-        fuzz_runner.server.serveU32Message(.fuzz_test_change, i) catch |e| switch (e) {
-            error.WriteFailed => panic("failed to write to stdout: {t}", .{stdout_writer.err.?}),
-        };
-
-        testing.allocator_instance = .init(std.heap.page_allocator, .{
-            .canary = 0xc3a701ba,
-            .check_write_after_free = true,
-        });
-        defer if (testing.allocator_instance.deinit() != 0) std.process.exit(1);
-        is_fuzz_test = false;
-
-        testing.io_instance = .init(testing.allocator, .{
-            .argv0 = fuzz_runner.threaded_io.argv0,
-            .environ = fuzz_runner.threaded_io.environ.process_environ,
-        });
-        defer testing.io_instance.deinit();
-
-        builtin.test_functions[fuzz_runner.indexes[i]].func() catch |err| switch (err) {
-            error.SkipZigTest => return,
-            else => {
-                if (@errorReturnTrace()) |trace| {
-                    std.debug.dumpErrorReturnTrace(trace);
-                }
-                std.debug.print("failed with error.{t}\n", .{err});
-                std.process.exit(1);
-            },
-        };
-
-        if (!is_fuzz_test) @panic("missed call to std.testing.fuzz");
-        if (log_err_count != 0) @panic("error logs detected");
-    }
-
-    export fn runner_test_name(i: u32) fuzz_abi.Slice {
-        @disableInstrumentation();
-        return .fromSlice(builtin.test_functions[fuzz_runner.indexes[i]].name);
-    }
-
-    export fn runner_broadcast_input(test_i: u32, bytes_slice: fuzz_abi.Slice) void {
-        @disableInstrumentation();
-        const bytes = bytes_slice.toSlice();
-        fuzz_runner.server.serveBroadcastFuzzInputMessage(test_i, bytes) catch |e| switch (e) {
-            error.WriteFailed => panic("failed to write to stdout: {t}", .{stdout_writer.err.?}),
-        };
-    }
-
-    export fn runner_start_input_poller() void {
-        @disableInstrumentation();
-        const io = fuzz_runner.threaded_io.io();
-        const future = io.concurrent(inputPoller, .{}) catch |e| switch (e) {
-            error.ConcurrencyUnavailable => @panic("failed to spawn concurrent fuzz input poller"),
-        };
-        fuzz_runner.input_poller = future;
-    }
-
-    export fn runner_stop_input_poller() void {
-        @disableInstrumentation();
-        const io = fuzz_runner.threaded_io.io();
-        assert(fuzz_runner.input_poller.cancel(io) == error.Canceled);
-    }
-
-    export fn runner_futex_wait(ptr: *const u32, expected: u32) bool {
-        @disableInstrumentation();
-        const io = fuzz_runner.threaded_io.io();
-        return io.futexWait(u32, ptr, expected) == error.Canceled;
-    }
-
-    export fn runner_futex_wake(ptr: *const u32, waiters: u32) void {
-        @disableInstrumentation();
-        const io = fuzz_runner.threaded_io.io();
-        io.futexWake(u32, ptr, waiters);
-    }
-
-    fn inputPoller() Io.Cancelable!void {
-        @disableInstrumentation();
-        switch (inputPollerInner()) {
-            error.Canceled => |e| return e,
-            error.ReadFailed => {
-                if (stdin_reader.err.? == error.Canceled) return error.Canceled;
-                panic("failed to read from stdin: {t}", .{stdin_reader.err.?});
-            },
-            error.EndOfStream => @panic("unexpected end of stdin"),
-        }
-    }
-
-    fn inputPollerInner() (Io.Cancelable || Io.Reader.Error) {
-        @disableInstrumentation();
-        const server = fuzz_runner.server;
-        var large_bytes_list: std.ArrayList(u8) = .empty;
-        defer large_bytes_list.deinit(fuzz_runner.gpa);
-        while (true) {
-            const hdr = try server.receiveMessage();
-            if (hdr.tag != .new_fuzz_input) {
-                panic("unexpected message: {x}\n", .{@backingInt(hdr.tag)});
-            }
-            const test_i = try server.receiveBody_u32();
-            const input_len = hdr.bytes_len - 4;
-            const bytes = if (input_len <= server.in.buffer.len)
-                try server.in.take(input_len)
-            else bytes: {
-                large_bytes_list.resize(fuzz_runner.gpa, @intCast(input_len)) catch @panic("OOM");
-                try server.in.readSliceAll(large_bytes_list.items);
-                break :bytes large_bytes_list.items;
-            };
-            if (fuzz_abi.fuzzer_receive_input(test_i, .fromSlice(bytes))) {
-                return error.Canceled;
-            }
-        }
-    }
-} else void = undefined;
-
-/// `std.testing.fuzz` calls this through `@import("root")`.
+/// `std.testing.fuzz` calls this through `@import("root")`. As in the default runner when the
+/// binary is not built for fuzzing: run the corpus, then the empty input.
 pub fn fuzz(
     context: anytype,
     comptime testOne: fn (context: @TypeOf(context), *std.testing.Smith) anyerror!void,
     options: testing.FuzzInputOptions,
 ) anyerror!void {
-    // Prevent this function from confusing the fuzzer by omitting its own code
-    // coverage from being considered.
-    @disableInstrumentation();
-
-    // Smoke test to ensure the test did not use conditional compilation to
-    // contradict itself by making it not actually be a fuzz test when the test
-    // is built in fuzz mode.
+    comptime assert(!builtin.fuzz);
     is_fuzz_test = true;
 
     // Ensure no test failure occurred before starting fuzzing.
     if (log_err_count != 0) @panic("error logs detected");
 
-    if (builtin.fuzz) {
-        const global = FuzzGlobal(@TypeOf(context), testOne);
-        // Preserve the calling test's allocator state
-        const prev_allocator_state = testing.allocator_instance;
-        defer testing.allocator_instance = prev_allocator_state;
-
-        global.ctx = context;
-        fuzz_abi.fuzzer_set_test(&global.test_one);
-        for (options.corpus) |elem|
-            fuzz_abi.fuzzer_new_input(.fromSlice(elem));
-        fuzz_abi.fuzzer_start_test();
-        return;
-    }
-
-    // When the unit test executable is not built in fuzz mode, only run the
-    // provided corpus.
     for (options.corpus) |input| {
         var smith: testing.Smith = .{ .in = input };
         try testOne(context, &smith);
@@ -611,46 +399,4 @@ pub fn fuzz(
     // string as a smoke test.
     var smith: testing.Smith = .{ .in = "" };
     try testOne(context, &smith);
-}
-
-/// libfuzzer is in a separate compilation unit so that its own code can be excluded from code
-/// coverage instrumentation. It needs a function pointer it can call for checking exactly one
-/// input. Inside this function we do our standard unit test checks such as memory leaks, and
-/// interaction with error logs.
-fn FuzzGlobal(
-    comptime Context: type,
-    comptime testOne: fn (context: Context, *std.testing.Smith) anyerror!void,
-) type {
-    return struct {
-        var ctx: Context = undefined;
-
-        fn test_one() callconv(.c) bool {
-            @disableInstrumentation();
-            testing.allocator_instance = .init(std.heap.page_allocator, .{
-                .canary = 0xcacce5e0,
-                .check_write_after_free = true,
-            });
-            defer if (testing.allocator_instance.deinit() != 0) std.process.exit(1);
-            log_err_count = 0;
-            testOne(ctx, @constCast(&testing.Smith{ .in = null })) catch |err| switch (err) {
-                error.SkipZigTest => return true,
-                else => {
-                    const stderr = std.debug.lockStderr(&.{}).terminal();
-                    p: {
-                        if (@errorReturnTrace()) |trace| {
-                            std.debug.writeErrorReturnTrace(trace, stderr) catch break :p;
-                        }
-                        stderr.writer.print("failed with error.{t}\n", .{err}) catch break :p;
-                    }
-                    std.process.exit(1);
-                },
-            };
-            if (log_err_count != 0) {
-                const stderr = std.debug.lockStderr(&.{}).terminal();
-                stderr.writer.print("error logs detected\n", .{}) catch {};
-                std.process.exit(1);
-            }
-            return false;
-        }
-    };
 }
