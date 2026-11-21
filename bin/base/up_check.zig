@@ -595,10 +595,23 @@ test "up check: the snapshot peak covers each stage's footprint" {
 
 test "up check: a busy port moves unless named" {
     const io = testing.io;
+    // pick_port steps up from a busy port by `port_stride` and gives up past 65535, and macOS
+    // hands out ephemeral ports up to 65535: reopen (bounded) until the port leaves room above
+    // it for the steps below, two for TCP and one for the UDP pair.
+    const tries_max = 16;
+    const tcp_port_max = std.math.maxInt(u16) - 2 * port_stride;
+    const udp_port_max = std.math.maxInt(u16) - port_stride;
     const address: Io.net.IpAddress = .{ .ip4 = .loopback(0) };
     var server = try address.listen(io, .{});
     defer server.deinit(io);
+    for (0..tries_max) |_| {
+        if (server.socket.address.getPort() <= tcp_port_max) break;
+        const next = try address.listen(io, .{});
+        server.deinit(io);
+        server = next;
+    }
     const busy = server.socket.address.getPort();
+    try testing.expect(busy <= tcp_port_max);
     try testing.expect(!port_free(io, busy));
     try testing.expectError(error.PortInUse, pick_port(io, busy, true, &.{}, false));
     const moved = try pick_port(io, busy, false, &.{}, false);
@@ -609,9 +622,16 @@ test "up check: a busy port moves unless named" {
     try testing.expect(skipped > moved);
     // Gossip's pair: a busy UDP `port + 1` moves the TCP port as well.
     const udp_address: Io.net.IpAddress = .{ .ip4 = .unspecified(0) };
-    const udp = try udp_address.bind(io, .{ .mode = .dgram });
+    var udp = try udp_address.bind(io, .{ .mode = .dgram });
     defer udp.close(io);
+    for (0..tries_max) |_| {
+        if (udp.address.getPort() <= udp_port_max) break;
+        const next = try udp_address.bind(io, .{ .mode = .dgram });
+        udp.close(io);
+        udp = next;
+    }
     const udp_busy = udp.address.getPort();
+    try testing.expect(udp_busy <= udp_port_max);
     try testing.expect(!udp_port_free(io, udp_busy));
     if (udp_busy > 1 and port_free(io, udp_busy - 1)) {
         const pair = try pick_port(io, udp_busy - 1, false, &.{}, true);
