@@ -10,11 +10,11 @@
 //!   zig build              install every binary into zig-out/bin
 //!   zig build test         run all unit tests, one binary per package (-Dtest-filter=...);
 //!                          a slow binary runs as parallel shards (`test_shards`;
-//!                          -Dtest-shards=false runs every binary once)
+//!                          -Dtest-shards=false runs every binary once, with Zig's runner)
 //!   zig build check        compile every test binary and tool without running them
 //!   zig build test:common/rlp  run one package's tests (reruns only when its inputs change)
 //!   zig build fuzz         build fuzz smoke tests (fuzz: `zig build test --fuzz
-//!                          -Dtest-shards=false`; shards are never fuzzed)
+//!                          -Dtest-shards=false`; our test runner never fuzzes)
 //!   zig build sim -- SEED  run the deterministic simulator (DST) for SEED
 //!   zig build bench        run micro benchmarks (ReleaseFast recommended)
 //!   zig build -Ddiff-coverage  instrument `base diff-adapter` for coverage-guided fuzzing
@@ -48,10 +48,10 @@ const Shards = struct { package: []const u8, count: u32 };
 /// The only place shard counts live. Each package here compiles its test binary once and runs
 /// it `count` times in parallel; each run executes the tests whose name hashes to its shard
 /// (src/testing/test_runner.zig), so the run costs its slowest shard, not the sum. Every
-/// other package runs its binary once with Zig's default runner. A count is the smallest, up to
-/// 16, whose slowest shard is within 5% of the package's slowest test (per-test CPU seconds),
-/// else the count up to 16 with the shortest slowest shard: no count makes a run shorter than
-/// its slowest test.
+/// other package runs its binary once, with the same runner and no `--shard`. A count is the
+/// smallest, up to 16, whose slowest shard is within 5% of the package's slowest test
+/// (per-test CPU seconds), else the count up to 16 with the shortest slowest shard: no count
+/// makes a run shorter than its slowest test.
 const test_shards = [_]Shards{
     .{ .package = "batcher/blobs", .count = 4 },
     .{ .package = "batcher/devnet", .count = 3 },
@@ -132,7 +132,8 @@ pub fn build(b: *std.Build) void {
 const Configured = struct {
     options: *std.Build.Step.Options,
     diff_coverage: bool,
-    /// Packages in `test_shards` run as shards; false runs every test binary once.
+    /// Packages in `test_shards` run as shards and every test binary uses
+    /// src/testing/test_runner.zig; false runs every test binary once with Zig's runner.
     test_shards: bool,
 };
 
@@ -217,8 +218,10 @@ fn package_index(name: []const u8) usize {
 }
 
 /// One test binary per package, named after the package with `/` as `-`, and a
-/// `test:<package>` step that runs only it: `zig build test:common/rlp`. With `sharded`, a
-/// package in `test_shards` runs its binary as that many shards.
+/// `test:<package>` step that runs only it: `zig build test:common/rlp`. With `sharded`, every
+/// binary uses our test runner, which prints a failing test's error even without debug info,
+/// and a package in `test_shards` runs its binary as that many shards. Without it (fuzzing),
+/// every binary uses Zig's default runner.
 fn add_package_tests(
     b: *std.Build,
     modules: []const *std.Build.Module,
@@ -242,7 +245,7 @@ fn add_package_tests(
             .name = name,
             .root_module = test_root_module(b, package.name, module),
             .filters = filters,
-            .test_runner = if (shards == 1) null else .{
+            .test_runner = if (!sharded) null else .{
                 .path = b.path("src/testing/test_runner.zig"),
                 .mode = .server,
             },

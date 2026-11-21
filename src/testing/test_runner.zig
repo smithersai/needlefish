@@ -1,23 +1,28 @@
-//! Test runner that runs one shard of a test binary.
+//! Test runner of every package's test binary while shards are on (the default;
+//! `-Dtest-shards=false` gives every binary Zig's default runner instead).
 //!
 //! This is Zig 0.17.1's default test runner (lib/compiler/test_runner.zig; MIT License,
-//! Copyright (c) Zig contributors) plus one argument, `--shard=K/N`: run only the tests whose
-//! full name hashes to shard K of N (FNV-1a 64 of the name, modulo N). build.zig compiles a
-//! slow package's tests once and runs that binary N times in parallel, one shard each, so the
-//! run costs its slowest shard instead of the sum of every test. A test's shard depends on
-//! nothing but its name and N: it is the same on every machine, and a new test lands in a
-//! shard by itself. Each shard tells the build runner only its own tests, so `--summary`
-//! counts every test once and a failure names its test. Without `--shard` every test runs,
-//! as with the default runner.
+//! Copyright (c) Zig contributors) plus two changes. First, one argument, `--shard=K/N`: run
+//! only the tests whose full name hashes to shard K of N (FNV-1a 64 of the name, modulo N).
+//! build.zig compiles a slow package's tests once and runs that binary N times in parallel,
+//! one shard each, so the run costs its slowest shard instead of the sum of every test. A
+//! test's shard depends on nothing but its name and N: it is the same on every machine, and a
+//! new test lands in a shard by itself. Each shard tells the build runner only its own tests,
+//! so `--summary` counts every test once and a failure names its test. Without `--shard`
+//! every test runs, as with the default runner: a package with one shard passes none.
+//!
+//! Second, a test that fails by returning an error prints `'<name>' failed with
+//! error.<Name>` to stderr, then its error return trace if it has one. The default runner
+//! prints only the trace, and the build runner shows a failed test's stderr, so a test binary
+//! without debug info (no trace) reported only "failed without output".
 //!
 //! Not fuzzing. The build runner keeps fuzzing state per run step (a rebuild in fuzz mode,
 //! its workers, the cache files it recovers a crashing input from), and shards of one binary
 //! would share that state and race on it. So this runner reports no test as a fuzz test:
-//! `zig build test --fuzz` never rebuilds or fuzzes a sharded binary; it fuzzes only the
-//! unsharded ones. To fuzz everything, build with `-Dtest-shards=false`: every binary then
-//! runs once with the default runner, as `just fuzz` and CI do. Fuzz-instrumented builds
-//! (`-ffuzz`, `-Ddiff-coverage`) never use this runner. A fuzz test still runs its corpus and
-//! the empty input, as in any unfuzzed build.
+//! `zig build test --fuzz` rebuilds and fuzzes nothing. To fuzz, build with
+//! `-Dtest-shards=false`: every binary then runs once with the default runner, as `just fuzz`
+//! and CI do. Fuzz-instrumented builds (`-ffuzz`, `-Ddiff-coverage`) never use this runner. A
+//! fuzz test still runs its corpus and the empty input, as in any unfuzzed build.
 //!
 //! Not the protocol-less fallback. On the stage2_aarch64, stage2_loongarch, stage2_powerpc
 //! and stage2_riscv64 backends the default runner skips the build runner's protocol and runs
@@ -230,6 +235,9 @@ fn serve_run_test(server: *std.zig.Server, init: std.process.Init.Minimal) !void
     } else |err| switch (err) {
         error.SkipZigTest => .skip,
         else => s: {
+            // The build runner shows only what a failed test wrote to stderr. Without this
+            // line a test with no error return trace (no debug info) "failed without output".
+            std.debug.print("'{s}' failed with error.{t}\n", .{ test_fn.name, err });
             if (@errorReturnTrace()) |trace| {
                 std.debug.dumpErrorReturnTrace(trace);
             }
