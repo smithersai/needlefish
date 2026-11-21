@@ -25,4 +25,7 @@ test {
     // The fault-proof client's end-to-end test drives the host, the proposer, the prover
     // service and the TEE, so it sits here, above every package it imports.
     _ = @import("e2e_test.zig");
+    // The host tests that run the client, and with it the EVM.
+    _ = @import("offline_test.zig");
+    _ = @import("rpc_source_test.zig");
 }

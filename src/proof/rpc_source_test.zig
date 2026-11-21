@@ -17,9 +17,9 @@ const engine_types = @import("execution/engine").types;
 const preimage = @import("proof/preimage");
 const mpt = @import("proof/mpt");
 const program = @import("proof/program");
-const handler_module = @import("handler.zig");
-const store_module = @import("store.zig");
-const rpc_source = @import("rpc_source.zig");
+const handler_module = @import("proof/host").handler;
+const store_module = @import("proof/host").store;
+const rpc_source = @import("proof/host").rpc_source;
 
 const body_size_max = 1 << 18;
 const Source = rpc_source.RpcSource(io.SimIo);

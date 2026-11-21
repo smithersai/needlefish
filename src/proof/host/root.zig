@@ -22,5 +22,4 @@ test {
     std.testing.refAllDecls(@This());
     _ = @import("host_test.zig");
     _ = @import("beacon_blobs_test.zig");
-    _ = @import("rpc_source_test.zig");
 }
