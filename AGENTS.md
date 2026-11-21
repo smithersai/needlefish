@@ -47,8 +47,13 @@ Read this whole file before you change anything. These rules are not optional.
    Edit other lanes' files only for tiny integration fixes (build breaks, a missing
    `pub`). Shared files (`build.zig`, `src/base.zig`, `src/*/root.zig`, `Justfile`,
    `README.md`) take small, additive edits; resolve rebase conflicts by keeping both.
-9. **Never write `.github/workflows/`** — the push token lacks workflow scope and the push is
-   rejected. CI lives in `etc/ci/ci.yml`.
+9. **Workflow logic lives in `etc/`; `.github/workflows/` stays thin.** On this repository
+   GitHub Actions runs `.github/workflows/test.yml`: `just ci` as parallel shards on every push
+   to `main`. Its logic is `etc/scripts/ci-shards.py`, `etc/ci/shard.sh` and the cost table
+   `etc/ci/costs.tsv`; change those, not the workflow. An https push token without workflow
+   scope cannot push a change under `.github/workflows/` (GitHub rejects it): such a change
+   goes over ssh, by a maintainer. `etc/ci/ci.yml` (release-safe tests, simulator swarm, fuzz)
+   is a template that is not enabled.
 10. **No flashblocks. Native 200 ms blocks.** The project owner decided needlefish does not
    implement flashblocks (no flashblock stream, websocket feed, or pending-flashblock RPC).
    L2 blocks are full blocks built by a regular block builder at Base's native subsecond

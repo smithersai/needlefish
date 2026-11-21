@@ -27,6 +27,7 @@ import os
 import re
 import statistics
 import sys
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 COSTS = 'etc/ci/costs.tsv'
@@ -41,6 +42,29 @@ ANSI = re.compile(r'\x1b\[[0-9;]*m')
 NODE = re.compile(r'^(?:\|  |   )*\+- (.*)$')
 MEASURED = re.compile(r'^ci-shards: (\S+) (\d+)s$')
 UNIT_SECONDS = {'ns': 1e-9, 'us': 1e-6, 'ms': 1e-3, 's': 1.0}
+# `just ci` as the Justfile spells it: {recipe: (header, body lines)}. CI runs these as named
+# steps: `tidy` as tidy, `zig build test` as every test:<package> and test:statetest (rerun with
+# -Dtest-debug-info=true when it fails, as etc/ci/shard.sh does), `zig build check` as every
+# check: step. `check` fails when the Justfile no longer says exactly this: change CI with it.
+JUST_CI = {
+    'ci': ('ci: tidy test check', []),
+    'tidy': ('tidy:', ['etc/scripts/tidy.sh']),
+    'test': ("test filter='':", [
+        '#!/usr/bin/env bash',
+        'set -euo pipefail',
+        'if [ -n "{{ filter }}" ]; then zig build test -Dtest-filter="{{ filter }}"; exit; fi',
+        'zig build test || { zig build test -Dtest-debug-info=true; exit 1; }',
+    ]),
+    'check': ('check:', ['zig build check']),
+}
+# The rest of the Justfile's top level as it is today. A setting changes how every recipe runs,
+# and a module that does not load fails `just ci` before any recipe runs, so both are pinned
+# and a module's file must exist. Besides these, comments and recipes, the top level may hold
+# only aliases and variable assignments: any other line fails `check`.
+JUST_SETTINGS = ['set positional-arguments := true']
+JUST_MODULES = ["mod devnet 'etc/devnet/devnet.just'"]
+JUST_TOP_LEVEL = re.compile(r"alias [\w-]+ := [\w-]+$|(?:export )?[A-Za-z_][\w-]* := "
+                            r"|@?[A-Za-z_][\w-]*(?: [^:]*)?:(?: .*)?$")
 
 
 def read(path):
@@ -197,9 +221,67 @@ def costs(logs):
     return 0
 
 
+def recipes(text):
+    """{name: (header line, body lines without indentation or blank lines)} of a Justfile."""
+    out, current = {}, None
+    for line in text.splitlines():
+        if line.startswith((' ', '\t')):
+            if current and line.strip():
+                out[current][1].append(line.strip())
+            continue
+        current = None
+        if line and ':' in line and not line.startswith(('#', 'alias ', 'set ', 'mod ')):
+            current = re.split(r'[\s:]', line, 1)[0]
+            out[current] = (line, [])
+    return out
+
+
+def justfile_errors(text):
+    found = recipes(text)
+    errors = ['Justfile: recipe %r is not %r; CI mirrors `just ci` (JUST_CI in '
+              'etc/scripts/ci-shards.py): change both' % (name, expected)
+              for name, expected in sorted(JUST_CI.items()) if found.get(name) != expected]
+    settings, modules = [], []
+    for number, line in enumerate(text.splitlines(), 1):
+        if not line or line.startswith((' ', '\t', '#')):
+            continue
+        if line.startswith('set '):
+            settings.append(line)
+        elif line.startswith(('mod ', 'mod? ', 'import ', 'import? ')):
+            modules.append(line)
+        elif not JUST_TOP_LEVEL.match(line):
+            errors.append('Justfile:%d: %r is not a comment, setting, module, alias, '
+                          'variable or recipe that check knows' % (number, line))
+    if settings != JUST_SETTINGS:
+        errors.append('Justfile: settings %r are not JUST_SETTINGS %r' % (settings, JUST_SETTINGS))
+    if modules != JUST_MODULES:
+        errors.append('Justfile: modules %r are not JUST_MODULES %r' % (modules, JUST_MODULES))
+    return errors + missing_modules(modules, ROOT)
+
+
+def missing_modules(lines, root):
+    """An error for each `mod` or `import` line whose quoted file does not exist under root."""
+    paths = [(line, line.split("'")[1] if "'" in line else '') for line in lines]
+    return ['Justfile: %r names no file' % line for line, path in paths
+            if not os.path.isfile(os.path.join(root, path))]
+
+
+# Justfile changes `check` must catch: (name, text today, text after the change).
+JUST_DRIFTS = [
+    ('a module naming a missing file', "mod devnet 'etc/devnet/devnet.just'",
+     "mod devnet 'etc/devnet/missing.just'"),
+    ('an added import', "mod devnet 'etc/devnet/devnet.just'\n",
+     "mod devnet 'etc/devnet/devnet.just'\nimport 'etc/devnet/devnet.just'\n"),
+    ('an added setting', 'set positional-arguments := true\n',
+     "set positional-arguments := true\nset shell := ['false']\n"),
+    ('an unknown top-level line', 'alias t := test\n', 'alias t := test\n[unknown]\n'),
+]
+
+
 def selftest():
     """The dealer's guarantees on fixed inputs: steps that cost nothing still spread over the
-    shards, and a cost that is not a finite number of at least zero is rejected."""
+    shards, a cost that is not a finite number of at least zero is rejected, and a drifted
+    `just ci` is caught."""
     errors = []
     zero = {name: 0.0 for name in steps()}
     for count in (1, 12, len(zero)):
@@ -211,6 +293,17 @@ def selftest():
             errors.append('a cost of %s is accepted' % bad)
         except AssertionError:
             pass
+    added = '    zig build test -Doptimize=ReleaseSafe\n'
+    drifted = read('Justfile').replace('ci: tidy test check\n', 'ci: tidy test check\n' + added)
+    if not justfile_errors(drifted):
+        errors.append('a command added to `ci` is not caught')
+    real = read('Justfile')
+    for name, old, new in JUST_DRIFTS:
+        if old not in real or not justfile_errors(real.replace(old, new, 1)):
+            errors.append('%s in the Justfile is not caught' % name)
+    with tempfile.TemporaryDirectory() as empty:
+        if not missing_modules(JUST_MODULES, empty):
+            errors.append('a module whose file is gone is not caught')
     return errors
 
 
@@ -218,6 +311,7 @@ def check():
     """Every package has one CI step, ci_steps are well formed, and for every shard count the
     shards' union is every CI step, each exactly once."""
     errors, everything = ['selftest: ' + e for e in selftest()], steps()
+    errors += justfile_errors(read('Justfile'))
     for name in ci_steps():
         if not re.match(r'(test|check):[a-z][a-z0-9-]*$', name):
             errors.append('ci_steps: %r is not test:<name> or check:<name>' % name)

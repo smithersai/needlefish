@@ -1,0 +1,61 @@
+# `just ci` (tidy, zig build test, zig build check) as parallel jobs. The logic lives in etc/:
+# etc/scripts/ci-shards.py deals the steps to shards by etc/ci/costs.tsv, etc/ci/shard.sh runs
+# one shard. Keep this file thin (AGENTS.md rule 9).
+name: test
+
+on:
+  push:
+    branches: [main, "ci-shards/**"]
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  shard:
+    name: shard ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: runner
+        id: runner
+        # Zig compiles the build runner for the native CPU, and runners differ in CPU model:
+        # the global cache is kept per model.
+        run: |
+          echo "nproc: $(nproc)"
+          grep -m1 'model name' /proc/cpuinfo
+          model=$(grep -m1 'model name' /proc/cpuinfo | sed 's/.*: //' | tr -c 'A-Za-z0-9\n' -)
+          echo "cpu=$model" >> "$GITHUB_OUTPUT"
+      - name: restore zig
+        id: zig
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/zig
+          key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('etc/scripts/install-zig.sh') }}
+      - name: install zig
+        if: steps.zig.outputs.cache-hit != 'true'
+        run: sh etc/scripts/install-zig.sh "$HOME/zig"
+      - name: path
+        run: echo "$HOME/zig" >> "$GITHUB_PATH"
+      - name: restore zig global cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/zig
+          key: zig-global-${{ runner.os }}-${{ steps.runner.outputs.cpu }}-${{ hashFiles('etc/scripts/install-zig.sh', 'build.zig', 'build.zig.zon', 'packages.zon') }}
+          restore-keys: zig-global-${{ runner.os }}-${{ steps.runner.outputs.cpu }}-
+      - name: build runner
+        run: zig build -l -Drequire-io-uring=true >/dev/null
+      - name: steps
+        run: |
+          steps=$(python3 -I etc/scripts/ci-shards.py shard ${{ matrix.shard }} 12)
+          # shellcheck disable=SC2086 # one step name per word
+          bash etc/ci/shard.sh $steps

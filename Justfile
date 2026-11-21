@@ -27,11 +27,14 @@ release:
     fi
     zig build -Doptimize=ReleaseFast -Dgit-rev=$(git rev-parse --short HEAD)
 
-# Run unit tests, optionally filtered: just test rlp
+# Run unit tests, optionally filtered: just test rlp. Debug test binaries carry no debug info,
+# so a failing unfiltered suite runs again with it (-Dtest-debug-info=true) and the log shows
+# file, line and stack; it stays a failure.
 test filter='':
     #!/usr/bin/env bash
     set -euo pipefail
-    if [ -n "{{ filter }}" ]; then zig build test -Dtest-filter="{{ filter }}"; else zig build test; fi
+    if [ -n "{{ filter }}" ]; then zig build test -Dtest-filter="{{ filter }}"; exit; fi
+    zig build test || { zig build test -Dtest-debug-info=true; exit 1; }
 
 # Run the test suite inside a Linux container (exercises io_uring)
 test-linux:
@@ -110,11 +113,12 @@ replay-run archive='src/infra/replay/testdata/base-mainnet-53715983-10.nfrp':
 check:
     zig build check
 
-# Everything CI runs. Debug test binaries carry no debug info, so a failing suite runs again
-# with it (-Dtest-debug-info=true) and the log shows file, line and stack; it stays a failure.
-ci: tidy
-    zig build test || { zig build test -Dtest-debug-info=true; exit 1; }
-    zig build check
+# Everything CI runs. .github/workflows/test.yml runs the same commands as these recipes, as
+# named build steps split across jobs by etc/scripts/ci-shards.py (etc/ci/shard.sh runs a job's
+# share); `just tidy` fails when `ci`, `tidy`, `test` or `check`, the settings or the module
+# lines here no longer match what it pins (JUST_CI there). The workflow does not run `just`, so
+# it does not prove that this file or the module it loads parses.
+ci: tidy test check
 
 # Fetch public Ethereum test vectors into .cache/ (git-ignored)
 vectors:
