@@ -6,15 +6,21 @@ GitHub Actions on every push to `main`. It runs only what the push can break:
 - `plan` diffs the pushed tree against the tree of the last commit whose run of this
   workflow passed on the branch (`baseline.sh`, which says why that is safe) and keeps the
   steps of every changed package, of every package that imports one, and of the tools that
-  import one. It deals them to as many shards as they fill (at most 12), so a leaf edit starts
-  one shard and an edit of a package everything imports starts all of them. A push that
-  changes no package starts none; no green run yet, a path the plan cannot place, or a change
-  to the build, the plan or the toolchain starts every step.
+  import one. It deals them to as many shards as they fill (at most 12). A push that changes
+  no package plans none; no green run yet, a path the plan cannot place, or a change to the
+  build, the plan or the toolchain plans every step. A plan of one shard runs in the plan job
+  itself, so a leaf edit is one job.
 - `tidy` runs `etc/scripts/tidy.sh` on every push, beside the plan.
-- `shard N` runs its steps in one `zig build <steps> --summary all`.
-- `done` passes when `plan`, `tidy` and every shard pass, or when the plan started no shard.
-  Require `done` in branch protection: a matrix job the plan skips reports no per-shard
-  check, so requiring `shard N` would block a docs-only push.
+- `shard N` runs when the plan has two shards or more: its steps in one
+  `zig build <steps> --summary all`.
+
+The run's conclusion is the status. AGENTS.md rule 1 has every change pushed straight to
+`main`, with no pull requests, so the workflow has no single check for a pull request to
+require. A plan of no shard or one skips the `shard` job, and GitHub reports the skipped
+matrix as one check named `shard ${{ matrix.shard }}`, so no shard check can be required.
+To require a check, add a job `done` with `needs: [plan, tidy, shard]` and `if: always()`
+that fails unless `plan` and `tidy` succeeded and `shard` succeeded or was skipped, and
+require `done`.
 
 The workflow is thin; the logic lives here and in `etc/scripts/`:
 

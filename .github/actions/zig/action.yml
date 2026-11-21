@@ -1,0 +1,40 @@
+# Zig 0.17.1 on PATH and Zig's global cache restored, which holds the build runner. The
+# workflow's `zig build -l` step, which compiles the build runner and configures the build,
+# took 1 to 2 s with this cache and 64 to 111 s without it on GitHub-hosted ubuntu-latest
+# runners (4 processors), over the runs the commit messages from "ci: run just ci as 12
+# parallel jobs on GitHub Actions" onward report. Zig compiles the build runner for the
+# native CPU, and runners differ in CPU model and in the features one model exposes, so the
+# cache is kept per model and feature set.
+name: zig
+description: Install Zig and restore its global cache for this runner's CPU
+runs:
+  using: composite
+  steps:
+    - name: runner
+      id: runner
+      shell: bash
+      run: |
+        echo "nproc: $(nproc)"
+        grep -m1 'model name' /proc/cpuinfo
+        model=$(grep -m1 'model name' /proc/cpuinfo | sed 's/.*: //' | tr -c 'A-Za-z0-9\n' -)
+        flags=$(grep -m1 '^flags' /proc/cpuinfo | sha256sum | cut -c1-12)
+        echo "cpu=$model-$flags" | tee -a "$GITHUB_OUTPUT"
+    - name: restore zig
+      id: zig
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/zig
+        key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('etc/scripts/install-zig.sh') }}
+    - name: install zig
+      if: steps.zig.outputs.cache-hit != 'true'
+      shell: bash
+      run: sh etc/scripts/install-zig.sh "$HOME/zig"
+    - name: path
+      shell: bash
+      run: echo "$HOME/zig" >> "$GITHUB_PATH"
+    - name: restore zig global cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/zig
+        key: zig-global-${{ runner.os }}-${{ steps.runner.outputs.cpu }}-${{ hashFiles('etc/scripts/install-zig.sh', 'build.zig', 'build.zig.zon', 'packages.zon') }}
+        restore-keys: zig-global-${{ runner.os }}-${{ steps.runner.outputs.cpu }}-

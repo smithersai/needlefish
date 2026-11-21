@@ -1,8 +1,8 @@
 # `just ci` (tidy, zig build test, zig build check) as parallel jobs. The logic lives in etc/:
-# etc/scripts/ci-shards.py plans the steps a push affects and deals them to shards by
-# etc/ci/costs.tsv; etc/ci/shard.sh runs one shard. Keep this file thin (AGENTS.md rule 9).
-# `done` is the one job to require in branch protection: it passes when tidy and every shard
-# pass, and when the plan starts no shard (a push that changes no package).
+# etc/ci/baseline.sh finds the last green commit, etc/scripts/ci-shards.py plans the steps the
+# push's diff from it affects and deals them to shards by etc/ci/costs.tsv, etc/ci/shard.sh
+# runs a shard. Keep this file thin (AGENTS.md rule 9). A plan that fits one shard runs in the
+# plan job itself; tidy runs beside it. The run's conclusion is the status (etc/ci/README.md).
 name: test
 
 on:
@@ -39,6 +39,18 @@ jobs:
         run: |
           base=$(bash etc/ci/baseline.sh "$GITHUB_REPOSITORY" "$BRANCH" test.yml)
           python3 -I etc/scripts/ci-shards.py plan "$base" HEAD 12 >> "$GITHUB_OUTPUT"
+      - if: steps.plan.outputs.count == '1'
+        uses: ./.github/actions/zig
+      - name: build runner
+        if: steps.plan.outputs.count == '1'
+        run: zig build -l -Drequire-io-uring=true >/dev/null
+      - name: steps
+        if: steps.plan.outputs.count == '1'
+        env:
+          STEPS: ${{ fromJSON(steps.plan.outputs.matrix).include[0].steps }}
+        run: |
+          # shellcheck disable=SC2086 # one step name per word
+          bash etc/ci/shard.sh $STEPS
 
   tidy:
     runs-on: ubuntu-latest
@@ -61,7 +73,7 @@ jobs:
   shard:
     name: shard ${{ matrix.shard }}
     needs: plan
-    if: needs.plan.outputs.count != '0'
+    if: fromJSON(needs.plan.outputs.count) > 1
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -70,33 +82,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: runner
-        id: runner
-        # Zig compiles the build runner for the native CPU, and runners differ in CPU model and
-        # in the features one model exposes: the global cache is kept per model and feature set.
-        run: |
-          echo "nproc: $(nproc)"
-          grep -m1 'model name' /proc/cpuinfo
-          model=$(grep -m1 'model name' /proc/cpuinfo | sed 's/.*: //' | tr -c 'A-Za-z0-9\n' -)
-          flags=$(grep -m1 '^flags' /proc/cpuinfo | sha256sum | cut -c1-12)
-          echo "cpu=$model-$flags" | tee -a "$GITHUB_OUTPUT"
-      - name: restore zig
-        id: zig
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/zig
-          key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('etc/scripts/install-zig.sh') }}
-      - name: install zig
-        if: steps.zig.outputs.cache-hit != 'true'
-        run: sh etc/scripts/install-zig.sh "$HOME/zig"
-      - name: path
-        run: echo "$HOME/zig" >> "$GITHUB_PATH"
-      - name: restore zig global cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/zig
-          key: zig-global-${{ runner.os }}-${{ steps.runner.outputs.cpu }}-${{ hashFiles('etc/scripts/install-zig.sh', 'build.zig', 'build.zig.zon', 'packages.zon') }}
-          restore-keys: zig-global-${{ runner.os }}-${{ steps.runner.outputs.cpu }}-
+      - uses: ./.github/actions/zig
       - name: build runner
         run: zig build -l -Drequire-io-uring=true >/dev/null
       - name: steps
@@ -105,22 +91,3 @@ jobs:
         run: |
           # shellcheck disable=SC2086 # one step name per word
           bash etc/ci/shard.sh $STEPS
-
-  done:
-    needs: [plan, tidy, shard]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: every job passed
-        env:
-          PLAN: ${{ needs.plan.result }}
-          TIDY: ${{ needs.tidy.result }}
-          SHARDS: ${{ needs.shard.result }}
-          COUNT: ${{ needs.plan.outputs.count }}
-        # The shards are skipped, not failed, only when the plan started none.
-        run: |
-          echo "plan $PLAN, tidy $TIDY, shards $SHARDS ($COUNT planned)"
-          case "$PLAN $TIDY $SHARDS $COUNT" in
-            "success success success "* | "success success skipped 0") ;;
-            *) exit 1 ;;
-          esac
