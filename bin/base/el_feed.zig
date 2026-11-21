@@ -8,7 +8,7 @@
 const std = @import("std");
 
 const el_source = @import("bin/base/el_source");
-const el_pool = @import("bin/base/el_pool");
+pub const el_pool = @import("el_pool.zig");
 const ChainConfig = @import("common/chains").ChainConfig;
 const Io = std.Io;
 const assert = std.debug.assert;
@@ -212,3 +212,7 @@ pub const Feed = struct {
         if (added > 0) std.debug.print("el-feed: {d} new peers from {s}\n", .{ added, path });
     }
 };
+
+test {
+    _ = @import("el_pool.zig");
+}

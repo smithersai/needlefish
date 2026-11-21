@@ -15,7 +15,12 @@ A binary (bin/<program>/) is a package per file, so a test binary reruns only wh
 package its file imports changes; a binary's file never imports `base`:
   bin/<program>/main.zig         package "bin/<program>" (the executable's root)
   bin/<program>/<file>.zig       package "bin/<program>/<file>"
-  JOINED below                   files in an import cycle with their package's root
+  joined_files()                 files whose test binaries would compile the same src/
+                                 packages: they rerun together, so they share one package
+A joined file's package is rooted at a file with the same packages that imports it,
+directly or through other files of the binary, chosen by joined_files() (files in an import
+cycle always join). `convert` adds `_ = @import("<file>.zig");` to the package root's tests
+for each joined file that has a test, so its tests still run.
 
 A package without a named test, whose unnamed `test {}` blocks only reference declarations
 (`std.testing.refAllDecls(...)`, `_ = x;`), is a compile check: packages.zon marks it
@@ -54,14 +59,7 @@ LEAVES = {
     'src/testing/bench.zig': 'testing/bench',
     'src/proof/test_oracle.zig': 'proof/test_oracle',
 }
-JOINED = {
-    'bin/base/el_engine_test.zig': 'bin/base/el_engine',
-    'bin/base/el_rpc_test.zig': 'bin/base/el_rpc',
-    'bin/base/replay_bench.zig': 'bin/base/replay',
-    'bin/base/replay_evm.zig': 'bin/base/replay',
-    'bin/base/replay_fetch.zig': 'bin/base/replay',
-    'bin/base/snapshot_import_out.zig': 'bin/base/snapshot_import',
-}
+JOINED = {}  # {bin/ file: package}, set by read_sources from joined_files()
 BUILTIN_NAMES = {'std', 'builtin', 'root', 'build_options'}
 IMPORT = re.compile(r'@(import|embedFile)\(\s*"([^"\\]*)"\s*,?\s*\)')
 COMMENT = re.compile(r'^[ \t]*//.*$', re.M)
@@ -134,9 +132,48 @@ def read_sources():
     for f in source_files():
         with open(os.path.join(ROOT, f), encoding='utf-8') as handle:
             texts[f] = handle.read()
+    JOINED.clear()
+    JOINED.update(joined_files(texts))
     tools = tool_files(texts)
     packages = {package_of(f) for f in texts if f not in tools}
     return texts, tools, packages
+
+
+def joined_files(texts):
+    """{path: package} for each binary file that joins another file's package. Its root is,
+    among the files whose test binaries would compile the same src/ packages and that reach
+    this file over the binary's own imports (relative, or a binary package's name, which is
+    its root file), the one that reaches the most files, then the first by path."""
+    files = sorted(f for f in texts if f.startswith('bin/') and not f.endswith('/main.zig'))
+    edges, names = {}, {}
+    for f in files:
+        edges[f], names[f] = set(), set()
+        for i in imports(texts[f]):
+            if i.kind != 'import' or i.spec in BUILTIN_NAMES:
+                continue
+            if i.spec.endswith('.zig'):
+                edges[f].add(resolve(f, i.spec))
+            elif i.spec.startswith('bin/'):
+                edges[f].add(i.spec + '.zig')
+            else:
+                names[f].add(i.spec)
+    reach = {}
+    for f in files:  # bounded: each file enters `seen` once
+        seen, frontier = {f}, [f]
+        while frontier:
+            for g in edges[frontier.pop()]:
+                if g in edges and g not in seen:
+                    seen.add(g)
+                    frontier.append(g)
+        reach[f] = seen
+    key = {f: frozenset().union(*(names[g] for g in reach[f])) for f in files}
+    joined = {}
+    for f in files:
+        first = min((g for g in files if key[g] == key[f] and f in reach[g]),
+                    key=lambda g: (-len(reach[g]), g))
+        if first != f:
+            joined[f] = first[:-len('.zig')]
+    return joined
 
 
 def tool_files(texts):
@@ -179,6 +216,8 @@ def target_package(path, kind, spec, packages):
     if kind == 'import' and not spec.endswith('.zig'):
         if spec in BUILTIN_NAMES:
             return None
+        if spec.startswith('bin/') and spec not in packages and spec + '.zig' in JOINED:
+            return JOINED[spec + '.zig']  # a joined file named as a package (stale; convert)
         assert spec in packages, '%s: unknown module %r' % (path, spec)
         return spec
     return package_of(resolve(path, spec))
@@ -295,6 +334,7 @@ class Exports:
         self.texts = texts
         self.added = collections.defaultdict(dict)  # root -> {relative path: name}
         self.embedded = collections.defaultdict(dict)  # root -> {relative path: name}
+        self.promoted = collections.defaultdict(set)  # root -> names made `pub`
 
     def chain(self, package, target):
         """Field path from the package root to `target` over `pub const x = @import(...)`
@@ -326,6 +366,11 @@ class Exports:
         table = self.embedded[root] if embed else self.added[root]
         if relative in table:
             return table[relative]
+        private = re.search(r'^const (\w+) = @import\("%s"\);$' % re.escape(relative),
+                            self.texts[root], re.M)
+        if private and not embed:
+            self.promoted[root].add(private.group(1))
+            return private.group(1)
         taken = set(TOP_NAME.findall(self.texts[root]))
         taken |= set(self.added[root].values()) | set(self.embedded[root].values())
         stem = relative if embed else relative[:-len('.zig')]
@@ -341,6 +386,8 @@ class Exports:
         lines = ['pub const %s = @import("%s");' % (n, r) for r, n in self.added[root].items()]
         lines += ['pub const %s = @embedFile("%s");' % (n, r)
                   for r, n in self.embedded[root].items()]
+        for name in sorted(self.promoted[root]):
+            text = re.sub(r'^const %s = ' % name, 'pub const %s = ' % name, text, 1, re.M)
         if not lines:
             return text
         lines = [l if len(l) <= 100 else l.replace(' = ', ' =\n    ', 1) for l in sorted(lines)]
@@ -366,8 +413,46 @@ def named(exports, path, item):
     return '@import("%s").%s' % (package, '.'.join(fields))
 
 
+def unjoined(texts, tools):
+    """Texts with each import of a joined binary file by its old package name made a relative
+    import of that file, for `rewrite` to name the package that holds it now."""
+    out = dict(texts)
+    for f in sorted(texts):
+        if f in tools or not f.startswith('bin/'):
+            continue
+        text = texts[f]
+        for item in reversed(imports(text)):
+            if item.kind == 'import' and item.spec + '.zig' in JOINED:
+                target = os.path.relpath(item.spec + '.zig', os.path.dirname(f))
+                relative = '@import("%s")' % target.replace(os.sep, '/')
+                text = text[:item.start] + relative + text[item.end:]
+        out[f] = text
+    return out
+
+
+def missing_references(texts):
+    """{root: [file]}: joined files with a test that no unnamed test block of their package's
+    root references, by `_ = @import("<file>");` or `_ = name;` for its import; each file is
+    its path relative to the root's folder."""
+    out = collections.defaultdict(list)
+    for member, package in sorted(JOINED.items()):
+        if not re.search(r'^[ \t]*test\b', COMMENT.sub('', texts[member]), re.M):
+            continue
+        root = package_root(package)
+        name = os.path.relpath(member, os.path.dirname(root)).replace(os.sep, '/')
+        text = COMMENT.sub('', texts[root])
+        aliases = set(re.findall(r'^(?:pub )?const (\w+) = @import\("%s"\);$' % re.escape(name),
+                                 text, re.M))
+        lines = [l.strip() for _, body in UNNAMED_TEST.findall(text) for l in body.split('\n')]
+        wanted = {'_ = @import("%s");' % name} | {'_ = %s;' % a for a in aliases}
+        if not wanted & set(lines):
+            out[root].append(name)
+    return out
+
+
 def rewrite(texts, tools):
     """{path: new text} for every file with a cross-package import, roots included."""
+    original, texts = texts, unjoined(texts, tools)
     exports, out = Exports(texts), {}
     for f in sorted(texts):
         if f in tools:
@@ -379,12 +464,15 @@ def rewrite(texts, tools):
             replacement = named(exports, f, item)
             if replacement is not None:
                 text = text[:item.start] + replacement + text[item.end:]
-        if text != texts[f]:
+        if text != original[f]:
             out[f] = text
-    for root in set(exports.added) | set(exports.embedded):
+    for root in set(exports.added) | set(exports.embedded) | set(exports.promoted):
         text = exports.apply(root, out.get(root, texts[root]))
-        if text != texts[root]:
+        if text != original[root]:
             out[root] = text
+    for root, names in missing_references(dict(original, **out)).items():
+        block = ''.join('    _ = @import("%s");\n' % n for n in names)
+        out[root] = out.get(root, original[root]) + '\ntest {\n' + block + '}\n'
     return out
 
 
@@ -436,10 +524,34 @@ def selftest_tool_imports():
     return failures
 
 
+def selftest_joined():
+    """unjoined and reference_errors in memory, JOINED set for the fixture and put back."""
+    saved, failures = dict(JOINED), []
+    try:
+        JOINED.clear()
+        JOINED.update({'bin/a/helper.zig': 'bin/a/main', 'bin/x/pool.zig': 'bin/x/feed'})
+        texts = {'bin/b/main.zig': 'const h = @import("bin/a/helper");\n',
+                 'bin/a/helper.zig': 'pub const value = 1;\n',
+                 'bin/x/feed.zig': 'pub const pool = @import("pool.zig");\n\ntest "feed" {}\n',
+                 'bin/x/pool.zig': 'test "pool" {}\n'}
+        got = unjoined(texts, set())['bin/b/main.zig']
+        if got != 'const h = @import("../a/helper.zig");\n':
+            failures.append('unjoined across binaries: got %r' % got)
+        got = reference_errors(texts)
+        want = ['bin/x/feed.zig:5: no test block references pool.zig, which joins its '
+                'package; run convert']
+        if got != want:
+            failures.append('reference error: got %r, want %r' % (got, want))
+    finally:
+        JOINED.clear()
+        JOINED.update(saved)
+    return failures
+
+
 def selftest():
     """Failures of the in-memory fixtures (`packages.py selftest`; `check` runs them)."""
     failures = []
-    for case in (selftest_compile_only, selftest_tool_imports):
+    for case in (selftest_compile_only, selftest_tool_imports, selftest_joined):
         failures += case()
     return failures
 
@@ -489,6 +601,17 @@ def table(texts, tools, packages):
     return '\n'.join(lines + ['}', ''])
 
 
+def reference_errors(texts):
+    """missing_references as errors, each at the line where `convert` adds the test block
+    (two past the root's last line)."""
+    errors = []
+    for root, names in sorted(missing_references(texts).items()):
+        line = texts[root].count('\n') + 2
+        errors.append('%s:%d: no test block references %s, which joins its package; run '
+                      'convert' % (root, line, ', '.join(names)))
+    return errors
+
+
 def import_errors(texts, tools):
     """Relative imports that cross a package boundary, a binary's file that imports `base`,
     and a src/ file, a tool's included, that imports a binary's package."""
@@ -502,6 +625,9 @@ def import_errors(texts, tools):
                 if f.startswith('src/') and item.spec.startswith('bin/'):
                     errors.append('%s:%d: %s is a binary\'s package; a src/ file must not '
                                   'import it' % (f, item.line, item.spec))
+                if item.spec + '.zig' in JOINED:
+                    errors.append('%s:%d: %s joined package %s; run convert' %
+                                  (f, item.line, item.spec, JOINED[item.spec + '.zig']))
                 continue
             if f in tools:  # a tool's relative imports are its own files
                 continue
@@ -513,9 +639,10 @@ def import_errors(texts, tools):
 
 
 def table_errors():
-    """import_errors, and a stale packages.zon."""
+    """import_errors, reference_errors, and a stale packages.zon."""
     texts, tools, packages = read_sources()
     errors = import_errors(texts, tools)
+    errors += reference_errors(texts)
     with open(os.path.join(ROOT, TABLE), encoding='utf-8') as handle:
         if handle.read() != table(texts, tools, packages):
             errors.append('%s is stale; run etc/scripts/packages.py convert' % TABLE)

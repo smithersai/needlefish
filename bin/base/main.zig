@@ -122,8 +122,8 @@ test {
     _ = @import("bin/base/up_view");
     _ = @import("bin/base/derive_check_net");
     _ = @import("bin/base/el_source");
-    _ = @import("bin/base/el_pool");
-    _ = @import("bin/base/el_gossip");
+    _ = @import("bin/base/el_feed").el_pool;
+    _ = @import("bin/base/el_fetch").el_gossip;
     _ = @import("bin/base/metrics_server");
 }
 

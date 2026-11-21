@@ -48,7 +48,7 @@ const Io = std.Io;
 
 const el_source = @import("bin/base/el_source");
 const el_feed = @import("bin/base/el_feed");
-const el_gossip = @import("bin/base/el_gossip");
+const el_gossip = @import("bin/base/el_fetch").el_gossip;
 const import_run_cli = @import("bin/base/import_run");
 const snapshot_import_out = @import("bin/base/snapshot_import").snapshot_import_out;
 const unsafe_watch = @import("bin/base/unsafe_watch");

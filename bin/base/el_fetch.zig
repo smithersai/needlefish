@@ -28,7 +28,7 @@ const std = @import("std");
 
 const el_source = @import("bin/base/el_source");
 const el_feed = @import("bin/base/el_feed");
-const el_gossip = @import("bin/base/el_gossip");
+pub const el_gossip = @import("el_gossip.zig");
 const unsafe_watch = @import("bin/base/unsafe_watch");
 const enode = @import("consensus/p2p").peers.enode;
 const curve = @import("common/crypto").secp256k1;
@@ -316,4 +316,8 @@ test "el-fetch: flags take a number or the tip, and a valueless --follow anywher
         "abababababababababababababababab");
     const bound = try parse_flags(&.{ "--enode", enode_text, "--from", "1", "--parent", parent });
     try std.testing.expectEqual(@as(u8, 0xab), bound.parent.?[31]);
+}
+
+test {
+    _ = @import("el_gossip.zig");
 }

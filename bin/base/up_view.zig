@@ -10,7 +10,7 @@
 //! redraw: progress prints at most every 30 s and marks read `ok` / `FAIL`.
 
 const std = @import("std");
-const replay_tui = @import("bin/base/replay_tui");
+pub const replay_tui = @import("replay_tui.zig");
 
 const Io = std.Io;
 const Style = replay_tui.Style;
