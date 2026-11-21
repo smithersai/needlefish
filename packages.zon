@@ -16,6 +16,7 @@
             "testing",
             "utilities",
         },
+        .compile_only = true,
     },
     .{
         .name = "batcher",
@@ -38,6 +39,7 @@
             "batcher/txdata",
             "batcher/txmgr",
         },
+        .compile_only = true,
     },
     .{
         .name = "batcher/admin",
@@ -153,7 +155,7 @@
             "testing/prng",
         },
     },
-    .{ .name = "builder", .deps = .{ "builder/core", "builder/metering" } },
+    .{ .name = "builder", .deps = .{ "builder/core", "builder/metering" }, .compile_only = true },
     .{
         .name = "builder/core",
         .deps = .{
@@ -195,6 +197,7 @@
             "common/rpc_types",
             "common/signer",
         },
+        .compile_only = true,
     },
     .{ .name = "common/chains", .deps = .{"common/primitives"} },
     .{
@@ -258,6 +261,7 @@
             "consensus/sources",
             "consensus/sources_fixtures",
         },
+        .compile_only = true,
     },
     .{
         .name = "consensus/derive",
@@ -435,6 +439,7 @@
             "execution/trie",
             "execution/txpool",
         },
+        .compile_only = true,
     },
     .{
         .name = "execution/archive",
@@ -646,6 +651,7 @@
             "infra/tx_manager",
             "infra/withdrawer",
         },
+        .compile_only = true,
     },
     .{
         .name = "infra/audit",
@@ -1126,6 +1132,7 @@
             "execution/trie",
             "proof/preimage",
         },
+        .compile_only = true,
     },
     .{
         .name = "testing",
@@ -1220,6 +1227,7 @@
             "utilities/upgrade_signal",
             "utilities/ws",
         },
+        .compile_only = true,
     },
     .{
         .name = "utilities/balance_monitor",

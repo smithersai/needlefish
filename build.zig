@@ -11,6 +11,7 @@
 //!   zig build test         run all unit tests, one binary per package (-Dtest-filter=...);
 //!                          a slow binary runs as parallel shards (`test_shards`;
 //!                          -Dtest-shards=false runs every binary once)
+//!   zig build check        compile every test binary and tool without running them
 //!   zig build test:common/rlp  run one package's tests (reruns only when its inputs change)
 //!   zig build fuzz         build fuzz smoke tests (fuzz: `zig build test --fuzz
 //!                          -Dtest-shards=false`; shards are never fuzzed)
@@ -34,6 +35,9 @@ const Package = struct {
     root: ?[]const u8 = null,
     /// Packages, and `build_options`, that the package's files import by name.
     deps: []const []const u8,
+    /// Its tests only reference declarations: `zig build check` compiles its test binary and
+    /// `zig build test` does not run it (`zig build test:<name>` still does).
+    compile_only: bool = false,
 };
 
 const packages: []const Package = @import("packages.zon");
@@ -219,7 +223,7 @@ fn add_package_tests(
     std.debug.assert(modules.len == packages.len);
     for (test_shards) |shards| {
         std.debug.assert(shards.count >= 2);
-        _ = package_index(shards.package);
+        std.debug.assert(!packages[package_index(shards.package)].compile_only);
     }
     // etc/scripts/test-times.sh runs each installed binary to time its tests.
     const install_step = b.step("test-bins", "Install every package's test binary in zig-out/test");
@@ -244,7 +248,7 @@ fn add_package_tests(
                 run_tests.setName(b.fmt("run test {s} shard {d}/{d}", .{ name, shard, shards }));
                 run_tests.addArg(b.fmt("--shard={d}/{d}", .{ shard, shards }));
             }
-            test_step.dependOn(&run_tests.step);
+            if (!package.compile_only) test_step.dependOn(&run_tests.step);
             package_step.dependOn(&run_tests.step);
         }
         check_step.dependOn(&unit_tests.step);

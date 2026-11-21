@@ -106,8 +106,12 @@ replay-run archive='src/infra/replay/testdata/base-mainnet-53715983-10.nfrp':
     zig build -Doptimize=ReleaseFast
     zig-out/bin/base replay run {{ archive }}
 
+# Compile every test binary and tool without running them (compile checks, statetest, sim)
+check:
+    zig build check
+
 # Everything CI runs
-ci: tidy test
+ci: tidy test check
 
 # Fetch public Ethereum test vectors into .cache/ (git-ignored)
 vectors:

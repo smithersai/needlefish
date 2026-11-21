@@ -10,6 +10,10 @@ A package is a folder of src/ two levels deep, plus the files under it:
                                  to the group root, which imports every subfolder.
 Files that `@import("base")` are tool entry points (`*_main.zig`), not package members.
 
+A package without a named test, whose unnamed `test {}` blocks only reference declarations
+(`std.testing.refAllDecls(...)`, `_ = x;`), is a compile check: packages.zon marks it
+`.compile_only = true`; `zig build check` compiles its test binary, `zig build test` skips it.
+
 Edge A -> B: a file of package A imports (`@import`, `@embedFile`) a file of package B.
 
 The rule (`check`): the import graph is acyclic, with no exception. Packages in a cycle
@@ -25,7 +29,8 @@ writes packages.zon, which lists every package, its root file, and the names it 
 `check` also fails on a relative import that crosses a package boundary and on a
 packages.zon that `convert` would change.
 
-usage: python3 -I etc/scripts/packages.py check    (run by etc/scripts/tidy.sh)
+usage: python3 -I etc/scripts/packages.py check    (run by etc/scripts/tidy.sh; runs selftest)
+       python3 -I etc/scripts/packages.py selftest (in-memory fixtures of the rules above)
        python3 -I etc/scripts/packages.py convert  (named cross-package imports; packages.zon)
 """
 import collections
@@ -45,6 +50,15 @@ LEAVES = {
 BUILTIN_NAMES = {'std', 'builtin', 'root', 'build_options'}
 IMPORT = re.compile(r'@(import|embedFile)\(\s*"([^"\\]*)"\s*,?\s*\)')
 COMMENT = re.compile(r'^[ \t]*//.*$', re.M)
+NAMED_TEST = re.compile(r'^[ \t]*test[ \t]+["A-Za-z_]', re.M)
+UNNAMED_TEST = re.compile(r'^([ \t]*)test[ \t]*\{\n(.*?)^\1\}', re.M | re.S)
+TEST_DECL = re.compile(r'^[ \t]*test\b', re.M)
+PATH = r'[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*'
+# The statements a compile check's test block may hold: each only makes the compiler analyze a
+# declaration. Anything else (a call, a `try`, a trailing comment) keeps the package a run test.
+REFERENCE = re.compile(r'^[ \t]*(?:_ = @import\("[^"\\]*"\)(?:\.%s)?|_ = %s|'
+                       r'std\.testing\.refAllDecls\((?:@This\(\)|%s)\));[ \t]*$' %
+                       (PATH, PATH, PATH))
 
 
 def package_of(path):
@@ -202,8 +216,9 @@ def cycle_errors(graph, component):
 
 
 def check():
+    errors = ['selftest: ' + f for f in selftest()]
     graph, _, _ = scan()
-    errors = table_errors() if os.path.exists(os.path.join(ROOT, TABLE)) else []
+    errors += table_errors() if os.path.exists(os.path.join(ROOT, TABLE)) else []
     for component in cycles(graph):
         errors += cycle_errors(graph, component)
     for e in errors:
@@ -327,8 +342,62 @@ def rewrite(texts, tools):
     return out
 
 
+def compile_checks(texts, tools, packages):
+    """Packages whose tests only reference declarations: every `test` of their files is an
+    unnamed block on lines of its own, and every statement in it is one REFERENCE names
+    (`_ = @import("...");`, `_ = a.b;` with no call, `std.testing.refAllDecls(...);`). A
+    test this cannot parse or a statement it does not recognise keeps the package a run test."""
+    runs = set()
+    for f, text in texts.items():
+        if f in tools:
+            continue
+        text = COMMENT.sub('', text)
+        blocks = [body for _, body in UNNAMED_TEST.findall(text)]
+        lines = [line for body in blocks for line in body.split('\n') if line.strip()]
+        parsed = len(blocks) == len(TEST_DECL.findall(text))
+        if not parsed or NAMED_TEST.search(text) or not all(REFERENCE.match(l) for l in lines):
+            runs.add(package_of(f))
+    return packages - runs
+
+
+def selftest_compile_only():
+    """compile_checks on in-memory packages: (fixture, test text, compile-only expected)."""
+    cases = [
+        ('references only', 'test {\n    std.testing.refAllDecls(@This());\n'
+         '    _ = @import("x.zig");\n    _ = @import("g/b").c;\n    _ = helper.sub;\n}\n',
+         True),
+        ('no test', 'pub const x = 1;\n', True),
+        ('a call in `_ =`', 'test {\n    _ = runtime_check();\n}\n', False),
+        ('a one-line unnamed test', 'test { try std.testing.expect(ok()); }\n', False),
+        ('a named test', 'test "x" {\n    _ = y;\n}\n', False),
+        ('a trailing comment', 'test {\n    _ = y; // and more\n}\n', False),
+    ]
+    failures = []
+    for name, text, expected in cases:
+        got = 'g/a' in compile_checks({'src/g/a/root.zig': text}, set(), {'g/a'})
+        if got != expected:
+            failures.append('compile-only %s: got %s, want %s' % (name, got, expected))
+    return failures
+
+
+def selftest():
+    """Failures of the in-memory fixtures (`packages.py selftest`; `check` runs them)."""
+    failures = []
+    for case in (selftest_compile_only,):
+        failures += case()
+    return failures
+
+
+def run_selftest():
+    failures = selftest()
+    for f in failures:
+        print('packages: selftest: ' + f)
+    return 1 if failures else 0
+
+
 def table(texts, tools, packages):
-    """packages.zon text: every package, its root when not src/<name>/root.zig, its deps."""
+    """packages.zon text: every package, its root when not src/<name>/root.zig, its deps, and
+    whether its test binary is only a compile check."""
     deps = {p: set() for p in packages}
     for f, text in texts.items():
         if f in tools:
@@ -337,6 +406,7 @@ def table(texts, tools, packages):
             if item.kind == 'import' and not item.spec.endswith('.zig'):
                 if item.spec == 'build_options' or item.spec in packages:
                     deps[package_of(f)].add(item.spec)
+    checks = compile_checks(texts, tools, packages)
     lines = ['// Generated by `etc/scripts/packages.py convert`: one Zig module per package.',
              '// `deps` are the named imports of its files; build.zig reads this table.',
              '.{']
@@ -345,9 +415,10 @@ def table(texts, tools, packages):
         head = '.name = "%s"' % p
         if root != 'src/%s/root.zig' % p:
             head += ', .root = "%s"' % root
+        tail = ', .compile_only = true' if p in checks else ''
         names = ', '.join('"%s"' % d for d in sorted(deps[p]))
         names = ' %s ' % names if len(deps[p]) > 1 else names  # as zig fmt prints it
-        line = '    .{ %s, .deps = .{%s} },' % (head, names)
+        line = '    .{ %s, .deps = .{%s}%s },' % (head, names, tail)
         if len(line) <= 100:
             lines.append(line)
             continue
@@ -355,7 +426,10 @@ def table(texts, tools, packages):
         lines.append('        %s,' % head.replace(', .root', ',\n        .root'))
         lines.append('        .deps = .{')
         lines += ['            "%s",' % d for d in sorted(deps[p])]
-        lines += ['        },', '    },']
+        lines.append('        },')
+        if tail:
+            lines.append('        .compile_only = true,')
+        lines.append('    },')
     return '\n'.join(lines + ['}', ''])
 
 
@@ -393,7 +467,7 @@ def convert():
 
 
 if __name__ == '__main__':
-    commands = {'check': check, 'convert': convert}
+    commands = {'check': check, 'convert': convert, 'selftest': run_selftest}
     if len(sys.argv) != 2 or sys.argv[1] not in commands:
         sys.exit(__doc__)
     sys.exit(commands[sys.argv[1]]())
