@@ -24,8 +24,13 @@ pub const bench = @import("bench.zig");
 pub const senders = @import("senders.zig");
 pub const durable = @import("durable.zig");
 pub const Durable = durable.Durable;
+/// Witness size and build-time benchmarks over the db, run by `bench_main.zig`.
+pub const witness_bench = @import("witness_bench.zig");
 test {
     std.testing.refAllDecls(@This());
     _ = @import("durable_test.zig");
     _ = @import("history_test.zig");
+    // The db witness checks that run blocks through the evm sit here, above db and evm.
+    _ = @import("witness_evm_test.zig");
+    _ = @import("witness_block_test.zig");
 }

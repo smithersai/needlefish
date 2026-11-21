@@ -15,14 +15,14 @@ const std = @import("std");
 const assert = std.debug.assert;
 const testing = std.testing;
 
-const witness = @import("witness.zig");
-const state_module = @import("state.zig");
-const overlay_module = @import("overlay.zig");
-const changeset_module = @import("changeset.zig");
-const evm_backend = @import("evm_backend.zig");
+const witness = @import("execution/db").witness;
+const state_module = @import("execution/db").state;
+const overlay_module = @import("execution/db").overlay;
+const changeset_module = @import("execution/db").changeset;
+const evm_backend = @import("execution/db").evm_backend;
 const evm = @import("execution/evm");
 const trie = @import("execution/trie");
-const HeaderChain = @import("witness_header_chain.zig").HeaderChain;
+const HeaderChain = @import("execution/db").witness_header_chain.HeaderChain;
 const Prng = @import("testing/prng").Prng;
 
 const op = evm.opcode;

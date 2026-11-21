@@ -1,5 +1,5 @@
 //! Execution witness benchmarks: size and build time per block, run by `run` from
-//! `src/testing/bench_main.zig` (through `bench.witness`).
+//! `src/testing/bench_main.zig` (through `execution.node.witness_bench`).
 //!
 //! State: the db bench state (`bench.shape_bench`: 100k accounts, 1k contracts x 64 slots),
 //! with every contract running `witness_evm_test.code_storage` (`old = SLOAD(cd[0]);
@@ -19,14 +19,14 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
-const bench = @import("bench.zig");
-const witness = @import("witness.zig");
-const witness_codec = @import("witness_codec.zig");
+const bench = @import("execution/db").bench;
+const witness = @import("execution/db").witness;
+const witness_codec = @import("execution/db").witness_codec;
 const witness_evm_test = @import("witness_evm_test.zig");
-const state_module = @import("state.zig");
-const overlay_module = @import("overlay.zig");
-const changeset_module = @import("changeset.zig");
-const evm_backend = @import("evm_backend.zig");
+const state_module = @import("execution/db").state;
+const overlay_module = @import("execution/db").overlay;
+const changeset_module = @import("execution/db").changeset;
+const evm_backend = @import("execution/db").evm_backend;
 const evm = @import("execution/evm");
 const Prng = @import("testing/prng").Prng;
 

@@ -31,8 +31,6 @@ const IoStorageType = @import("storage/io_storage.zig").IoStorageType;
 const io_root = @import("utilities/io");
 const Prng = @import("testing/prng").Prng;
 
-/// Witness size and build-time benchmarks (`witness_bench.zig`), run by `bench_main.zig`.
-pub const witness = @import("witness_bench.zig");
 /// Read-path benchmarks (`read_bench.zig`), run by `bench_main.zig`.
 pub const read = @import("read_bench.zig");
 /// History store bytes per retained block (`history_bench.zig`), run by `bench_main.zig`.
@@ -793,7 +791,6 @@ fn delete_scratch(io: std.Io) void {
 }
 
 test {
-    _ = witness;
     _ = read;
     _ = history;
     _ = steady;
