@@ -15,8 +15,7 @@
 //!     BENCH case=<name> iterations=<n> gas=<gas used> exec_ns=<mean> total_ns=<mean> ok=<0|1>
 
 const std = @import("std");
-const base = @import("base");
-const evm = base.execution.evm;
+const evm = @import("execution/evm");
 const state_test = evm.state_test;
 const Io = std.Io;
 const Value = std.json.Value;

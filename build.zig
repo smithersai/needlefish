@@ -97,26 +97,28 @@ pub fn build(b: *std.Build) void {
     add_binaries(b, base, target, optimize, test_step, filters, use_llvm);
 
     // Deterministic simulation testing and micro benchmarks.
-    const sim = add_tool(b, base, target, optimize, .{
+    const uses_base: []const std.Build.Module.Import = &.{.{ .name = "base", .module = base }};
+    const sim = add_tool(b, uses_base, target, optimize, .{
         .name = "simulator",
         .path = "src/testing/simulator_main.zig",
         .step = "sim",
         .description = "Run the deterministic simulator: zig build sim -- [seed]",
     });
     b.installArtifact(sim);
-    const bench = add_tool(b, base, target, optimize, .{
+    const bench = add_tool(b, uses_base, target, optimize, .{
         .name = "bench",
         .path = "src/testing/bench_main.zig",
         .step = "bench",
         .description = "Run micro benchmarks",
     });
 
-    const statetest = add_vector_tools(b, base, target, optimize);
+    const statetest = add_vector_tools(b, modules, target, optimize);
     // `etc/bench/evm2.sh` installs the state-test runner (`statetest --bench`) per build mode.
     const bench_tools = b.step("bench-tools", "Install the benchmark tools (statetest)");
     bench_tools.dependOn(&b.addInstallArtifact(statetest, .{}).step);
-    // Compile (not run) the state-test runner on every `zig build test`: it is the EVM's
-    // conformance oracle, and cross-lane API changes once broke it unnoticed.
+    // Compile (not run) the state-test runner in `zig build test`: it is the EVM's conformance
+    // oracle, and cross-lane API changes once broke it unnoticed. It imports only the EVM, so
+    // it recompiles only when a file the EVM compiles changes.
     test_step.dependOn(&statetest.step);
 
     check_step.dependOn(&sim.step);
@@ -261,12 +263,19 @@ fn add_package_tests(
 /// Runners over public vectors fetched by `just vectors`.
 fn add_vector_tools(
     b: *std.Build,
-    base: *std.Build.Module,
+    modules: []const *std.Build.Module,
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
 ) *std.Build.Step.Compile {
-    // ethereum/tests GeneralStateTests runner (vectors from `just vectors`).
-    const statetest = add_tool(b, base, target, optimize, .{
+    const uses_base: []const std.Build.Module.Import = &.{
+        .{ .name = "base", .module = modules[package_index("base")] },
+    };
+    // ethereum/tests GeneralStateTests runner (vectors from `just vectors`). It imports only
+    // the EVM, so an edit outside the EVM's packages does not recompile it.
+    const uses_evm: []const std.Build.Module.Import = &.{
+        .{ .name = "execution/evm", .module = modules[package_index("execution/evm")] },
+    };
+    const statetest = add_tool(b, uses_evm, target, optimize, .{
         .name = "statetest",
         .path = "src/execution/evm/state_test_main.zig",
         .step = "statetest",
@@ -274,7 +283,7 @@ fn add_vector_tools(
     });
 
     // Real chain blocks, one transaction at a time on its prestateTracer pre-state.
-    _ = add_tool(b, base, target, optimize, .{
+    _ = add_tool(b, uses_base, target, optimize, .{
         .name = "txcheck",
         .path = "src/execution/evm/tx_check_main.zig",
         .step = "txcheck",
@@ -282,7 +291,7 @@ fn add_vector_tools(
     });
 
     // ethereum/tests TransactionTests through the strict tx decoder.
-    _ = add_tool(b, base, target, optimize, .{
+    _ = add_tool(b, uses_base, target, optimize, .{
         .name = "txtest",
         .path = "src/common/consensus/tx_test_main.zig",
         .step = "txtest",
@@ -290,7 +299,7 @@ fn add_vector_tools(
     });
 
     // ethereum/tests BlockchainTests block RLP through the strict block decoder.
-    _ = add_tool(b, base, target, optimize, .{
+    _ = add_tool(b, uses_base, target, optimize, .{
         .name = "blockrlp",
         .path = "src/common/consensus/block_test_main.zig",
         .step = "blockrlp",
@@ -298,7 +307,7 @@ fn add_vector_tools(
     });
 
     // base/base genesis parity (files from `just vectors`).
-    _ = add_tool(b, base, target, optimize, .{
+    _ = add_tool(b, uses_base, target, optimize, .{
         .name = "genesischeck",
         .path = "src/common/genesis/check_main.zig",
         .step = "genesischeck",
@@ -314,10 +323,10 @@ const Tool = struct {
     description: []const u8,
 };
 
-/// An executable over the `base` module with a run step that forwards `-- args`.
+/// An executable over the given modules with a run step that forwards `-- args`.
 fn add_tool(
     b: *std.Build,
-    base: *std.Build.Module,
+    imports: []const std.Build.Module.Import,
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     tool: Tool,
@@ -328,7 +337,7 @@ fn add_tool(
             .root_source_file = b.path(tool.path),
             .target = target,
             .optimize = optimize,
-            .imports = &.{.{ .name = "base", .module = base }},
+            .imports = imports,
         }),
     });
     const run = b.addRunArtifact(exe);

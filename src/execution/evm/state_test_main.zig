@@ -6,8 +6,7 @@
 //! case instead and prints `BENCH` lines (`state_test_bench.zig`, `etc/bench/evm2.sh`).
 
 const std = @import("std");
-const base = @import("base");
-const evm = base.execution.evm;
+const evm = @import("execution/evm");
 const state_test = evm.state_test;
 const Io = std.Io;
 const assert = std.debug.assert;

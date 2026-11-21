@@ -8,7 +8,8 @@ A package is a folder of src/ two levels deep, plus the files under it:
   LEAVES below                   single-file packages: loose group files that subfolders
                                  import; inside "<group>" they would tie every subfolder
                                  to the group root, which imports every subfolder.
-Files that `@import("base")` are tool entry points (`*_main.zig`), not package members.
+Tool entry points (`src/**/*_main.zig`), and the files only tools import, are not package
+members; a tool imports packages by name or all of them as `base`.
 
 A package without a named test, whose unnamed `test {}` blocks only reference declarations
 (`std.testing.refAllDecls(...)`, `_ = x;`), is a compile check: packages.zon marks it
@@ -107,9 +108,27 @@ def read_sources():
     for f in source_files():
         with open(os.path.join(ROOT, f), encoding='utf-8') as handle:
             texts[f] = handle.read()
-    tools = {f for f in texts if any(i.spec == 'base' for i in imports(texts[f]))}
+    tools = tool_files(texts)
     packages = {package_of(f) for f in texts if f not in tools}
     return texts, tools, packages
+
+
+def tool_files(texts):
+    """Tool entry points (`src/**/*_main.zig`) and the files only tools import (relatively),
+    package roots excepted."""
+    tools = {f for f in texts if f.startswith('src/') and f.endswith('_main.zig')}
+    importers = collections.defaultdict(set)
+    for f in texts:
+        for i in imports(texts[f]):
+            if i.kind == 'import' and i.spec.endswith('.zig'):
+                importers[resolve(f, i.spec)].add(f)
+    for _ in range(len(texts)):  # each pass adds a file or ends the loop
+        more = {f for f in texts if f not in tools and importers[f] and importers[f] <= tools
+                and f != package_root(package_of(f))}
+        if not more:
+            break
+        tools |= more
+    return tools
 
 
 def scan():
