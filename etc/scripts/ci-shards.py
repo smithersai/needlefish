@@ -63,6 +63,12 @@ MAX_SHARDS = 64  # `check` verifies every count up to this one
 # so this is about 30 s of work: with the shard's setup it stays within the one minute GitHub
 # bills a job at least.
 SHARD_SECONDS = 60.0
+# What a part's chain, its compile plus its slowest run, which no processor of the job shares,
+# weighs against the budget: the summed step seconds of a job were 1.6 times its work at the
+# median over 294 job logs of GitHub's 4-vCPU runners, so a chain of c seconds fills c * 1.6
+# of a shard. A part whose chain fills a shard is dealt at that weight, so the dealer gives it
+# a shard of its own, unless every other shard is fuller.
+CHAIN_WEIGHT = 1.6
 CI_STEPS = re.compile(r'^const ci_steps = \[_\]\[\]const u8\{\n(.*?)^\};', re.M | re.S)
 NAME = re.compile(r'\.name = "([^"]+)"')
 TEST_SHARDS = re.compile(r'^const test_shards = \[_\]Shards\{\n(.*?)^\};', re.M | re.S)
@@ -454,7 +460,8 @@ def selftest():
 def group_selftest():
     """The dealer's guarantees for groups: a matrix that skips a group, runs one twice, or runs
     a step beside its group is caught; a step is split into the fewest groups that fit, and a
-    step that fits, or whose compile costs as much as its runs, is not split."""
+    step that fits, or whose compile costs as much as its runs, is not split; a step whose
+    chain fills a shard gets one to itself."""
     errors, counts = [], {'test:x': 4, 'tidy': 1}
     whole = ['test:x@1/2', 'test:x@2/2', 'tidy']
     if coverage_errors(whole, counts):
@@ -470,6 +477,11 @@ def group_selftest():
             ((30.0, (5.0, 5.0, 5.0, 5.0)), 20.0, ['test:x'])]:
         if sorted(split_steps({'test:x': cost}, target)) != expected:
             errors.append('%r at %.0f s does not split into %s' % (cost, target, expected))
+    chain = SHARD_SECONDS / CHAIN_WEIGHT
+    long = {'test:long': (0.0, (chain,))}
+    long.update({'test:%d' % i: (0.0, (chain / 3.0,)) for i in range(5)})
+    if ['test:long'] not in plan_shards(long, 12):
+        errors.append('a step whose one run fills a shard does not get a shard to itself')
     return errors
 
 
@@ -655,6 +667,25 @@ def part_cost(name, costs):
     return compile_seconds + sum(runs[index] for index in shards)
 
 
+def part_chain(name, costs):
+    """Seconds of a part's compile plus its slowest run: the least its job can take."""
+    group = GROUP.match(name)
+    compile_seconds, runs = costs[group.group(1) if group else name]
+    shards = group_shards(int(group.group(2)), int(group.group(3)), len(runs)) if group else \
+        range(len(runs))
+    return compile_seconds + max(runs[index] for index in shards)
+
+
+def deal_weights(parts, costs):
+    """{part: weight}: its cost, or CHAIN_WEIGHT times its chain when that fills a shard."""
+    out = {}
+    for name, cost in parts.items():
+        chain = CHAIN_WEIGHT * part_chain(name, costs)
+        out[name] = max(cost, chain) if chain >= SHARD_SECONDS else cost
+    assert all(out[name] >= parts[name] for name in parts)
+    return out
+
+
 def coverage_errors(names, counts):
     """Why `names` (steps and groups `<step>@K/G`) do not run each shard of each step in
     `counts` ({step: shard count, 1 for a step that does not shard}) exactly once, or []."""
@@ -690,7 +721,7 @@ def plan_shards(costs, limit):
     if not costs:
         return []
     whole = sum(total(cost) for cost in costs.values())
-    parts = split_steps(costs, max(SHARD_SECONDS, whole / limit))
+    parts = deal_weights(split_steps(costs, max(SHARD_SECONDS, whole / limit)), costs)
     count = math.ceil(sum(parts.values()) / SHARD_SECONDS)
     shards = split(parts, max(1, min(limit, len(parts), count)))[0]
     assert all(shards) and sum(len(shard) for shard in shards) == len(parts)
