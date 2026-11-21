@@ -1,6 +1,8 @@
 # `just ci` (tidy, zig build test, zig build check) as parallel jobs. The logic lives in etc/:
-# etc/scripts/ci-shards.py deals the steps to shards by etc/ci/costs.tsv, etc/ci/shard.sh runs
-# one shard. Keep this file thin (AGENTS.md rule 9).
+# etc/scripts/ci-shards.py plans the steps a push affects and deals them to shards by
+# etc/ci/costs.tsv; etc/ci/shard.sh runs one shard. Keep this file thin (AGENTS.md rule 9).
+# `done` is the one job to require in branch protection: it passes when tidy and every shard
+# pass, and when the plan starts no shard (a push that changes no package).
 name: test
 
 on:
@@ -15,13 +17,55 @@ permissions:
   contents: read
 
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read # etc/ci/baseline.sh finds the last green run
+    outputs:
+      count: ${{ steps.plan.outputs.count }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: plan
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+        # Against the last commit whose run passed on this branch (etc/ci/baseline.sh says why);
+        # with none, every step.
+        run: |
+          base=$(bash etc/ci/baseline.sh "$GITHUB_REPOSITORY" "$BRANCH" test.yml)
+          python3 -I etc/scripts/ci-shards.py plan "$base" HEAD 12 >> "$GITHUB_OUTPUT"
+
+  tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: restore zig
+        id: zig
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/zig
+          key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('etc/scripts/install-zig.sh') }}
+      - name: install zig
+        if: steps.zig.outputs.cache-hit != 'true'
+        run: sh etc/scripts/install-zig.sh "$HOME/zig"
+      - name: tidy
+        run: PATH="$HOME/zig:$PATH" bash etc/scripts/tidy.sh
+
   shard:
     name: shard ${{ matrix.shard }}
+    needs: plan
+    if: needs.plan.outputs.count != '0'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -56,7 +100,27 @@ jobs:
       - name: build runner
         run: zig build -l -Drequire-io-uring=true >/dev/null
       - name: steps
+        env:
+          STEPS: ${{ matrix.steps }}
         run: |
-          steps=$(python3 -I etc/scripts/ci-shards.py shard ${{ matrix.shard }} 12)
           # shellcheck disable=SC2086 # one step name per word
-          bash etc/ci/shard.sh $steps
+          bash etc/ci/shard.sh $STEPS
+
+  done:
+    needs: [plan, tidy, shard]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: every job passed
+        env:
+          PLAN: ${{ needs.plan.result }}
+          TIDY: ${{ needs.tidy.result }}
+          SHARDS: ${{ needs.shard.result }}
+          COUNT: ${{ needs.plan.outputs.count }}
+        # The shards are skipped, not failed, only when the plan started none.
+        run: |
+          echo "plan $PLAN, tidy $TIDY, shards $SHARDS ($COUNT planned)"
+          case "$PLAN $TIDY $SHARDS $COUNT" in
+            "success success success "* | "success success skipped 0") ;;
+            *) exit 1 ;;
+          esac
