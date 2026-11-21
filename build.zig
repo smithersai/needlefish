@@ -58,15 +58,15 @@ const test_shards = [_]Shards{
     .{ .package = "batcher/txmgr", .count = 4 },
     .{ .package = "common/crypto", .count = 16 },
     .{ .package = "consensus/p2p", .count = 10 },
-    .{ .package = "execution/db", .count = 9 },
+    .{ .package = "execution/db", .count = 15 },
     .{ .package = "execution/import", .count = 14 },
     .{ .package = "execution/node", .count = 13 },
     .{ .package = "execution/trie", .count = 7 },
     .{ .package = "infra/replay", .count = 7 },
-    .{ .package = "proof", .count = 4 },
-    .{ .package = "proof/tee", .count = 4 },
+    .{ .package = "proof", .count = 14 },
+    .{ .package = "proof/tee", .count = 12 },
     .{ .package = "testing", .count = 10 },
-    .{ .package = "testing/sim", .count = 9 },
+    .{ .package = "testing/sim", .count = 16 },
 };
 
 fn shard_count(package: []const u8) u32 {
