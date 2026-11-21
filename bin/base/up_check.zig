@@ -597,8 +597,10 @@ test "up check: a busy port moves unless named" {
     const io = testing.io;
     // pick_port steps up from a busy port by `port_stride` and gives up past 65535, and macOS
     // hands out ephemeral ports up to 65535: reopen (bounded) until the port leaves room above
-    // it for the steps below, two for TCP and one for the UDP pair.
-    const tries_max = 16;
+    // it for the steps below, two for TCP and one for the UDP pair. macOS hands out TCP ports
+    // in sequence and wraps after 65535, so leaving the top `2 * port_stride` ports can take
+    // that many reopens; twice that bounds both loops.
+    const tries_max = 4 * port_stride;
     const tcp_port_max = std.math.maxInt(u16) - 2 * port_stride;
     const udp_port_max = std.math.maxInt(u16) - port_stride;
     const address: Io.net.IpAddress = .{ .ip4 = .loopback(0) };
