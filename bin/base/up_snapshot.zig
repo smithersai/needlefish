@@ -18,8 +18,8 @@
 //!   again); a blake3 mismatch with no decode error cannot be localized and deletes them all.
 
 const std = @import("std");
-const up_tar = @import("up_tar.zig");
-const up_check = @import("up_check.zig");
+const up_tar = @import("bin/base/up_tar");
+const up_check = @import("bin/base/up_check");
 
 const Io = std.Io;
 const assert = std.debug.assert;

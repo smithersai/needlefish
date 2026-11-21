@@ -16,7 +16,7 @@
 const std = @import("std");
 const Io = std.Io;
 
-const HttpTransport = @import("http_transport.zig").HttpTransport;
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
 const follow = @import("infra/follow");
 const Follower = follow.Follower;
 const json = std.json;

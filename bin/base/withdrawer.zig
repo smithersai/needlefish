@@ -8,8 +8,8 @@
 //! environment) or, for devnets only, an index into the public dev mnemonic.
 
 const std = @import("std");
-const HttpTransport = @import("http_transport.zig").HttpTransport;
-const metrics_server = @import("metrics_server.zig");
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
+const metrics_server = @import("bin/base/metrics_server");
 
 const Io = std.Io;
 const cli = @import("utilities/cli");

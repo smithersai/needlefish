@@ -21,8 +21,8 @@
 const std = @import("std");
 const Io = std.Io;
 
-const net = @import("derive_check_net.zig");
-const check_sources = @import("derive_check_sources.zig");
+const net = @import("bin/base/derive_check_net");
+const check_sources = @import("bin/base/derive_check_sources");
 const derive_check = @import("consensus/derive_check");
 const compare = derive_check.compare;
 const start_rules = derive_check.start;

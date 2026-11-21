@@ -10,7 +10,7 @@
 //! renames it into place. `verify` checks a manifest's chunks without writing anything.
 
 const std = @import("std");
-const HttpTransport = @import("http_transport.zig").HttpTransport;
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
 
 const Io = std.Io;
 const Dir = Io.Dir;

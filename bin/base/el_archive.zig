@@ -19,7 +19,7 @@
 //! (one sequential write per block, synced every `sync_blocks`), its reads are synchronous.
 
 const std = @import("std");
-const el_rpc = @import("el_rpc.zig");
+const el_rpc = @import("bin/base/el_rpc");
 
 const io_module = @import("utilities/io");
 const archive_module = @import("execution/archive");

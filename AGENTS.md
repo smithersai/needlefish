@@ -109,11 +109,13 @@ docs/                      architecture, style, lanes
 Each package is a directory with `root.zig`, e.g. `src/common/rlp/root.zig`, is its own Zig
 module, and is re-exported from its group's `root.zig`. Inside a package, imports are relative
 paths. Across packages they are named, `@import("common/rlp")`, and every name a package
-imports is listed in `packages.zon`; the compiler rejects any other. After adding or moving a
-cross-package import, run `python3 -I etc/scripts/packages.py convert` (rewrites relative
-cross-package imports, regenerates `packages.zon`). `just tidy` fails on any import cycle
-between packages. Break one by moving the declaration both packages use down into the lower
-package, or the test that imports the upper package up into it.
+imports is listed in `packages.zon`; the compiler rejects any other. Each file of a binary is a
+package too (`bin/base/up.zig` is `bin/base/up`) and imports what it uses by name, never
+`base`. After adding or moving a cross-package import, run
+`python3 -I etc/scripts/packages.py convert` (rewrites relative cross-package imports,
+regenerates `packages.zon`). `just tidy` fails on any import cycle between packages. Break one
+by moving the declaration both packages use down into the lower package, or the test that
+imports the upper package up into it.
 
 ## Commits
 

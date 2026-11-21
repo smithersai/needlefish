@@ -15,8 +15,8 @@
 const std = @import("std");
 const devnet = @import("batcher/devnet");
 const Io = std.Io;
-const HttpTransport = @import("http_transport.zig").HttpTransport;
-const BeaconBlobs = @import("devnet_beacon.zig").BeaconBlobs;
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
+const BeaconBlobs = @import("bin/base/devnet_beacon").BeaconBlobs;
 
 pub const usage =
     \\usage: base devnet <init|rollup|account> [flags]
@@ -269,5 +269,5 @@ fn command_batches(init: std.process.Init, flags: Flags) !u8 {
 }
 
 test {
-    _ = @import("devnet_beacon.zig");
+    _ = @import("bin/base/devnet_beacon");
 }

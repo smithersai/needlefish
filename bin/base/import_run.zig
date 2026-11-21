@@ -22,8 +22,8 @@
 const std = @import("std");
 const Io = std.Io;
 
-const HttpTransport = @import("http_transport.zig").HttpTransport;
-const snapshot_import_out = @import("snapshot_import_out.zig");
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
+const snapshot_import_out = @import("bin/base/snapshot_import").snapshot_import_out;
 
 const to_disk = @import("execution/import").to_disk;
 const import_run = @import("execution/import").run;

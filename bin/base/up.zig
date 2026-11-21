@@ -27,12 +27,12 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-const up_check = @import("up_check.zig");
-const up_snapshot = @import("up_snapshot.zig");
-const up_tar = @import("up_tar.zig");
-const up_run = @import("up_run.zig");
-const up_view = @import("up_view.zig");
-const el_engine = @import("el_engine.zig");
+const up_check = @import("bin/base/up_check");
+const up_snapshot = @import("bin/base/up_snapshot");
+const up_tar = @import("bin/base/up_tar");
+const up_run = @import("bin/base/up_run");
+const up_view = @import("bin/base/up_view");
+const el_engine = @import("bin/base/el_engine");
 
 const Io = std.Io;
 const Chain = up_check.Chain;

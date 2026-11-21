@@ -13,7 +13,7 @@ const std = @import("std");
 const Io = std.Io;
 
 const replay = @import("infra/replay");
-const tui = @import("replay_tui.zig");
+const tui = @import("bin/base/replay_tui");
 const fetch = @import("replay_fetch.zig");
 const bench = @import("replay_bench.zig");
 

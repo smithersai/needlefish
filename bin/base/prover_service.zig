@@ -7,9 +7,9 @@
 
 const std = @import("std");
 const Io = std.Io;
-const consensus_cli = @import("consensus.zig");
-const beacon = @import("beacon.zig");
-const telemetry_servers = @import("telemetry.zig");
+const consensus_cli = @import("bin/base/consensus");
+const beacon = @import("bin/base/beacon");
+const telemetry_servers = @import("bin/base/telemetry");
 
 const io = @import("utilities/io");
 const http = @import("utilities/http");

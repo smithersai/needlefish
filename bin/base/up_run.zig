@@ -21,8 +21,8 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-const up_check = @import("up_check.zig");
-const up_view = @import("up_view.zig");
+const up_check = @import("bin/base/up_check");
+const up_view = @import("bin/base/up_view");
 
 const Io = std.Io;
 const View = up_view.View;

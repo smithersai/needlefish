@@ -17,8 +17,8 @@
 const std = @import("std");
 const Io = std.Io;
 
-const HttpTransport = @import("http_transport.zig").HttpTransport;
-const snapshot_import_out = @import("snapshot_import_out.zig");
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
+pub const snapshot_import_out = @import("snapshot_import_out.zig");
 const import = @import("execution/import");
 const mdbx = import.mdbx;
 const json = std.json;

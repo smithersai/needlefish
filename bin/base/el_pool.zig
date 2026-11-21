@@ -22,8 +22,8 @@
 
 const std = @import("std");
 
-const el_source = @import("el_source.zig");
-const unsafe_watch = @import("unsafe_watch.zig");
+const el_source = @import("bin/base/el_source");
+const unsafe_watch = @import("bin/base/unsafe_watch");
 const enode = @import("consensus/p2p").peers.enode;
 const curve = @import("common/crypto").secp256k1;
 const ChainConfig = @import("common/chains").ChainConfig;

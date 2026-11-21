@@ -14,7 +14,7 @@
 //! answers with the local hash, and the sequencer's answer is only counted.
 
 const std = @import("std");
-const https_bridge = @import("https_bridge.zig");
+const https_bridge = @import("bin/base/https_bridge");
 
 const Io = std.Io;
 const json = @import("utilities/json");

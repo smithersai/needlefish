@@ -5,8 +5,8 @@
 const std = @import("std");
 const Io = std.Io;
 
-const proof_run = @import("proof_run.zig");
-const proof_verify_tee = @import("proof_verify_tee.zig");
+const proof_run = @import("bin/base/proof_run");
+const proof_verify_tee = @import("bin/base/proof_verify_tee");
 const kzg = @import("common/crypto").kzg;
 
 const usage =

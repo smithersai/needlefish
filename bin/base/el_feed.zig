@@ -7,8 +7,8 @@
 
 const std = @import("std");
 
-const el_source = @import("el_source.zig");
-const el_pool = @import("el_pool.zig");
+const el_source = @import("bin/base/el_source");
+const el_pool = @import("bin/base/el_pool");
 const ChainConfig = @import("common/chains").ChainConfig;
 const Io = std.Io;
 const assert = std.debug.assert;

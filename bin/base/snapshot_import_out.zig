@@ -17,7 +17,7 @@ const builtin = @import("builtin");
 const Io = std.Io;
 
 const snapshot_import = @import("snapshot_import.zig");
-const HttpTransport = @import("http_transport.zig").HttpTransport;
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
 
 const import = @import("execution/import");
 const to_disk = import.to_disk;

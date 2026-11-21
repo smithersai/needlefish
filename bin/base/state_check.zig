@@ -36,12 +36,12 @@
 const std = @import("std");
 const Io = std.Io;
 
-const HttpTransport = @import("http_transport.zig").HttpTransport;
-const import_run_cli = @import("import_run.zig");
-const snapshot_import_out = @import("snapshot_import_out.zig");
-const compare = @import("state_check_compare.zig");
-const sample = @import("state_check_sample.zig");
-const rpc = @import("state_check_rpc.zig");
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
+const import_run_cli = @import("bin/base/import_run");
+const snapshot_import_out = @import("bin/base/snapshot_import").snapshot_import_out;
+const compare = @import("bin/base/state_check_compare");
+const sample = @import("bin/base/state_check_sample");
+const rpc = @import("bin/base/state_check_rpc");
 const Endpoint = rpc.Endpoint;
 
 const to_disk = @import("execution/import").to_disk;

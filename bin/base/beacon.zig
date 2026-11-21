@@ -2,7 +2,7 @@
 //! API blob provider with its own KZG verifier workspace, exposed as a host `BlobFetcher`.
 
 const std = @import("std");
-const consensus_cli = @import("consensus.zig");
+const consensus_cli = @import("bin/base/consensus");
 
 const io = @import("utilities/io");
 const http = @import("utilities/http");

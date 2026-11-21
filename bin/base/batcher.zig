@@ -1,11 +1,11 @@
 //! `base batcher`: submits L2 batches to L1 (see docs/DEVNET.md for the flags).
 
 const std = @import("std");
-const HttpTransport = @import("http_transport.zig").HttpTransport;
-const Servers = @import("batcher_servers.zig").Servers;
-const sequencer_clients = @import("batcher_sequencers.zig");
-const shadow_mode = @import("batcher_shadow.zig");
-const l1_ws = @import("batcher_l1_ws.zig");
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
+const Servers = @import("bin/base/batcher_servers").Servers;
+const sequencer_clients = @import("bin/base/batcher_sequencers");
+const shadow_mode = @import("bin/base/batcher_shadow");
+const l1_ws = @import("bin/base/batcher_l1_ws");
 
 const Io = std.Io;
 
@@ -777,7 +777,7 @@ test {
     _ = sequencer_clients;
     _ = shadow_mode;
     _ = l1_ws;
-    _ = @import("http_transport.zig");
+    _ = @import("bin/base/http_transport");
 }
 
 test "batcher flags: --l1-ws-url takes ws and wss, refuses other URLs" {

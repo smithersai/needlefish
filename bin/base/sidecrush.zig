@@ -4,7 +4,7 @@
 //! `/healthz`), and readiness (`/readyz`). See `src/infra/sidecrush`.
 
 const std = @import("std");
-const consensus = @import("consensus.zig");
+const consensus = @import("bin/base/consensus");
 
 const io = @import("utilities/io");
 const http = @import("utilities/http");

@@ -4,7 +4,7 @@
 //! `/readyz`, and `/metrics` on the same port. See `src/infra/roxy`.
 
 const std = @import("std");
-const consensus = @import("consensus.zig");
+const consensus = @import("bin/base/consensus");
 
 const io = @import("utilities/io");
 const cli = @import("utilities/cli");

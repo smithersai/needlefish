@@ -14,7 +14,7 @@
 
 const std = @import("std");
 
-const net = @import("derive_check_net.zig");
+const net = @import("bin/base/derive_check_net");
 const sources = @import("consensus/sources");
 const protocol = @import("consensus/protocol");
 const derive = @import("consensus/derive");

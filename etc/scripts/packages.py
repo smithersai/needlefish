@@ -11,8 +11,11 @@ A package is a folder of src/ two levels deep, plus the files under it:
 Tool entry points (`src/**/*_main.zig`), and the files only tools import, are not package
 members; a tool imports packages by name or all of them as `base`.
 
-A binary's files are a package that imports the packages it uses by name, never `base`:
-  bin/<program>/**               package "bin/<program>" (root: bin/<program>/main.zig)
+A binary (bin/<program>/) is a package per file, so a test binary reruns only when a
+package its file imports changes; a binary's file never imports `base`:
+  bin/<program>/main.zig         package "bin/<program>" (the executable's root)
+  bin/<program>/<file>.zig       package "bin/<program>/<file>"
+  JOINED below                   files in an import cycle with their package's root
 
 A package without a named test, whose unnamed `test {}` blocks only reference declarations
 (`std.testing.refAllDecls(...)`, `_ = x;`), is a compile check: packages.zon marks it
@@ -51,6 +54,14 @@ LEAVES = {
     'src/testing/bench.zig': 'testing/bench',
     'src/proof/test_oracle.zig': 'proof/test_oracle',
 }
+JOINED = {
+    'bin/base/el_engine_test.zig': 'bin/base/el_engine',
+    'bin/base/el_rpc_test.zig': 'bin/base/el_rpc',
+    'bin/base/replay_bench.zig': 'bin/base/replay',
+    'bin/base/replay_evm.zig': 'bin/base/replay',
+    'bin/base/replay_fetch.zig': 'bin/base/replay',
+    'bin/base/snapshot_import_out.zig': 'bin/base/snapshot_import',
+}
 BUILTIN_NAMES = {'std', 'builtin', 'root', 'build_options'}
 IMPORT = re.compile(r'@(import|embedFile)\(\s*"([^"\\]*)"\s*,?\s*\)')
 COMMENT = re.compile(r'^[ \t]*//.*$', re.M)
@@ -69,10 +80,14 @@ def package_of(path):
     """Package of a repo-relative `src/...` or `bin/...` path (source or data file)."""
     if path in LEAVES:
         return LEAVES[path]
+    if path in JOINED:
+        return JOINED[path]
     parts = path.split('/')
     if parts[0] == 'bin':
-        assert len(parts) >= 3, path
-        return 'bin/' + parts[1]
+        assert len(parts) == 3 and path.endswith('.zig'), path
+        if parts[2] == 'main.zig':
+            return 'bin/' + parts[1]
+        return path[:-len('.zig')]
     assert parts[0] == 'src', path
     if len(parts) == 2:
         return 'base'
@@ -87,7 +102,7 @@ def package_root(name):
         if leaf == name:
             return path
     if name.startswith('bin/'):
-        return name + '/main.zig'
+        return name + ('/main.zig' if name.count('/') == 1 else '.zig')
     return 'src/base.zig' if name == 'base' else 'src/' + name + '/root.zig'
 
 

@@ -46,16 +46,16 @@
 const std = @import("std");
 const Io = std.Io;
 
-const el_source = @import("el_source.zig");
-const el_feed = @import("el_feed.zig");
-const el_gossip = @import("el_gossip.zig");
-const import_run_cli = @import("import_run.zig");
-const snapshot_import_out = @import("snapshot_import_out.zig");
-const unsafe_watch = @import("unsafe_watch.zig");
-const el_engine = @import("el_engine.zig");
-const el_rpc = @import("el_rpc.zig");
-const el_archive = @import("el_archive.zig");
-const log_relay = @import("log_relay.zig");
+const el_source = @import("bin/base/el_source");
+const el_feed = @import("bin/base/el_feed");
+const el_gossip = @import("bin/base/el_gossip");
+const import_run_cli = @import("bin/base/import_run");
+const snapshot_import_out = @import("bin/base/snapshot_import").snapshot_import_out;
+const unsafe_watch = @import("bin/base/unsafe_watch");
+const el_engine = @import("bin/base/el_engine");
+const el_rpc = @import("bin/base/el_rpc");
+const el_archive = @import("bin/base/el_archive");
+const log_relay = @import("bin/base/log_relay");
 
 const to_disk = @import("execution/import").to_disk;
 const import_run = @import("execution/import").run;

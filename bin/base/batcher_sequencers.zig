@@ -9,7 +9,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 const rpc = @import("batcher/rpc");
 const sequencers = @import("batcher/sequencers");
-const HttpTransport = @import("http_transport.zig").HttpTransport;
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
 
 pub const Entry = struct {
     l2: []const u8,

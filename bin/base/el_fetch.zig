@@ -26,10 +26,10 @@
 
 const std = @import("std");
 
-const el_source = @import("el_source.zig");
-const el_feed = @import("el_feed.zig");
-const el_gossip = @import("el_gossip.zig");
-const unsafe_watch = @import("unsafe_watch.zig");
+const el_source = @import("bin/base/el_source");
+const el_feed = @import("bin/base/el_feed");
+const el_gossip = @import("bin/base/el_gossip");
+const unsafe_watch = @import("bin/base/unsafe_watch");
 const enode = @import("consensus/p2p").peers.enode;
 const curve = @import("common/crypto").secp256k1;
 const Io = std.Io;

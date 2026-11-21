@@ -17,7 +17,7 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-const import_run_cli = @import("import_run.zig");
+const import_run_cli = @import("bin/base/import_run");
 
 const Io = std.Io;
 const ChainConfig = @import("common/chains").ChainConfig;

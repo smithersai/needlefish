@@ -34,9 +34,9 @@
 //! default. Only `eth_sendRawTransaction` changes anything, and only the pool.
 
 const std = @import("std");
-const el_ring = @import("el_ring.zig");
-const el_engine = @import("el_engine.zig");
-const el_sequencer = @import("el_sequencer.zig");
+const el_ring = @import("bin/base/el_ring");
+const el_engine = @import("bin/base/el_engine");
+const el_sequencer = @import("bin/base/el_sequencer");
 
 const json = @import("utilities/json");
 const rpc = @import("utilities/rpc");
@@ -1326,5 +1326,5 @@ pub const Service = struct {
 
 test {
     _ = @import("el_rpc_test.zig");
-    _ = @import("el_sequencer.zig");
+    _ = @import("bin/base/el_sequencer");
 }

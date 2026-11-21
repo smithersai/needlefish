@@ -2,8 +2,8 @@
 //! moving and claims bonds (base/base `bin/challenger`, `crates/proof/challenge`).
 
 const std = @import("std");
-const consensus_cli = @import("consensus.zig");
-const telemetry_servers = @import("telemetry.zig");
+const consensus_cli = @import("bin/base/consensus");
+const telemetry_servers = @import("bin/base/telemetry");
 
 const io = @import("utilities/io");
 const http = @import("utilities/http");

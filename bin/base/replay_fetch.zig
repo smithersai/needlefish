@@ -12,7 +12,7 @@ const std = @import("std");
 const Io = std.Io;
 
 const replay_cli = @import("replay.zig");
-const HttpTransport = @import("http_transport.zig").HttpTransport;
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
 const replay = @import("infra/replay");
 const Archive = replay.Archive;
 const json = std.json;

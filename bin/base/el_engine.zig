@@ -31,7 +31,7 @@
 //! runs while the runner executes or commits a block.
 
 const std = @import("std");
-const el_ring = @import("el_ring.zig");
+const el_ring = @import("bin/base/el_ring");
 
 const json = @import("utilities/json");
 const rpc = @import("utilities/rpc");
@@ -878,6 +878,6 @@ pub const Service = struct {
 };
 
 test {
-    _ = @import("el_ring.zig");
+    _ = @import("bin/base/el_ring");
     _ = @import("el_engine_test.zig");
 }

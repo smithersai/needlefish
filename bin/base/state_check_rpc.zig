@@ -15,7 +15,7 @@
 const std = @import("std");
 const Io = std.Io;
 
-const HttpTransport = @import("http_transport.zig").HttpTransport;
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
 
 const json = std.json;
 const assert = std.debug.assert;

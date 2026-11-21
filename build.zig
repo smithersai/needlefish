@@ -2,7 +2,7 @@
 //!
 //! Layout mirrors base/base: `src/` holds the libraries, grouped like base/base's `crates/`,
 //! and `bin/<name>/main.zig` holds binaries. Every package (a folder two levels under `src/`,
-//! and a binary's files, defined in etc/scripts/packages.py) is its own Zig module.
+//! and each file of a binary, defined in etc/scripts/packages.py) is its own Zig module.
 //! `packages.zon` lists each package and the packages it imports by name; the compiler
 //! rejects any other import. `base` (src/base.zig) re-exports every group for tools.
 //!

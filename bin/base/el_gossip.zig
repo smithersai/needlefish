@@ -22,8 +22,8 @@
 
 const std = @import("std");
 
-const unsafe_watch = @import("unsafe_watch.zig");
-const el_source = @import("el_source.zig");
+const unsafe_watch = @import("bin/base/unsafe_watch");
+const el_source = @import("bin/base/el_source");
 const io = @import("utilities/io");
 const p2p = @import("consensus/p2p");
 const chains = @import("common/chains");
@@ -602,7 +602,7 @@ const TestBlock = struct {
     }
 };
 
-const test_spec = @import("import_run.zig").chains[0].spec;
+const test_spec = @import("bin/base/import_run").chains[0].spec;
 
 test "el-gossip: a signed block converts to the exact header and transactions" {
     var blocks: Blocks = .{};

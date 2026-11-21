@@ -5,8 +5,8 @@
 
 const std = @import("std");
 const el_engine = @import("el_engine.zig");
-const el_ring = @import("el_ring.zig");
-const import_run_cli = @import("import_run.zig");
+const el_ring = @import("bin/base/el_ring");
+const import_run_cli = @import("bin/base/import_run");
 
 const testing = std.testing;
 const assert = std.debug.assert;

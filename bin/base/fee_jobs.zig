@@ -19,7 +19,7 @@ const rpc = @import("batcher/rpc");
 const secp256k1 = @import("common/crypto").secp256k1;
 const fee_jobs = @import("infra/fee_jobs");
 const tx_manager = @import("infra/tx_manager");
-const HttpTransport = @import("http_transport.zig").HttpTransport;
+const HttpTransport = @import("bin/base/http_transport").HttpTransport;
 const confirm = fee_jobs.confirm;
 const withdrawer = @import("infra/withdrawer");
 

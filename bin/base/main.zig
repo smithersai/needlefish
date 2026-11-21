@@ -2,39 +2,39 @@
 //! batcher, and tooling entry points as they land.
 
 const std = @import("std");
-const devnet = @import("devnet.zig");
-const batcher = @import("batcher.zig");
-const node = @import("node.zig");
-const consensus = @import("consensus.zig");
-const proof = @import("proof.zig");
-const proposer = @import("proposer.zig");
-const challenger = @import("challenger.zig");
-const registrar = @import("registrar.zig");
-const prover_service = @import("prover_service.zig");
-const nitro_enclave = @import("nitro_enclave.zig");
-const balance_monitor = @import("balance_monitor.zig");
-const load_test = @import("load_test.zig");
-const withdrawer = @import("withdrawer.zig");
-const snapshotter = @import("snapshotter.zig");
-const sidecrush = @import("sidecrush.zig");
-const fee_jobs = @import("fee_jobs.zig");
-const roxy = @import("roxy.zig");
-const basectl = @import("basectl.zig");
-const audit = @import("audit.zig");
-const replay = @import("replay.zig");
-const diff_adapter = @import("diff_adapter.zig");
-const follow = @import("follow.zig");
-const snapshot_import = @import("snapshot_import.zig");
-const import_run = @import("import_run.zig");
-const unsafe_watch = @import("unsafe_watch.zig");
-const el_fetch = @import("el_fetch.zig");
-const el_peers = @import("el_peers.zig");
-const el_run = @import("el_run.zig");
-const log_relay = @import("log_relay.zig");
-const state_check = @import("state_check.zig");
-const derive_check = @import("derive_check.zig");
-const https_bridge = @import("https_bridge.zig");
-const up = @import("up.zig");
+const devnet = @import("bin/base/devnet");
+const batcher = @import("bin/base/batcher");
+const node = @import("bin/base/node");
+const consensus = @import("bin/base/consensus");
+const proof = @import("bin/base/proof");
+const proposer = @import("bin/base/proposer");
+const challenger = @import("bin/base/challenger");
+const registrar = @import("bin/base/registrar");
+const prover_service = @import("bin/base/prover_service");
+const nitro_enclave = @import("bin/base/nitro_enclave");
+const balance_monitor = @import("bin/base/balance_monitor");
+const load_test = @import("bin/base/load_test");
+const withdrawer = @import("bin/base/withdrawer");
+const snapshotter = @import("bin/base/snapshotter");
+const sidecrush = @import("bin/base/sidecrush");
+const fee_jobs = @import("bin/base/fee_jobs");
+const roxy = @import("bin/base/roxy");
+const basectl = @import("bin/base/basectl");
+const audit = @import("bin/base/audit");
+const replay = @import("bin/base/replay");
+const diff_adapter = @import("bin/base/diff_adapter");
+const follow = @import("bin/base/follow");
+const snapshot_import = @import("bin/base/snapshot_import");
+const import_run = @import("bin/base/import_run");
+const unsafe_watch = @import("bin/base/unsafe_watch");
+const el_fetch = @import("bin/base/el_fetch");
+const el_peers = @import("bin/base/el_peers");
+const el_run = @import("bin/base/el_run");
+const log_relay = @import("bin/base/log_relay");
+const state_check = @import("bin/base/state_check");
+const derive_check = @import("bin/base/derive_check");
+const https_bridge = @import("bin/base/https_bridge");
+const up = @import("bin/base/up");
 
 const usage =
     \\usage: base <command> [args]
@@ -114,17 +114,17 @@ test {
     _ = derive_check;
     _ = https_bridge;
     _ = up;
-    _ = @import("up.zig");
-    _ = @import("up_check.zig");
-    _ = @import("up_tar.zig");
-    _ = @import("up_snapshot.zig");
-    _ = @import("up_run.zig");
-    _ = @import("up_view.zig");
-    _ = @import("derive_check_net.zig");
-    _ = @import("el_source.zig");
-    _ = @import("el_pool.zig");
-    _ = @import("el_gossip.zig");
-    _ = @import("metrics_server.zig");
+    _ = @import("bin/base/up");
+    _ = @import("bin/base/up_check");
+    _ = @import("bin/base/up_tar");
+    _ = @import("bin/base/up_snapshot");
+    _ = @import("bin/base/up_run");
+    _ = @import("bin/base/up_view");
+    _ = @import("bin/base/derive_check_net");
+    _ = @import("bin/base/el_source");
+    _ = @import("bin/base/el_pool");
+    _ = @import("bin/base/el_gossip");
+    _ = @import("bin/base/metrics_server");
 }
 
 pub fn main(init: std.process.Init) !void {
@@ -243,7 +243,7 @@ fn infra_main(init: std.process.Init, command: []const u8, args: []const []const
         return try el_run.main(init, args);
     }
     if (std.mem.eql(u8, command, "rollup-config")) {
-        return try @import("el_engine.zig").rollup_config_main(init, args);
+        return try @import("bin/base/el_engine").rollup_config_main(init, args);
     }
     if (std.mem.eql(u8, command, "state-check")) {
         return try state_check.main(init, args);
