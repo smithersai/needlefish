@@ -13,6 +13,8 @@
 //!                          -Dtest-shards=false runs every binary once, with Zig's runner)
 //!   zig build check        compile every test binary and tool without running them
 //!   zig build test:common/rlp  run one package's tests (reruns only when its inputs change)
+//!   zig build check:common/rlp compile one package's test binary without running it
+//!   `test` and `check` depend only on named steps (`ci_steps`), so CI can run them in parts
 //!   -Dtest-debug-info      Debug test binaries keep their debug info (see `test_root_module`):
 //!                          a failing test then prints file:line and its stack and error
 //!                          return trace, and each binary compiles about twice as slowly
@@ -127,16 +129,97 @@ pub fn build(b: *std.Build) void {
     // Compile (not run) the state-test runner in `zig build test`: it is the EVM's conformance
     // oracle, and cross-lane API changes once broke it unnoticed. It imports only the EVM, so
     // it recompiles only when a file the EVM compiles changes.
-    test_step.dependOn(&statetest.step);
-    // The same compile under a name, so every dependency of `test` can also be run alone.
-    b.step("test:statetest", "Compile the state-test runner").dependOn(&statetest.step);
+    const statetest_step = b.step("test:statetest", "Compile the state-test runner");
+    statetest_step.dependOn(&statetest.step);
+    test_step.dependOn(statetest_step);
 
-    check_step.dependOn(&sim.step);
-    check_step.dependOn(&bench.step);
-    check_step.dependOn(&statetest.step);
+    b.step("check:simulator", "Compile the simulator").dependOn(&sim.step);
+    b.step("check:bench", "Compile the micro benchmarks").dependOn(&bench.step);
     // Generated tables: each generator gets a step that prints its file, and
     // `zig build check` runs it against the committed output.
-    add_generators(b, uses_base, target, optimize, check_step);
+    add_generators(b, uses_base, target, optimize);
+    check_step.dependOn(statetest_step);
+    for (ci_steps) |name| {
+        if (std.mem.startsWith(u8, name, "check:")) check_step.dependOn(top_level_step(b, name));
+    }
+    assert_named_dependencies(test_step, "test:");
+    assert_named_dependencies(check_step, "check:");
+    assert_checks_covered(b, check_step);
+}
+
+/// The named steps `zig build test` and `zig build check` depend on besides each package's
+/// `test:<package>` and `check:<package>`. CI runs `just ci` as these named steps, split across
+/// parallel jobs (etc/scripts/ci-shards.py reads this list); `assert_named_dependencies` fails
+/// the build when `test` or `check` depends directly on any other step. CI runs a running
+/// package's `test:<package>` in place of its `check:<package>`, and `assert_checks_covered`
+/// fails the build when that `check:<package>` holds more than the compile `test:` runs.
+const ci_steps = [_][]const u8{
+    "test:statetest",
+    "check:simulator",
+    "check:bench",
+    "check:kzg-lines",
+    "check:secp-tables",
+};
+
+fn top_level_step(b: *std.Build, name: []const u8) *std.Build.Step {
+    const top_level = b.top_level_steps.get(name) orelse
+        std.debug.panic("build.zig declares no step named '{s}'", .{name});
+    std.debug.assert(std.mem.eql(u8, top_level.step.name, name));
+    return &top_level.step;
+}
+
+/// Each dependency of `step` is a top-level step named in `ci_steps` or `<prefix><package>`
+/// (for `test:`, a package `zig build test` runs), so CI can run `step` as its named parts.
+fn assert_named_dependencies(step: *std.Build.Step, prefix: []const u8) void {
+    std.debug.assert(step.dependencies.items.len > 0);
+    for (step.dependencies.items) |dependency| {
+        const name = dependency.name;
+        const listed = for (ci_steps) |ci_step| {
+            if (std.mem.eql(u8, ci_step, name)) break true;
+        } else false;
+        if (dependency.tag != .top_level or !(listed or package_step(name, prefix))) {
+            std.debug.panic("'{s}' depends on '{s}', which is not a named step in ci_steps " ++
+                "or {s}<package> (build.zig)", .{ step.name, name, prefix });
+        }
+    }
+}
+
+/// Each `check:<package>` of a package `zig build test` runs depends on nothing but one compile
+/// step, and every direct dependency of `test:<package>` lists that compile step among its own
+/// direct dependencies. So running `test:<package>` builds everything `check:<package>` builds,
+/// and CI, which runs the first in place of the second, skips nothing.
+fn assert_checks_covered(b: *std.Build, check_step: *std.Build.Step) void {
+    for (check_step.dependencies.items) |check| {
+        if (!std.mem.startsWith(u8, check.name, "check:")) continue;
+        const test_name = b.fmt("test:{s}", .{check.name["check:".len..]});
+        if (!package_step(test_name, "test:")) continue;
+        const compile = check.dependencies.items;
+        if (compile.len != 1 or compile[0].tag != .compile) {
+            std.debug.panic("'{s}' must depend only on its test binary's compile: CI runs " ++
+                "'{s}' in its place", .{ check.name, test_name });
+        }
+        const runs = top_level_step(b, test_name).dependencies.items;
+        std.debug.assert(runs.len > 0);
+        for (runs) |run| {
+            const runs_binary = for (run.dependencies.items) |dependency| {
+                if (dependency == compile[0]) break true;
+            } else false;
+            if (!runs_binary) std.debug.panic("'{s}' has a step that does not depend on " ++
+                "the compile '{s}' holds", .{ test_name, check.name });
+        }
+    }
+}
+
+/// `name` is `<prefix><package>`; for `test:`, of a package that `zig build test` runs.
+fn package_step(name: []const u8, prefix: []const u8) bool {
+    std.debug.assert(prefix.len > 0);
+    if (!std.mem.startsWith(u8, name, prefix)) return false;
+    const runs = std.mem.eql(u8, prefix, "test:");
+    for (packages) |package| {
+        if (!std.mem.eql(u8, package.name, name[prefix.len..])) continue;
+        return !(runs and package.compile_only);
+    }
+    return false;
 }
 
 const Configured = struct {
@@ -235,11 +318,12 @@ fn package_index(name: []const u8) usize {
     std.debug.panic("packages.zon has no package named '{s}'", .{name});
 }
 
-/// One test binary per package, named after the package with `/` as `-`, and a
-/// `test:<package>` step that runs only it: `zig build test:common/rlp`. With `sharded`, every
-/// binary uses our test runner, which prints a failing test's error even without debug info,
-/// and a package in `test_shards` runs its binary as that many shards. Without it (fuzzing),
-/// every binary uses Zig's default runner.
+/// One test binary per package, named after the package with `/` as `-`, a `test:<package>`
+/// step that runs only it (`zig build test:common/rlp`) and a `check:<package>` step that only
+/// compiles it. `test` depends on the first unless the package is `compile_only`, and `check` on
+/// the second. With `sharded`, every binary uses our test runner, which prints a failing test's
+/// error even without debug info, and a package in `test_shards` runs its binary as that many
+/// shards. Without it (fuzzing), every binary uses Zig's default runner.
 fn add_package_tests(
     b: *std.Build,
     modules: []const *std.Build.Module,
@@ -273,17 +357,20 @@ fn add_package_tests(
             },
         });
         const description = b.fmt("Run the {s} package's tests", .{package.name});
-        const package_step = b.step(b.fmt("test:{s}", .{package.name}), description);
+        const run_step = b.step(b.fmt("test:{s}", .{package.name}), description);
         for (0..shards) |shard| {
             const run_tests = b.addRunArtifact(unit_tests);
             if (shards > 1) {
                 run_tests.setName(b.fmt("run test {s} shard {d}/{d}", .{ name, shard, shards }));
                 run_tests.addArg(b.fmt("--shard={d}/{d}", .{ shard, shards }));
             }
-            if (!package.compile_only) test_step.dependOn(&run_tests.step);
-            package_step.dependOn(&run_tests.step);
+            run_step.dependOn(&run_tests.step);
         }
-        check_step.dependOn(&unit_tests.step);
+        if (!package.compile_only) test_step.dependOn(run_step);
+        const compile_description = b.fmt("Compile the {s} package's test binary", .{package.name});
+        const compile_step = b.step(b.fmt("check:{s}", .{package.name}), compile_description);
+        compile_step.dependOn(&unit_tests.step);
+        check_step.dependOn(compile_step);
         install_step.dependOn(&b.addInstallArtifact(unit_tests, .{
             .dest_dir = .{ .override = .{ .custom = "test" } },
         }).step);
@@ -402,13 +489,13 @@ const Tool = struct {
 };
 
 /// The tools that generate committed tables. Each gets a step that prints its file and a
-/// run on `check_step` that fails when the committed file differs from what it prints.
+/// `check:<tool>` step (part of `zig build check`) that fails when the committed file differs
+/// from what it prints.
 fn add_generators(
     b: *std.Build,
     imports: []const std.Build.Module.Import,
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
-    check_step: *std.Build.Step,
 ) void {
     // Regenerates the KZG verifier's precomputed pairing lines (src/common/crypto/kzg).
     const kzg_lines = add_tool(b, imports, target, optimize, .{
@@ -417,7 +504,7 @@ fn add_generators(
         .step = "kzg-lines",
         .description = "Print prepared_lines.zig: zig build kzg-lines > <that file>",
     });
-    check_step.dependOn(check_generated(b, kzg_lines, "src/common/crypto/kzg/prepared_lines.zig"));
+    check_generated(b, kzg_lines, "src/common/crypto/kzg/prepared_lines.zig");
 
     // Regenerates the secp256k1 generator tables (src/common/crypto/secp256k1).
     const secp_tables = add_tool(b, imports, target, optimize, .{
@@ -426,21 +513,19 @@ fn add_generators(
         .step = "secp-tables",
         .description = "Print table_data.zig: zig build secp-tables > <that file>",
     });
-    check_step.dependOn(check_generated(
-        b,
-        secp_tables,
-        "src/common/crypto/secp256k1/table_data.zig",
-    ));
+    check_generated(b, secp_tables, "src/common/crypto/secp256k1/table_data.zig");
 }
 
-/// A run of `tool --check <path>`: fails when the committed file differs from the tool's output.
-fn check_generated(b: *std.Build, tool: *std.Build.Step.Compile, path: []const u8) *std.Build.Step {
+/// `check:<tool>`: a run of `tool --check <path>`, which fails when the committed file differs
+/// from the tool's output.
+fn check_generated(b: *std.Build, tool: *std.Build.Step.Compile, path: []const u8) void {
     const run = b.addRunArtifact(tool);
     run.setName(b.fmt("check {s}", .{path}));
     run.addArg("--check");
     run.addFileArg(b.path(path));
     run.expectExitCode(0);
-    return &run.step;
+    const description = b.fmt("Check {s} against its generator", .{path});
+    b.step(b.fmt("check:{s}", .{tool.name}), description).dependOn(&run.step);
 }
 
 /// An executable over the given modules with a run step that forwards `-- args`.
