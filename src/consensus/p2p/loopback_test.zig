@@ -27,8 +27,9 @@ const ns_per_ms = std.time.ns_per_ms;
 const ns_per_s = std.time.ns_per_s;
 const chain_id = 8453;
 const beacon_root: primitives.B256 = .{ .bytes = @splat(0xbb) };
-/// Wall-clock budget for discovery plus connection; SimIo needs ~2 s of virtual time.
-const connect_deadline_ns = 20 * ns_per_s;
+/// Wall-clock budget for discovery plus connection; SimIo needs ~2 s of virtual time. A
+/// loaded machine has needed more than 20 s; a passing run ends as soon as both connect.
+const connect_deadline_ns = 60 * ns_per_s;
 
 const Ports = struct { tcp: u16, udp: u16 };
 const Family = io_module.Address.Family;
