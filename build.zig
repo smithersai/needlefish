@@ -237,7 +237,7 @@ fn add_package_tests(
         const shards = if (sharded) shard_count(package.name) else 1;
         const unit_tests = b.addTest(.{
             .name = name,
-            .root_module = module,
+            .root_module = test_root_module(b, package.name, module),
             .filters = filters,
             .test_runner = if (shards == 1) null else .{
                 .path = b.path("src/testing/test_runner.zig"),
@@ -260,6 +260,40 @@ fn add_package_tests(
             .dest_dir = .{ .override = .{ .custom = "test" } },
         }).step);
     }
+}
+
+/// Packages whose test binary compiles ReleaseSafe even in a Debug build, because a test of
+/// theirs is compute bound and the optimized compile costs less than the run saves. Only the
+/// test binary's root module changes: no file of these packages reads `builtin.mode`, and
+/// the modules they import keep theirs. ReleaseSafe keeps every safety check and assert.
+/// The root module's mode is what optimizes a compilation: a ReleaseSafe common/crypto module
+/// inside a Debug test binary runs no faster.
+const optimized_test_packages = [_][]const u8{
+    // "driver: blob sends carry a v1 (cell proof) sidecar": an FK20 setup and 128 KZG proofs.
+    "infra/tx_manager",
+};
+
+/// The root module of a package's test binary: the package's module, or for a package in
+/// `optimized_test_packages` in a Debug build, a ReleaseSafe copy with the same imports.
+fn test_root_module(
+    b: *std.Build,
+    package_name: []const u8,
+    module: *std.Build.Module,
+) *std.Build.Module {
+    const optimized = for (optimized_test_packages) |optimized_name| {
+        if (std.mem.eql(u8, optimized_name, package_name)) break true;
+    } else false;
+    if (!optimized or module.optimize.? != .debug) return module;
+    const copy = b.createModule(.{
+        .root_source_file = module.root_source_file,
+        .target = module.resolved_target,
+        .optimize = .safe,
+        .fuzz = module.fuzz,
+    });
+    var imports = module.import_table.iterator();
+    while (imports.next()) |entry| copy.addImport(entry.key_ptr.*, entry.value_ptr.*);
+    std.debug.assert(copy.import_table.count() == module.import_table.count());
+    return copy;
 }
 
 /// Runners over public vectors fetched by `just vectors`.
