@@ -25,7 +25,13 @@ jobs:
       - name: tidy
         run: bash etc/scripts/tidy.sh
       - name: test
-        run: zig build test --summary all -Drequire-io-uring=true
+        # Debug test binaries carry no debug info (build.zig `test_root_module`). A failing run
+        # runs again with it, so the log shows file, line and stack, and the step stays red.
+        run: |
+          zig build test --summary all -Drequire-io-uring=true || {
+            zig build test --summary all -Drequire-io-uring=true -Dtest-debug-info=true
+            exit 1
+          }
       - name: check (compile checks, tools)
         run: zig build check
       - name: test release-safe

@@ -77,6 +77,10 @@ Read this whole file before you change anything. These rules are not optional.
   a binary reruns only when a file it compiles changed. `zig build test:common/rlp` runs one
   package's tests. A slow binary runs as parallel shards of one compile (`test_shards` in
   `build.zig`), but no shard is shorter than its slowest test: keep each test short.
+- **A failing test**: Debug test binaries carry no debug info (it halves their compile), so a
+  failure prints the test's name and its error or panic message but no file:line or trace.
+  Rerun that package with them: `zig build test:<package> -Dtest-debug-info=true`. CI and
+  `just ci` rerun a failing Debug suite that way by themselves.
 - **Fuzz**: every parser/decoder/state machine gets a `std.testing.fuzz` test and a
   deterministic seeded fuzz (via `base.testing.Prng`) that runs in normal `zig build test`.
   Long fuzz: `zig build test --fuzz -Doptimize=ReleaseSafe -Dtest-shards=false` (`just fuzz`;

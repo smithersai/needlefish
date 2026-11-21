@@ -110,8 +110,11 @@ replay-run archive='src/infra/replay/testdata/base-mainnet-53715983-10.nfrp':
 check:
     zig build check
 
-# Everything CI runs
-ci: tidy test check
+# Everything CI runs. Debug test binaries carry no debug info, so a failing suite runs again
+# with it (-Dtest-debug-info=true) and the log shows file, line and stack; it stays a failure.
+ci: tidy
+    zig build test || { zig build test -Dtest-debug-info=true; exit 1; }
+    zig build check
 
 # Fetch public Ethereum test vectors into .cache/ (git-ignored)
 vectors:

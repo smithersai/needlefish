@@ -13,6 +13,9 @@
 //!                          -Dtest-shards=false runs every binary once, with Zig's runner)
 //!   zig build check        compile every test binary and tool without running them
 //!   zig build test:common/rlp  run one package's tests (reruns only when its inputs change)
+//!   -Dtest-debug-info      Debug test binaries keep their debug info (see `test_root_module`):
+//!                          a failing test then prints file:line and its stack and error
+//!                          return trace, and each binary compiles about twice as slowly
 //!   zig build fuzz         build fuzz smoke tests (fuzz: `zig build test --fuzz
 //!                          -Dtest-shards=false`; our test runner never fuzzes)
 //!   zig build sim -- SEED  run the deterministic simulator (DST) for SEED
@@ -90,7 +93,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run unit tests");
     // Compile-only check for editors and CI speed.
     const check_step = b.step("check", "Compile everything without running");
-    add_package_tests(b, modules, filters, configured.test_shards, test_step, check_step);
+    add_package_tests(b, modules, filters, configured, test_step, check_step);
 
     // The edge counters (`-ffuzz`) need the LLVM backend and linker.
     const use_llvm: ?bool = if (configured.diff_coverage) true else null;
@@ -135,6 +138,8 @@ const Configured = struct {
     /// Packages in `test_shards` run as shards and every test binary uses
     /// src/testing/test_runner.zig; false runs every test binary once with Zig's runner.
     test_shards: bool,
+    /// Debug test binaries keep their debug info (`test_root_module`).
+    test_debug_info: bool,
 };
 
 /// Build options shared by every compilation (`build_options`).
@@ -170,10 +175,16 @@ fn build_options(b: *std.Build) Configured {
         "test-shards",
         "Run slow test binaries as parallel shards (default); false with --fuzz",
     ) orelse true;
+    const test_debug_info = b.option(
+        bool,
+        "test-debug-info",
+        "Keep debug info in Debug test binaries: file:line and traces of a failing test",
+    ) orelse false;
     return .{
         .options = options,
         .diff_coverage = diff_coverage,
         .test_shards = shards_on and !diff_coverage,
+        .test_debug_info = test_debug_info,
     };
 }
 
@@ -226,10 +237,11 @@ fn add_package_tests(
     b: *std.Build,
     modules: []const *std.Build.Module,
     filters: []const []const u8,
-    sharded: bool,
+    configured: Configured,
     test_step: *std.Build.Step,
     check_step: *std.Build.Step,
 ) void {
+    const sharded = configured.test_shards;
     std.debug.assert(modules.len == packages.len);
     for (test_shards) |shards| {
         std.debug.assert(shards.count >= 2);
@@ -241,9 +253,11 @@ fn add_package_tests(
         const name = b.allocator.dupe(u8, package.name) catch @panic("OOM");
         std.mem.replaceScalar(u8, name, '/', '-');
         const shards = if (sharded) shard_count(package.name) else 1;
+        // Zig's own runner prints only a trace: its binaries keep their debug info.
+        const debug_info = configured.test_debug_info or !sharded;
         const unit_tests = b.addTest(.{
             .name = name,
-            .root_module = test_root_module(b, package.name, module),
+            .root_module = test_root_module(b, package.name, module, debug_info),
             .filters = filters,
             .test_runner = if (!sharded) null else .{
                 .path = b.path("src/testing/test_runner.zig"),
@@ -281,23 +295,35 @@ const optimized_test_packages = [_][]const u8{
     "infra/tx_manager",
 };
 
-/// The root module of a package's test binary: the package's module, or for a package in
-/// `optimized_test_packages` in a Debug build, a ReleaseSafe copy with the same imports.
+/// The root module of a package's test binary. In a Debug build it is a copy of the package's
+/// module with the same imports, so programs and tools keep their settings, and the copy is
+/// ReleaseSafe for a package in `optimized_test_packages`. Unless `debug_info`, the copy is
+/// stripped; the modules it imports set no `strip` and inherit it, so the binary, std
+/// included, has no DWARF. That halves the LLVM compile of a heavy test binary. A failing
+/// test still prints its name, its error (src/testing/test_runner.zig), a panic's message and
+/// `expectEqual`'s values, but no file:line, stack trace or error return trace: rerun its
+/// package with `-Dtest-debug-info=true`. Stripping only the imported modules would keep the
+/// package's own lines, but Zig 0.17.1's LLVM backend crashes when a stripped module calls
+/// std's `inline fn readInt`. Other builds, such as fuzzing's ReleaseSafe, use the module.
+/// The caller asks for `debug_info` whenever Zig's own runner runs the binary.
 fn test_root_module(
     b: *std.Build,
     package_name: []const u8,
     module: *std.Build.Module,
+    debug_info: bool,
 ) *std.Build.Module {
+    if (module.optimize.? != .debug) return module;
     const optimized = for (optimized_test_packages) |optimized_name| {
         if (std.mem.eql(u8, optimized_name, package_name)) break true;
     } else false;
-    if (!optimized or module.optimize.? != .debug) return module;
     const copy = b.createModule(.{
         .root_source_file = module.root_source_file,
         .target = module.resolved_target,
-        .optimize = .safe,
+        .optimize = if (optimized) .safe else .debug,
         .fuzz = module.fuzz,
+        .strip = if (debug_info) null else true,
     });
+    std.debug.assert(module.strip == null);
     var imports = module.import_table.iterator();
     while (imports.next()) |entry| copy.addImport(entry.key_ptr.*, entry.value_ptr.*);
     std.debug.assert(copy.import_table.count() == module.import_table.count());
