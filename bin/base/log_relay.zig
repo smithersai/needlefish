@@ -96,29 +96,36 @@ fn write_all(output: linux.fd_t, bytes: []const u8) error{WriteFailed}!void {
 
 test "pump copies every byte in order to the end of input" {
     if (builtin.os.tag != .linux) return error.SkipZigTest;
-    var source: [2]linux.fd_t = undefined;
-    var sink: [2]linux.fd_t = undefined;
-    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.pipe2(&source, .{ .CLOEXEC = true })));
-    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.pipe2(&sink, .{ .CLOEXEC = true })));
-    defer _ = linux.close(sink[0]);
+    // Memory files, not pipes: the input is filled before anything reads it, and a pipe
+    // holds only what the host grants. A user over its pipe budget is refused the resize
+    // and gets as little as two pages, and this test then blocked in a write for good.
+    const source = try memory_file("pump-source");
+    defer _ = linux.close(source);
+    const sink = try memory_file("pump-sink");
+    defer _ = linux.close(sink);
     // More than one chunk, and not a multiple of it, so a lost or reordered tail shows.
     var expected: [chunk_bytes + 1234]u8 = undefined;
     var prng = std.Random.DefaultPrng.init(0x5eed);
     prng.random().bytes(&expected);
-    _ = linux.fcntl(source[1], linux.F.SETPIPE_SZ, pipe_bytes);
-    _ = linux.fcntl(sink[1], linux.F.SETPIPE_SZ, pipe_bytes);
-    try write_all(source[1], &expected);
-    _ = linux.close(source[1]);
-    try pump(source[0], sink[1]);
-    _ = linux.close(source[0]);
-    _ = linux.close(sink[1]);
+    try write_all(source, &expected);
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.lseek(source, 0, linux.SEEK.SET)));
+    try pump(source, sink);
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.lseek(sink, 0, linux.SEEK.SET)));
     var actual: [expected.len + 1]u8 = undefined;
     var length: usize = 0;
     while (true) {
-        const rc = linux.read(sink[0], actual[length..].ptr, actual.len - length);
+        const rc = linux.read(sink, actual[length..].ptr, actual.len - length);
         try std.testing.expectEqual(.SUCCESS, linux.errno(rc));
         if (rc == 0) break;
         length += rc;
     }
     try std.testing.expectEqualSlices(u8, &expected, actual[0..length]);
+}
+
+/// An empty file that lives in memory until its descriptor is closed.
+fn memory_file(name: [*:0]const u8) !linux.fd_t {
+    const rc = linux.memfd_create(name, linux.MFD.CLOEXEC);
+    try std.testing.expectEqual(.SUCCESS, linux.errno(rc));
+    assert(rc <= std.math.maxInt(linux.fd_t));
+    return @intCast(rc);
 }
