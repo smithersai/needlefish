@@ -76,7 +76,9 @@ Read this whole file before you change anything. These rules are not optional.
 - `zig build test` — every package has unit tests next to the code and its own test binary;
   a binary reruns only when a file it compiles changed. `zig build test:common/rlp` runs one
   package's tests. A slow binary runs as parallel shards of one compile (`test_shards` in
-  `build.zig`), but no shard is shorter than its slowest test: keep each test short.
+  `build.zig`), but no shard is shorter than its slowest test: keep each test short. A
+  sharded binary is compiled by LLVM, whose Debug code runs tests several times faster on
+  x86_64 Linux than Zig's own backend.
 - **A failing test**: Debug test binaries carry no debug info (it halves their compile), so a
   failure prints the test's name and its error or panic message but no file:line or trace.
   Rerun that package with them: `zig build test:<package> -Dtest-debug-info=true`. CI and

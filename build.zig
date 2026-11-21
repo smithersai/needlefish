@@ -55,6 +55,11 @@ const Shards = struct { package: []const u8, count: u32 };
 /// smallest, up to 16, whose slowest shard is within 5% of the package's slowest test
 /// (per-test CPU seconds), else the count up to 16 with the shortest slowest shard: no count
 /// makes a run shorter than its slowest test.
+///
+/// A package here is also bound by how long its tests run, not by its compile, so its test
+/// binary is compiled by LLVM on every target. That changes x86_64 Linux only, where Debug
+/// defaults to Zig's own backend: it compiles several times faster, but its code runs these
+/// tests several times slower. Every other test binary keeps the default backend.
 const test_shards = [_]Shards{
     .{ .package = "batcher/blobs", .count = 4 },
     .{ .package = "batcher/devnet", .count = 3 },
@@ -261,6 +266,7 @@ fn add_package_tests(
             .name = name,
             .root_module = test_root_module(b, package.name, module, debug_info),
             .filters = filters,
+            .use_llvm = if (shard_count(package.name) > 1) true else null,
             .test_runner = if (!sharded) null else .{
                 .path = b.path("src/testing/test_runner.zig"),
                 .mode = .server,
