@@ -123,6 +123,8 @@ pub fn build(b: *std.Build) void {
     // oracle, and cross-lane API changes once broke it unnoticed. It imports only the EVM, so
     // it recompiles only when a file the EVM compiles changes.
     test_step.dependOn(&statetest.step);
+    // The same compile under a name, so every dependency of `test` can also be run alone.
+    b.step("test:statetest", "Compile the state-test runner").dependOn(&statetest.step);
 
     check_step.dependOn(&sim.step);
     check_step.dependOn(&bench.step);
