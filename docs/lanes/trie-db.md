@@ -1,6 +1,6 @@
 # Lane: trie-db
 
-Owns `src/execution/{trie,db}`. Reference: reth trie/db, base/base `crates/execution/trie`.
+Owns `src/execution/{trie,db,digest_table}`. Reference: reth trie/db, base/base `crates/execution/trie`.
 
 ## Backlog
 - [x] Witness header ancestry verification (DST-found soundness gap): `SparseState` trusted

@@ -269,6 +269,8 @@ fn add_package_tests(
 /// The root module's mode is what optimizes a compilation: a ReleaseSafe common/crypto module
 /// inside a Debug test binary runs no faster.
 const optimized_test_packages = [_][]const u8{
+    // "digest table: matches a hash map across growth, clears, and a full table".
+    "execution/digest_table",
     // "driver: blob sends carry a v1 (cell proof) sidecar": an FK20 setup and 128 KZG proofs.
     "infra/tx_manager",
 };

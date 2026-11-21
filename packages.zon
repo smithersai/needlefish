@@ -1253,6 +1253,7 @@
             "execution/archive",
             "execution/chainspec",
             "execution/db",
+            "execution/digest_table",
             "execution/engine",
             "execution/evm",
             "execution/import",
@@ -1284,6 +1285,7 @@
             "common/primitives",
             "common/rlp",
             "common/rpc_types",
+            "execution/digest_table",
             "execution/evm",
             "execution/trie",
             "testing/fuzz",
@@ -1293,6 +1295,7 @@
             "utilities/lazy_alloc",
         },
     },
+    .{ .name = "execution/digest_table", .deps = .{ "testing/prng", "utilities/lazy_alloc" } },
     .{
         .name = "execution/engine",
         .deps = .{

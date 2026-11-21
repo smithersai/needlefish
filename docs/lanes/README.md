@@ -11,7 +11,7 @@ work follows the milestones and lane split in [../SYNC_PLAN.md](../SYNC_PLAN.md)
 | primitives | primitives.md | `src/common/{primitives,rlp,consensus,genesis,chains}` (backlog done; session retired, other lanes may extend) |
 | crypto | crypto.md | `src/common/crypto` (backlog done; session retired, other lanes may extend) |
 | evm | evm.md | `src/execution/evm` |
-| trie-db | trie-db.md | `src/execution/{trie,db}` |
+| trie-db | trie-db.md | `src/execution/{trie,db,digest_table}` |
 | io-net | io-net.md | `src/utilities/*` (backlog done; session retired, other lanes may extend) |
 | node | node.md | `src/execution/{chainspec,txpool,payload,engine,rpc,node}`, `bin/node` |
 | consensus | consensus.md | `src/consensus/*`, `bin/consensus` |

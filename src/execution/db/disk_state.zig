@@ -54,7 +54,7 @@ const changeset_module = @import("changeset.zig");
 const flat_trees_module = @import("flat_trees.zig");
 const branch_record = @import("branch_record.zig");
 const record_cache_module = @import("record_cache.zig");
-const digest_table = @import("digest_table.zig");
+const digest_table = @import("execution/digest_table");
 
 const node = trie.node;
 const sparse = trie.sparse;
