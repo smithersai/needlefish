@@ -6,7 +6,7 @@ GitHub Actions on every push to `main`. It runs only what the push can break:
 - `plan` diffs the pushed tree against the tree of the last commit whose run of this
   workflow passed on the branch (`baseline.sh`, which says why that is safe) and keeps the
   steps of every changed package, of every package that imports one, and of the tools that
-  import one. It deals them to as many shards as they fill (at most 12). A sharded package
+  import one. It deals them to as many shards as they fill (at most 16). A sharded package
   whose runs outweigh its compile and that costs more than a shard carries goes to several
   shards as groups, `test:<package>@K/G` (build.zig `test_group_counts`), each of which
   compiles the binary and runs a contiguous part of its shards. A push that changes
@@ -30,7 +30,7 @@ The workflow is thin; the logic lives here and in `etc/scripts/`:
 - `build.zig` makes `test` and `check` depend only on named steps: `test:<package>`,
   `check:<package>` and its `ci_steps` list. It fails to configure otherwise, and when the
   groups `test:<package>@K/G` of one G do not run each shard of the package exactly once.
-- `etc/scripts/ci-shards.py` lists those steps (`steps`), plans a push (`plan BASE HEAD 12`),
+- `etc/scripts/ci-shards.py` lists those steps (`steps`), plans a push (`plan BASE HEAD 16`),
   deals steps to shards largest cost first (`shard INDEX COUNT`), rebuilds the cost table from
   `--summary all` logs (`costs LOG...`) and checks that the shards cover every step exactly
   once and that the Justfile's `ci`, `tidy`, `test` and `check` recipes still say what the

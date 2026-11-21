@@ -38,7 +38,7 @@ jobs:
         # with none, every step.
         run: |
           base=$(bash etc/ci/baseline.sh "$GITHUB_REPOSITORY" "$BRANCH" test.yml)
-          python3 -I etc/scripts/ci-shards.py plan "$base" HEAD 12 >> "$GITHUB_OUTPUT"
+          python3 -I etc/scripts/ci-shards.py plan "$base" HEAD 16 >> "$GITHUB_OUTPUT"
       - if: steps.plan.outputs.count == '1'
         uses: ./.github/actions/zig
       - name: build runner
