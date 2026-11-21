@@ -28,13 +28,14 @@ jobs:
           persist-credentials: false
       - name: runner
         id: runner
-        # Zig compiles the build runner for the native CPU, and runners differ in CPU model:
-        # the global cache is kept per model.
+        # Zig compiles the build runner for the native CPU, and runners differ in CPU model and
+        # in the features one model exposes: the global cache is kept per model and feature set.
         run: |
           echo "nproc: $(nproc)"
           grep -m1 'model name' /proc/cpuinfo
           model=$(grep -m1 'model name' /proc/cpuinfo | sed 's/.*: //' | tr -c 'A-Za-z0-9\n' -)
-          echo "cpu=$model" >> "$GITHUB_OUTPUT"
+          flags=$(grep -m1 '^flags' /proc/cpuinfo | sha256sum | cut -c1-12)
+          echo "cpu=$model-$flags" | tee -a "$GITHUB_OUTPUT"
       - name: restore zig
         id: zig
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
