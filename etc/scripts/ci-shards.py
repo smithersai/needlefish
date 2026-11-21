@@ -10,10 +10,18 @@ depend on named steps only (its `ci_steps` and `assert_named_dependencies`), so 
   check:<package>      each compile_only package: compiles its test binary
   ci_steps             build.zig's list: test:statetest and the check:<tool> steps
 
-Costs: etc/ci/costs.tsv, seconds per step: the durations of a step's compiles and runs in a
-`zig build <steps> --summary all` log, summed (`costs`). The log prints whole seconds, and
-minutes for a step of a minute or more (read as the minute plus 30 s). A step missing from
-the table costs DEFAULT_SECONDS, with a warning; it is never dropped.
+Groups: a package in build.zig's `test_shards` runs its test binary as N run steps
+(`--shard=K/N`), and for each G of `test_group_counts` up to N, `test:<package>@K/G` (K from 1
+to G) runs the contiguous shards (K-1)*N//G to K*N//G - 1 (`group_shards`). The groups of one G
+run every shard once (build.zig `assert_groups_partition`), so CI may run them, each in its own
+job, in place of `test:<package>`; each such job compiles the binary itself.
+
+Costs: etc/ci/costs.tsv, per step, the seconds of its compiles and of its runs (one number per
+shard for a package in `test_shards`): the durations in `zig build <steps> --summary all` logs,
+summed (`costs`). The log prints whole seconds, and minutes for a step of a minute or more
+(read as the minute plus 30 s). A step costs its compile plus its runs; a group costs the
+compile plus its shards' runs. A step missing from the table costs DEFAULT_SECONDS, with a
+warning; it is never dropped.
 
 `shard` deals the steps to COUNT shards: largest cost first, each to the shard with the least
 cost so far (ties: the lowest index), so every job computes the same split.
@@ -21,7 +29,9 @@ cost so far (ties: the lowest index), so every job computes the same split.
 `plan` keeps the steps a push needs: the packages whose files changed between BASE and HEAD,
 every package that imports one of them (packages.zon), and the tools that import one. It deals
 them to as many shards as they fill at SHARD_SECONDS each, at most LIMIT, and prints them as
-GitHub outputs. BASE is the tree of the last commit CI passed (etc/ci/baseline.sh). An unknown
+GitHub outputs. A step whose runs cost more than its compile and that costs more than a shard
+carries is split into the fewest groups of one G whose every group fits (`split_steps`); a
+compile-bound step is never split, since each group compiles the binary again. BASE is the tree of the last commit CI passed (etc/ci/baseline.sh). An unknown
 BASE, a change to a file in EVERYTHING, or a path the lists below cannot place plans every step;
 a path in NO_STEP_FILES or NO_STEP_DIRECTORIES plans none. Tidy is not planned: it runs on
 every push, in its own job.
@@ -32,6 +42,7 @@ usage: python3 -I etc/scripts/ci-shards.py steps              every CI step, one
        python3 -I etc/scripts/ci-shards.py costs LOG...       rewrite etc/ci/costs.tsv from logs
        python3 -I etc/scripts/ci-shards.py check              the shards cover each step once
 """
+import functools
 import importlib.util
 import json
 import math
@@ -47,13 +58,19 @@ COSTS = 'etc/ci/costs.tsv'
 DEFAULT_SECONDS = 10.0  # a step the table does not list yet
 MIN_SECONDS = 0.1  # the least a measured step costs in the table, so none rounds to 0.0
 MAX_SHARDS = 64  # `check` verifies every count up to this one
-# The cost `plan` puts in one shard before it starts another. On a 4-vCPU runner a shard's
-# work took about half its summed step durations, so this is about 30 s of work: with the
-# shard's setup it stays within the one minute GitHub bills a job at least.
+# The cost `plan` puts in one shard before it starts another (a step's compile plus its runs,
+# or a group's). On a 4-vCPU runner a shard's work took about half its summed step durations,
+# so this is about 30 s of work: with the shard's setup it stays within the one minute GitHub
+# bills a job at least.
 SHARD_SECONDS = 60.0
 CI_STEPS = re.compile(r'^const ci_steps = \[_\]\[\]const u8\{\n(.*?)^\};', re.M | re.S)
 NAME = re.compile(r'\.name = "([^"]+)"')
+TEST_SHARDS = re.compile(r'^const test_shards = \[_\]Shards\{\n(.*?)^\};', re.M | re.S)
+TEST_SHARD = re.compile(r'^    \.\{ \.package = "([^"]+)", \.count = (\d+) \},$', re.M)
+GROUP_COUNTS = re.compile(r'^const test_group_counts = \[_\]u32\{ ([0-9, ]+) \};$', re.M)
+GROUP = re.compile(r'^(test:.+)@(\d+)/(\d+)$')
 DURATION = re.compile(r' (\d+)(ns|us|ms|s|m)(?= |$)')
+RUN_SHARD = re.compile(r'run test \S+ shard (\d+)/(\d+)')
 TIMESTAMP = re.compile(r'^\d{4}-\d\d-\d\dT[\d:.]+Z ')
 ANSI = re.compile(r'\x1b\[[0-9;]*m')
 NODE = re.compile(r'^(?:\|  |   )*\+- (.*)$')
@@ -142,6 +159,39 @@ def steps():
     return sorted(out)
 
 
+@functools.cache
+def test_shards():
+    """{test:<package>: shard count} of build.zig's `test_shards`."""
+    match = TEST_SHARDS.search(read('build.zig'))
+    assert match, 'build.zig has no `const test_shards = [_]Shards{ ... };`'
+    rows = TEST_SHARD.findall(match.group(1))
+    assert rows and len(rows) == match.group(1).count('\n'), 'test_shards: one package per line'
+    out = {'test:' + name: int(count) for name, count in rows}
+    assert len(out) == len(rows) and min(out.values()) >= 2, 'test_shards: once each, count >= 2'
+    return out
+
+
+@functools.cache
+def group_counts():
+    """build.zig's `test_group_counts`: ascending, each at least 2."""
+    match = GROUP_COUNTS.search(read('build.zig'))
+    assert match, 'build.zig has no `const test_group_counts = [_]u32{ ... };`'
+    out = [int(n) for n in match.group(1).split(', ')]
+    assert out == sorted(set(out)) and out[0] >= 2, 'test_group_counts: ascending, each >= 2'
+    return out
+
+
+def group_shards(group, groups, count):
+    """The shards (0-based) that group `group` (1-based) of `groups` runs, of a binary run as
+    `count` shards: build.zig's add_test_groups computes the same range."""
+    assert 1 <= group <= groups <= count
+    return range((group - 1) * count // groups, group * count // groups)
+
+
+def group_name(step, group, groups):
+    return '%s@%d/%d' % (step, group, groups)
+
+
 def read_costs():
     if not os.path.exists(os.path.join(ROOT, COSTS)):
         return {}
@@ -149,26 +199,43 @@ def read_costs():
 
 
 def parse_costs(text):
-    """{step: seconds} of a cost table. A cost that is not a finite number of at least zero, or a
-    step listed twice, is an error: a plan must never rest on a cost it cannot add up."""
+    """{step: (compile seconds, (run seconds, ...))} of a cost table: a line is the step, its
+    compile and its runs, comma-separated, one per shard. A cost that is not a finite number of
+    at least zero, or a step listed twice, is an error: a plan must never rest on a cost it
+    cannot add up."""
     table = {}
     for number, line in enumerate(text.splitlines(), 1):
         if line and not line.startswith('#'):
-            step, seconds = line.split('\t')
-            value = float(seconds)
-            assert math.isfinite(value) and value >= 0, '%s:%d: %s' % (COSTS, number, line)
+            step, compile_seconds, runs = line.split('\t')
+            values = [float(compile_seconds)] + [float(run) for run in runs.split(',')]
+            assert all(math.isfinite(v) and v >= 0 for v in values), '%s:%d: %s' % (
+                COSTS, number, line)
             assert step not in table, '%s:%d: %s is listed twice' % (COSTS, number, step)
-            table[step] = value
+            table[step] = (values[0], tuple(values[1:]))
     return table
 
 
+def total(cost):
+    """Seconds of a (compile, runs) cost."""
+    return cost[0] + sum(cost[1])
+
+
 def costs_of(names, table):
-    out = {}
+    """{step: (compile, runs)}: a step the table lacks costs DEFAULT_SECONDS and is never split;
+    a sharded step whose table runs do not match its shard count spreads their sum evenly."""
+    counts, out = test_shards(), {}
     for name in names:
         if name not in table:
             print('ci-shards: warning: %s has no cost in %s; using %.0f s' %
                   (name, COSTS, DEFAULT_SECONDS), file=sys.stderr)
-        out[name] = table.get(name, DEFAULT_SECONDS)
+        compile_seconds, runs = table.get(name, (DEFAULT_SECONDS, (0.0,)))
+        count = counts.get(name, 1)
+        if len(runs) != count:
+            if name in table:
+                print('ci-shards: warning: %s lists %d runs of %s, which runs %d shards' %
+                      (COSTS, len(runs), name, count), file=sys.stderr)
+            runs = (sum(runs) / count,) * count
+        out[name] = (compile_seconds, runs)
     return out
 
 
@@ -211,7 +278,9 @@ def node_step(text, top, by_binary, known):
 
 
 def log_costs(path, by_binary, known):
-    """{step: seconds} of one `zig build ... --summary all` log (a CI job log works too)."""
+    """{step: [compile seconds, {shard: run seconds}]} of one `zig build ... --summary all` log
+    (a CI job log works too). A node named `compile ...` is compile time, any other node run
+    time, of shard K for `run test <binary> shard K/N` and of shard 0 otherwise."""
     out, top, in_summary = {}, None, False
     with open(path, encoding='utf-8', errors='replace') as handle:
         lines = handle.read().splitlines()
@@ -219,7 +288,8 @@ def log_costs(path, by_binary, known):
         line = TIMESTAMP.sub('', ANSI.sub('', raw))
         measured = MEASURED.match(line)
         if measured and measured.group(1) in known:
-            out[measured.group(1)] = out.get(measured.group(1), 0.0) + float(measured.group(2))
+            runs = out.setdefault(measured.group(1), [0.0, {}])[1]
+            runs[0] = runs.get(0, 0.0) + float(measured.group(2))
         if line.startswith('Build Summary:'):
             in_summary, top = True, None
             continue
@@ -231,31 +301,58 @@ def log_costs(path, by_binary, known):
         if not node:
             top = line.split(' ')[0]
             continue
-        times = DURATION.findall(node.group(1))
-        step = node_step(node.group(1), top, by_binary, known)
-        if times and step:
-            out[step] = out.get(step, 0.0) + seconds(int(times[-1][0]), times[-1][1])
+        text, times = node.group(1), DURATION.findall(node.group(1))
+        step = node_step(text, top, by_binary, known)
+        if not times or not step:
+            continue
+        value, row = seconds(int(times[-1][0]), times[-1][1]), out.setdefault(step, [0.0, {}])
+        if text.startswith('compile '):
+            row[0] += value
+            continue
+        shard = RUN_SHARD.match(text)
+        index = int(shard.group(1)) if shard else 0
+        row[1][index] = row[1].get(index, 0.0) + value
     return out
 
 
 def costs(logs):
-    """Rewrite the cost table: each step a log measures takes the median of those logs."""
-    known, by_binary = set(steps()), binaries()
+    """Rewrite the cost table: a step's compile, and each of its shards' runs, takes the median
+    of the logs that measure it; what no log measures keeps its old value."""
+    known, by_binary, counts = set(steps()), binaries(), test_shards()
     samples = {}
     for path in logs:
-        for step, value in log_costs(path, by_binary, known).items():
-            samples.setdefault(step, []).append(value)
-    table = read_costs()
-    table.update({step: statistics.median(values) for step, values in samples.items()})
-    lines = ['# CI step -> seconds (etc/scripts/ci-shards.py costs LOG...): the durations of',
-             '# its compiles and runs in `zig build <steps> --summary all` logs, summed.']
-    lines += ['%s\t%.1f' % (step, max(table[step], MIN_SECONDS)) for step in sorted(table)]
+        for step, (compile_seconds, runs) in log_costs(path, by_binary, known).items():
+            if compile_seconds:
+                samples.setdefault((step, 'compile'), []).append(compile_seconds)
+            for index, value in runs.items():
+                samples.setdefault((step, index), []).append(value)
+    measured = {step for step, _ in samples}
+    table = costs_of([s for s in sorted(read_costs()) if s in known], read_costs())
+    for step in sorted(measured):
+        count = counts.get(step, 1)
+        old_compile, old_runs = table.get(step, (0.0, (0.0,) * count))
+        def median(key, old):
+            return statistics.median(samples[key]) if key in samples else old
+        runs = tuple(median((step, index), old_runs[index]) for index in range(count))
+        table[step] = (median((step, 'compile'), old_compile), runs)
+    write_costs(table)
+    print('ci-shards: %d steps measured in %d logs; %d of %d CI steps have no cost' %
+          (len(measured), len(logs), len(known - set(table)), len(known)))
+    return 0
+
+
+def write_costs(table):
+    lines = ['# CI step, then seconds of its compiles, then of its runs, one per shard',
+             '# (etc/scripts/ci-shards.py costs LOG...): durations in `zig build <steps>',
+             '# --summary all` logs, summed, the median over logs. No step totals under %.1f s.' %
+             MIN_SECONDS]
+    for step in sorted(table):
+        compile_seconds, runs = table[step]
+        runs = [round(run, 1) for run in runs]
+        compile_seconds = max(round(compile_seconds, 1), MIN_SECONDS - sum(runs))
+        lines.append('%s\t%.1f\t%s' % (step, compile_seconds, ','.join('%.1f' % r for r in runs)))
     with open(os.path.join(ROOT, COSTS), 'w', encoding='utf-8') as handle:
         handle.write('\n'.join(lines) + '\n')
-    missing = known - set(table)
-    print('ci-shards: %d steps measured in %d logs; %d of %d CI steps have no cost' %
-          (len(samples), len(logs), len(missing), len(known)))
-    return 0
 
 
 def recipes(text):
@@ -327,17 +424,19 @@ def selftest():
         errors.append('a path outside the known places does not plan every step')
     if changed_packages(['docs/TIGER_STYLE.md'], rows) != (set(), False):
         errors.append('a docs/ path plans a step')
-    zero = {name: 0.0 for name in steps()}
+    zero = {name: (0.0, (0.0,)) for name in steps()}
     for limit in (1, 12):
         shards = plan_shards(zero, limit)
         if len(shards) != 1 or sorted(shards[0]) != sorted(zero):
             errors.append('steps that cost nothing do not get exactly one shard')
     for bad in ('nan', 'inf', '-1'):
-        try:
-            parse_costs('test:x\t%s\n' % bad)
-            errors.append('a cost of %s is accepted' % bad)
-        except AssertionError:
-            pass
+        for line in ('test:x\t%s\t0\n', 'test:x\t0\t1,%s\n'):
+            try:
+                parse_costs(line % bad)
+                errors.append('a cost of %s is accepted' % bad)
+            except AssertionError:
+                pass
+    errors += group_selftest()
     added = '    zig build test -Doptimize=ReleaseSafe\n'
     drifted = read('Justfile').replace('ci: tidy test check\n', 'ci: tidy test check\n' + added)
     if not justfile_errors(drifted):
@@ -349,6 +448,28 @@ def selftest():
     with tempfile.TemporaryDirectory() as empty:
         if not missing_modules(JUST_MODULES, empty):
             errors.append('a module whose file is gone is not caught')
+    return errors
+
+
+def group_selftest():
+    """The dealer's guarantees for groups: a matrix that skips a group, runs one twice, or runs
+    a step beside its group is caught; a step is split into the fewest groups that fit, and a
+    step that fits, or whose compile costs as much as its runs, is not split."""
+    errors, counts = [], {'test:x': 4, 'tidy': 1}
+    whole = ['test:x@1/2', 'test:x@2/2', 'tidy']
+    if coverage_errors(whole, counts):
+        errors.append('the groups of one G are not taken to run every shard once')
+    for name, names in [('a skipped group', whole[1:]), ('a group run twice', whole + whole[:1]),
+                        ('a step beside its group', whole + ['test:x']),
+                        ('a group build.zig lacks', ['test:x@1/1', 'tidy'])]:
+        if not coverage_errors(names, counts):
+            errors.append('%s is not caught' % name)
+    for cost, target, expected in [
+            ((2.0, (10.0, 10.0, 10.0, 10.0)), 25.0, ['test:x@1/2', 'test:x@2/2']),
+            ((2.0, (10.0, 10.0, 10.0, 10.0)), 42.0, ['test:x']),
+            ((30.0, (5.0, 5.0, 5.0, 5.0)), 20.0, ['test:x'])]:
+        if sorted(split_steps({'test:x': cost}, target)) != expected:
+            errors.append('%r at %.0f s does not split into %s' % (cost, target, expected))
     return errors
 
 
@@ -385,19 +506,37 @@ def check():
     if stale:
         print('ci-shards: warning: %s lists steps CI no longer runs: %s' %
               (COSTS, ' '.join(stale)), file=sys.stderr)
-    costs = {name: table.get(name, DEFAULT_SECONDS) for name in everything}
+    costs = costs_of(everything, table)
+    whole = {name: total(cost) for name, cost in costs.items()}
     for count in range(1, MAX_SHARDS + 1):
-        dealt = [step for shard in split(costs, count)[0] for step in shard]
+        dealt = [step for shard in split(whole, count)[0] for step in shard]
         if sorted(dealt) != everything:
             errors.append('%d shards: steps skipped or dealt twice' % count)
+    errors += group_errors(costs)
     for e in errors:
         print('ci-shards: ' + e)
     return 1 if errors else 0
 
 
+def group_errors(costs):
+    """The groups of each G up to a binary's shard count run each shard once, for every count
+    up to MAX_SHARDS; and for every limit, plan's shards run each shard of every step once."""
+    errors, counts = [], {step: len(runs) for step, (_, runs) in costs.items()}
+    for count in range(2, MAX_SHARDS + 1):
+        for groups in [g for g in group_counts() if g <= count]:
+            dealt = [s for k in range(1, groups + 1) for s in group_shards(k, groups, count)]
+            if dealt != list(range(count)):
+                errors.append('%d groups of %d shards do not hold each shard once' % (
+                    groups, count))
+    for limit in range(1, MAX_SHARDS + 1):
+        names = [name for shard in plan_shards(costs, limit) for name in shard]
+        errors += ['limit %d: %s' % (limit, e) for e in coverage_errors(names, counts)]
+    return errors
+
+
 def shard(index, count):
     assert 0 <= index < count <= MAX_SHARDS, 'shard INDEX COUNT: 0 <= INDEX < COUNT <= 64'
-    costs = costs_of(steps(), read_costs())
+    costs = {name: total(cost) for name, cost in costs_of(steps(), read_costs()).items()}
     shards, loads = split(costs, count)
     print('ci-shards: shard %d/%d: %d steps, %.0f s of %.0f s' %
           (index, count, len(shards[index]), loads[index], sum(loads)), file=sys.stderr)
@@ -483,15 +622,78 @@ def affected(base, head):
     return out
 
 
+def split_steps(costs, target):
+    """{name: seconds}: each step of `costs` ({step: (compile, runs)}), except that a sharded
+    step whose runs cost more than its compile, and which costs more than `target`, becomes its
+    groups of the fewest G (build.zig `test_group_counts`) whose every group costs at most
+    `target`, or of the largest G when none does. A group costs the compile plus its shards'
+    runs. A compile-bound step stays whole: each group compiles the binary again."""
+    allowed, out = group_counts(), {}
+    for step, (compile_seconds, runs) in sorted(costs.items()):
+        out[step] = compile_seconds + sum(runs)
+        fits = [groups for groups in allowed if groups <= len(runs)]
+        if not fits or sum(runs) <= compile_seconds or out[step] <= target:
+            continue
+        for groups in fits:  # bounded: at most len(allowed) tries
+            parts = {name: part_cost(name, costs) for name in
+                     [group_name(step, group, groups) for group in range(1, groups + 1)]}
+            if max(parts.values()) <= target:
+                break
+        del out[step]
+        out.update(parts)
+    assert out or not costs
+    return out
+
+
+def part_cost(name, costs):
+    """Seconds of a step, or of a group `<step>@K/G`: the compile plus its shards' runs."""
+    group = GROUP.match(name)
+    if not group:
+        return total(costs[name])
+    compile_seconds, runs = costs[group.group(1)]
+    shards = group_shards(int(group.group(2)), int(group.group(3)), len(runs))
+    return compile_seconds + sum(runs[index] for index in shards)
+
+
+def coverage_errors(names, counts):
+    """Why `names` (steps and groups `<step>@K/G`) do not run each shard of each step in
+    `counts` ({step: shard count, 1 for a step that does not shard}) exactly once, or []."""
+    errors, times = [], {}
+    for name in names:
+        group = GROUP.match(name)
+        step = group.group(1) if group else name
+        if step not in counts:
+            errors.append('%s is not a planned step' % name)
+            continue
+        shards = range(counts[step])
+        if group:
+            index, groups = int(group.group(2)), int(group.group(3))
+            if groups not in group_counts() or not 1 <= index <= groups <= counts[step]:
+                errors.append('%s is not a group build.zig declares' % name)
+                continue
+            shards = group_shards(index, groups, counts[step])
+        for shard in shards:
+            times[(step, shard)] = times.get((step, shard), 0) + 1
+    for step, count in sorted(counts.items()):
+        errors += ['%s shard %d of %d runs %d times, not once' % (step, shard, count, ran)
+                   for shard in range(count) for ran in [times.get((step, shard), 0)]
+                   if ran != 1]
+    return errors
+
+
 def plan_shards(costs, limit):
-    """The steps of `costs` dealt to as many shards as they fill at SHARD_SECONDS each: at least
-    one when there is a step, at most `limit` and at most one per step; none is empty."""
+    """The steps of `costs` ({step: (compile, runs)}), split by split_steps, dealt to as many
+    shards as they fill at SHARD_SECONDS each: at least one when there is a step, at most
+    `limit` and at most one per part; none is empty. A step is split to fit what a shard
+    carries: SHARD_SECONDS, or more when the limit caps the count."""
     assert 1 <= limit <= MAX_SHARDS
     if not costs:
         return []
-    count = math.ceil(sum(costs.values()) / SHARD_SECONDS)
-    shards = split(costs, max(1, min(limit, len(costs), count)))[0]
-    assert all(shards) and sorted(s for shard in shards for s in shard) == sorted(costs)
+    whole = sum(total(cost) for cost in costs.values())
+    parts = split_steps(costs, max(SHARD_SECONDS, whole / limit))
+    count = math.ceil(sum(parts.values()) / SHARD_SECONDS)
+    shards = split(parts, max(1, min(limit, len(parts), count)))[0]
+    assert all(shards) and sum(len(shard) for shard in shards) == len(parts)
     return shards
 
 
@@ -502,9 +704,14 @@ def plan(base, head, limit):
     shards = plan_shards(costs, limit)
     include = [{'shard': i, 'steps': ' '.join(s)} for i, s in enumerate(shards)]
     printed = [step for row in include for step in row['steps'].split(' ')]
-    assert sorted(printed) == selected, 'the matrix must hold each selected step exactly once'
-    print('ci-shards: plan: %d steps, %.0f s, %d shards' % (len(costs), sum(costs.values()),
-          len(shards)), file=sys.stderr)
+    counts = {step: len(runs) for step, (_, runs) in costs.items()}
+    assert sorted(counts) == selected and not coverage_errors(printed, counts), \
+        'the matrix must run each shard of each selected step exactly once'
+    print('ci-shards: plan: %d steps, %.0f s, %d shards' % (
+        len(costs), sum(total(cost) for cost in costs.values()), len(shards)), file=sys.stderr)
+    for index, row in enumerate(shards):
+        print('ci-shards: shard %d: %.0f s: %s' % (
+            index, sum(part_cost(name, costs) for name in row), ' '.join(row)), file=sys.stderr)
     print('count=%d' % len(shards))
     print('matrix=%s' % json.dumps({'include': include}, separators=(',', ':')))
     return 0
