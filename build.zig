@@ -381,6 +381,19 @@ fn add_generators(
         .description = "Print prepared_lines.zig: zig build kzg-lines > <that file>",
     });
     check_step.dependOn(check_generated(b, kzg_lines, "src/common/crypto/kzg/prepared_lines.zig"));
+
+    // Regenerates the secp256k1 generator tables (src/common/crypto/secp256k1).
+    const secp_tables = add_tool(b, imports, target, optimize, .{
+        .name = "secp-tables",
+        .path = "src/common/crypto/secp256k1/table_main.zig",
+        .step = "secp-tables",
+        .description = "Print table_data.zig: zig build secp-tables > <that file>",
+    });
+    check_step.dependOn(check_generated(
+        b,
+        secp_tables,
+        "src/common/crypto/secp256k1/table_data.zig",
+    ));
 }
 
 /// A run of `tool --check <path>`: fails when the committed file differs from the tool's output.
