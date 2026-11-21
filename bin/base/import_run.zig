@@ -21,19 +21,18 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 const snapshot_import_out = @import("snapshot_import_out.zig");
 
-const to_disk = base.execution.import.to_disk;
-const import_run = base.execution.import.run;
-const follower = base.infra.follow.follower;
+const to_disk = @import("execution/import").to_disk;
+const import_run = @import("execution/import").run;
+const follower = @import("infra/follow").follower;
 const json = std.json;
 const assert = std.debug.assert;
 
-const IO = base.utilities.io.IO;
-const Storage = base.execution.db.storage.IoStorageType(IO);
+const IO = @import("utilities/io").IO;
+const Storage = @import("execution/db").storage.IoStorageType(IO);
 const Importer = to_disk.ImporterType(Storage);
 const Database = Importer.Database;
 const Runner = import_run.RunnerType(Storage);
@@ -52,7 +51,7 @@ const usage =
 
 pub const Chain = struct {
     name: []const u8,
-    spec: *const base.execution.chainspec.ChainSpec,
+    spec: *const @import("execution/chainspec").ChainSpec,
     genesis_hash: Hash,
     rpc: []const u8,
 };
@@ -60,14 +59,14 @@ pub const Chain = struct {
 pub const chains = [_]Chain{
     .{
         .name = "base-sepolia",
-        .spec = &base.execution.chainspec.ChainSpec.presets.base_sepolia,
-        .genesis_hash = base.common.chains.sepolia.genesis_l2_hash.bytes,
+        .spec = &@import("execution/chainspec").ChainSpec.presets.base_sepolia,
+        .genesis_hash = @import("common/chains").sepolia.genesis_l2_hash.bytes,
         .rpc = "https://sepolia.base.org",
     },
     .{
         .name = "base-mainnet",
-        .spec = &base.execution.chainspec.ChainSpec.presets.base_mainnet,
-        .genesis_hash = base.common.chains.mainnet.genesis_l2_hash.bytes,
+        .spec = &@import("execution/chainspec").ChainSpec.presets.base_mainnet,
+        .genesis_hash = @import("common/chains").mainnet.genesis_l2_hash.bytes,
         .rpc = "https://mainnet.base.org",
     },
 };
@@ -311,7 +310,7 @@ fn execute(init: std.process.Init, flags: Flags, db: *Database, driver: to_disk.
     var config: import_run.Config = .{ .executor = .{} };
     const cores: u32 = @intCast(@max(std.Thread.getCpuCount() catch 1, 1));
     config.executor.recovery_threads = @min(cores - 1, 7);
-    config.executor.state_gas_basis = base.execution.node.executor.default_state_gas_basis;
+    config.executor.state_gas_basis = @import("execution/node").executor.default_state_gas_basis;
     const runner = try Runner.create(gpa, db, flags.chain.spec, driver, config);
     defer runner.destroy(gpa);
     const response = try gpa.alloc(u8, response_bytes_max);
@@ -417,7 +416,7 @@ fn report_failure(
     decoded: *const follower.Block,
 ) void {
     assert(!outcome.ok());
-    const header = base.common.consensus.Header.decode(decoded.header_rlp) catch unreachable;
+    const header = @import("common/consensus").Header.decode(decoded.header_rlp) catch unreachable;
     std.debug.print("MISMATCH block {d} hash {x} ({d} txs)\n", .{
         outcome.number,
         outcome.hash,

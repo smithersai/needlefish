@@ -4,15 +4,14 @@
 //! uses. Binary-only glue over `std.http.Client`; the inspector sees `BlobSource`.
 
 const std = @import("std");
-const base = @import("base");
-const inspect = base.batcher.devnet.inspect;
-const beacon_json = base.consensus.sources.beacon_json;
-const blob_provider = base.consensus.sources.blob_provider;
-const Blob = base.batcher.blobs.Blob;
+const inspect = @import("batcher/devnet").inspect;
+const beacon_json = @import("consensus/sources").beacon_json;
+const blob_provider = @import("consensus/sources").blob_provider;
+const Blob = @import("batcher/blobs").Blob;
 
 const assert = std.debug.assert;
 
-const blobs_per_tx_max = base.batcher.txdata.blob.blobs_per_tx_max;
+const blobs_per_tx_max = @import("batcher/txdata").blob.blobs_per_tx_max;
 /// Every blob of a slot as hex text, plus the JSON around it.
 const response_bytes_max = 2 * @sizeOf(Blob) * blobs_per_tx_max * 2 + 4096;
 
@@ -103,7 +102,7 @@ test "devnet beacon: the blobs path lists every versioned hash" {
     try std.testing.expect(std.mem.endsWith(u8, path, "0101"));
 }
 
-fn check_blobs_path(prng: *base.testing.Prng, arena: std.mem.Allocator) !void {
+fn check_blobs_path(prng: *@import("testing/prng").Prng, arena: std.mem.Allocator) !void {
     var hashes: [blobs_per_tx_max][32]u8 = undefined;
     const count = 1 + prng.below(blobs_per_tx_max);
     for (hashes[0..count]) |*hash| prng.fill(hash);
@@ -113,14 +112,14 @@ fn check_blobs_path(prng: *base.testing.Prng, arena: std.mem.Allocator) !void {
 }
 
 test "devnet beacon: seeded fuzz of blobs paths" {
-    var prng = base.testing.Prng.init(0xbea);
+    var prng = @import("testing/prng").Prng.init(0xbea);
     var arena_state = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena_state.deinit();
     for (0..64) |_| try check_blobs_path(&prng, arena_state.allocator());
 }
 
 fn fuzz_blobs_path(_: void, smith: *std.testing.Smith) anyerror!void {
-    var prng = base.testing.Prng.init(smith.value(u64));
+    var prng = @import("testing/prng").Prng.init(smith.value(u64));
     var arena_state = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena_state.deinit();
     try check_blobs_path(&prng, arena_state.allocator());

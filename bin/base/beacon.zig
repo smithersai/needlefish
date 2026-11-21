@@ -2,22 +2,21 @@
 //! API blob provider with its own KZG verifier workspace, exposed as a host `BlobFetcher`.
 
 const std = @import("std");
-const base = @import("base");
 const consensus_cli = @import("consensus.zig");
 
-const io = base.utilities.io;
-const http = base.utilities.http;
-const host = base.proof.host;
-const kzg = base.common.crypto.kzg;
-const BlobProvider = base.consensus.sources.blob_provider;
-const Pump = base.proof.rpc.endpoint.Pump;
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const host = @import("proof/host");
+const kzg = @import("common/crypto").kzg;
+const BlobProvider = @import("consensus/sources").blob_provider;
+const Pump = @import("proof/rpc").endpoint.Pump;
 
 const Beacon = host.beacon_blobs.BeaconBlobs(io.IO, BlobProvider.KzgVerifier);
 
 /// The `config` object of an L1 genesis file; empty without one (a built-in L1 chain).
 pub fn l1_chain_config(l1_genesis: []const u8) ![]const u8 {
     if (l1_genesis.len == 0) return "";
-    return try base.utilities.json.find_path(l1_genesis, &.{"config"}) orelse "";
+    return try @import("utilities/json").find_path(l1_genesis, &.{"config"}) orelse "";
 }
 
 /// Heap-allocated once: the provider's buffers are large.

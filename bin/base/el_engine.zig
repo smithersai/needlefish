@@ -31,24 +31,23 @@
 //! runs while the runner executes or commits a block.
 
 const std = @import("std");
-const base = @import("base");
 const el_ring = @import("el_ring.zig");
 
-const json = base.utilities.json;
-const rpc = base.utilities.rpc;
-const http = base.utilities.http;
-const jwt = base.utilities.jwt;
-const io_module = base.utilities.io;
-const engine_types = base.execution.engine.types;
-const engine_block = base.execution.engine.block;
-const codec = base.execution.rpc.engine_json;
-const format = base.execution.rpc.format;
-const consensus = base.common.consensus;
-const rlp = base.common.rlp;
-const ChainSpec = base.execution.chainspec.ChainSpec;
-const ChainConfig = base.common.chains.ChainConfig;
-const rollup_json = base.consensus.protocol.rollup_json;
-const rollup_config_for = base.consensus.derive_check.start.rollup_config_for;
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const http = @import("utilities/http");
+const jwt = @import("utilities/jwt");
+const io_module = @import("utilities/io");
+const engine_types = @import("execution/engine").types;
+const engine_block = @import("execution/engine").block;
+const codec = @import("execution/rpc").engine_json;
+const format = @import("execution/rpc").format;
+const consensus = @import("common/consensus");
+const rlp = @import("common/rlp");
+const ChainSpec = @import("execution/chainspec").ChainSpec;
+const ChainConfig = @import("common/chains").ChainConfig;
+const rollup_json = @import("consensus/protocol").rollup_json;
+const rollup_config_for = @import("consensus/derive_check").start.rollup_config_for;
 const Io = std.Io;
 const assert = std.debug.assert;
 
@@ -209,13 +208,13 @@ pub const Engine = struct {
         assert(ring_options.transactions_max <= transactions_max);
         var ring = try el_ring.Ring.init(allocator, ring_options);
         errdefer ring.deinit(allocator);
-        const bytes = try base.utilities.lazy_alloc.alloc(allocator, u8, payload_bytes_max);
-        errdefer base.utilities.lazy_alloc.free(allocator, bytes);
+        const bytes = try @import("utilities/lazy_alloc").alloc(allocator, u8, payload_bytes_max);
+        errdefer @import("utilities/lazy_alloc").free(allocator, bytes);
         const transactions = try allocator.alloc([]const u8, transactions_max);
         errdefer allocator.free(transactions);
         const withdrawals = try allocator.alloc(engine_types.Withdrawal, 16);
         errdefer allocator.free(withdrawals);
-        const hashes = try allocator.alloc(base.common.primitives.B256, 16);
+        const hashes = try allocator.alloc(@import("common/primitives").B256, 16);
         errdefer allocator.free(hashes);
         const scratch = try allocator.alloc([]const u8, transactions_max);
         engine.* = .{
@@ -240,7 +239,7 @@ pub const Engine = struct {
         allocator.free(engine.space.hashes);
         allocator.free(engine.space.withdrawals);
         allocator.free(engine.space.transactions);
-        base.utilities.lazy_alloc.free(allocator, engine.space.bytes);
+        @import("utilities/lazy_alloc").free(allocator, engine.space.bytes);
         engine.ring.deinit(allocator);
         engine.* = undefined;
     }
@@ -305,7 +304,7 @@ pub const Engine = struct {
         const parent = if (number == 0) null else engine.hash_at(number - 1);
         const parent_ours = parent != null and
             std.mem.eql(u8, &parent.?, &payload.parent_hash.bytes);
-        const latest_valid: ?base.common.primitives.B256 =
+        const latest_valid: ?@import("common/primitives").B256 =
             if (parent_ours) payload.parent_hash else null;
         return .invalid(latest_valid, "block hash differs from the block el-run executed");
     }
@@ -473,7 +472,7 @@ fn client_version(_: *Engine, call: *Call) HandlerError!void {
     const fields = [_][2][]const u8{
         .{ "code", "NF" },
         .{ "name", "needlefish-el-run" },
-        .{ "version", base.build_options.version },
+        .{ "version", @import("build_options").version },
         .{ "commit", "0x00000000" },
     };
     try w.begin_array();
@@ -674,7 +673,7 @@ fn write_block(w: *json.Writer, block: *const el_ring.Block, full: bool) Handler
     try w.begin_array();
     for (block.transactions, 0..) |transaction, index| {
         if (!full) {
-            try w.data(&base.common.primitives.keccak256(transaction).bytes);
+            try w.data(&@import("common/primitives").keccak256(transaction).bytes);
             continue;
         }
         const inclusion: format.Inclusion = .{
@@ -708,9 +707,9 @@ pub fn rollup_config_main(init: std.process.Init, args: []const []const u8) !u8 
         const value = args[index + 1];
         if (std.mem.eql(u8, name, "--chain")) {
             config = if (std.mem.eql(u8, value, "base-mainnet"))
-                &base.common.chains.mainnet
+                &@import("common/chains").mainnet
             else if (std.mem.eql(u8, value, "base-sepolia"))
-                &base.common.chains.sepolia
+                &@import("common/chains").sepolia
             else
                 null;
         } else if (std.mem.eql(u8, name, "--out")) {
@@ -747,7 +746,7 @@ pub fn rollup_text(buffer: []u8, config: *const ChainConfig) ![]const u8 {
 
 test "el engine: the rollup config round trips" {
     var buffer: [16 * 1024]u8 = undefined;
-    const chains = base.common.chains;
+    const chains = @import("common/chains");
     const configs = [_]*const ChainConfig{ &chains.sepolia, &chains.mainnet };
     for (configs) |config| {
         const parsed = try rollup_json.parse(try rollup_text(&buffer, config));

@@ -4,22 +4,20 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 const consensus_cli = @import("consensus.zig");
 const beacon = @import("beacon.zig");
 const telemetry_servers = @import("telemetry.zig");
 
-const io = base.utilities.io;
-const http = base.utilities.http;
-const proof = base.proof;
-const proposer = proof.proposer;
-const host = proof.host;
-const kzg = base.common.crypto.kzg;
-const secp256k1 = base.common.crypto.secp256k1;
-const protocol = base.consensus.protocol;
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const proposer = @import("proof/proposer");
+const host = @import("proof/host");
+const kzg = @import("common/crypto").kzg;
+const secp256k1 = @import("common/crypto").secp256k1;
+const protocol = @import("consensus/protocol");
 
 const Source = host.rpc_source.RpcSource(io.IO);
-const Endpoint = proof.rpc.Endpoint(io.IO);
+const Endpoint = @import("proof/rpc").Endpoint(io.IO);
 const Chain = proposer.rpc_chain.RpcChain(Endpoint);
 const Submitter = proposer.tx_submitter.TxSubmitter(Endpoint);
 const Exporter = proposer.exporter.Exporter;
@@ -63,7 +61,7 @@ const Service = struct {
         try os_io.run_for_ns(std.time.ns_per_ms);
     }
 
-    fn pump(service: *Service) proof.rpc.endpoint.Pump {
+    fn pump(service: *Service) @import("proof/rpc").endpoint.Pump {
         return .{ .context = &service.os_io, .step = step };
     }
 };
@@ -188,9 +186,10 @@ const Endpoints = struct {
     }
 };
 
-const RemoteClient = proof.prover_service.client.Client(io.IO);
-const RemoteProver = proof.prover_service.client.ProposerProver(io.IO);
-const CompressedProver = proof.prover_service.proposer_native.NativeProposerProver(io.IO);
+const RemoteClient = @import("proof/prover_service").client.Client(io.IO);
+const RemoteProver = @import("proof/prover_service").client.ProposerProver(io.IO);
+const CompressedProver =
+    @import("proof/prover_service").proposer_native.NativeProposerProver(io.IO);
 
 /// The proposer's prover: in-process native (`--prover-rpc native`, with optional beacon
 /// blobs) or a prover service over JSON-RPC.
@@ -249,7 +248,7 @@ const Provers = struct {
             init.io,
             config.rollup_config,
             allocator,
-            .limited(proof.program.boot.rollup_config_bytes_max),
+            .limited(@import("proof/program").boot.rollup_config_bytes_max),
         );
         errdefer allocator.free(provers.rollup_json);
         provers.l1_genesis = try read_optional(init, config.l1_genesis);
@@ -309,7 +308,7 @@ fn open_submitter(
     address: [20]u8,
 ) !Submitter {
     const raw = try service.l1_tx.call("eth_chainId", &.{});
-    const chain_id = try proof.rpc.endpoint.parse_quantity(raw);
+    const chain_id = try @import("proof/rpc").endpoint.parse_quantity(raw);
     service.l1_tx.reset();
     return Submitter.init(allocator, &service.l1_tx, .{
         .chain_id = chain_id,
@@ -374,9 +373,9 @@ const KzgState = struct {
         allocator.destroy(state);
     }
 
-    fn options(state: *KzgState) proof.client.client.Options {
+    fn options(state: *KzgState) @import("proof/client").client.Options {
         return .{
-            .builder = proof.client.client.default_builder_config,
+            .builder = @import("proof/client").client.default_builder_config,
             .kzg_settings = &state.settings,
             .kzg_workspace = &state.workspace,
         };

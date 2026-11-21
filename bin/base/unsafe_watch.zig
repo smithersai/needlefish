@@ -21,12 +21,11 @@
 //! tracks the chain by parent hash, so a printed `ok` line is evidence a reader can redo.
 
 const std = @import("std");
-const base = @import("base");
 
-const io = base.utilities.io;
-const p2p = base.consensus.p2p;
-const protocol = base.consensus.protocol;
-const chains = base.common.chains;
+const io = @import("utilities/io");
+const p2p = @import("consensus/p2p");
+const protocol = @import("consensus/protocol");
+const chains = @import("common/chains");
 const block = p2p.gossip.block;
 const validity = p2p.gossip.validity;
 const snappy = p2p.gossip.snappy;
@@ -128,10 +127,10 @@ const PeerLog = struct {
 
 const Watch = struct {
     rollup: *const protocol.RollupConfig,
-    signer: base.common.primitives.Address,
+    signer: @import("common/primitives").Address,
     quiet: bool,
     head_number: u64 = 0,
-    head_hash: base.common.primitives.B256 = .zero,
+    head_hash: @import("common/primitives").B256 = .zero,
     received: u64 = 0,
     continuous: u64 = 0,
     gaps: u64 = 0,
@@ -173,7 +172,7 @@ const Watch = struct {
 
     const Link = enum { first, ok, gap, reorg, stale };
 
-    fn link(watch: *Watch, number: u64, parent_hash: base.common.primitives.B256) Link {
+    fn link(watch: *Watch, number: u64, parent_hash: @import("common/primitives").B256) Link {
         if (watch.received == 1) return .first;
         if (number == watch.head_number + 1) {
             if (parent_hash.eql(watch.head_hash)) {
@@ -334,7 +333,7 @@ const ArchiveFile = struct {
 fn check_archive(
     init: std.process.Init,
     rollup: *const protocol.RollupConfig,
-    signer: base.common.primitives.Address,
+    signer: @import("common/primitives").Address,
     path: []const u8,
 ) !u8 {
     const allocator = init.gpa;

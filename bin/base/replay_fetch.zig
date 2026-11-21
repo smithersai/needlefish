@@ -10,11 +10,10 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
 const replay_cli = @import("replay.zig");
 const HttpTransport = @import("http_transport.zig").HttpTransport;
-const replay = base.infra.replay;
+const replay = @import("infra/replay");
 const Archive = replay.Archive;
 const json = std.json;
 const assert = std.debug.assert;
@@ -664,5 +663,8 @@ test "replay fetch: fuzz batch responses" {
         "[{\"id\":0,\"result\":1},{\"id\":1,\"result\":[2]},{\"id\":2,\"result\":{}}]",
         "[{\"id\":0,\"result\":1},{\"id\":0,\"result\":1},{\"id\":2,\"result\":3}]",
     };
-    try base.testing.fuzz.run_bytes({}, fuzz_batch, .{ .iterations = 512, .corpus = &corpus });
+    try @import("testing/fuzz").run_bytes({}, fuzz_batch, .{
+        .iterations = 512,
+        .corpus = &corpus,
+    });
 }

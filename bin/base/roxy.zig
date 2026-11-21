@@ -4,13 +4,12 @@
 //! `/readyz`, and `/metrics` on the same port. See `src/infra/roxy`.
 
 const std = @import("std");
-const base = @import("base");
 const consensus = @import("consensus.zig");
 
-const io = base.utilities.io;
-const cli = base.utilities.cli;
-const roxy = base.infra.roxy;
-const trusted_proxy = base.utilities.trusted_proxy;
+const io = @import("utilities/io");
+const cli = @import("utilities/cli");
+const roxy = @import("infra/roxy");
+const trusted_proxy = @import("utilities/trusted_proxy");
 const Proxy = roxy.Proxy(io.IO);
 
 const env_prefix = "BASE_ROXY_";
@@ -165,7 +164,7 @@ fn options_of(spec: Spec, allowlist: roxy.Allowlist) roxy.Options {
             .limits = .{ .head_size_max = head_size_max, .body_size_max = spec.response_size_max },
             .request_timeout_ns = timeout_ns,
         },
-        .version = base.build_options.version,
+        .version = @import("build_options").version,
     };
 }
 

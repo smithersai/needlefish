@@ -8,18 +8,17 @@
 //! environment) or, for devnets only, an index into the public dev mnemonic.
 
 const std = @import("std");
-const base = @import("base");
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 const metrics_server = @import("metrics_server.zig");
 
 const Io = std.Io;
-const cli = base.utilities.cli;
-const rpc = base.batcher.rpc;
-const accounts = base.batcher.devnet.accounts;
-const withdrawer = base.infra.withdrawer;
+const cli = @import("utilities/cli");
+const rpc = @import("batcher/rpc");
+const accounts = @import("batcher/devnet").accounts;
+const withdrawer = @import("infra/withdrawer");
 const flow_module = withdrawer.flow;
 const journal_module = withdrawer.journal;
-const tx_metrics_module = base.infra.tx_manager.metrics;
+const tx_metrics_module = @import("infra/tx_manager").metrics;
 const MetricsServer = metrics_server.Server(tx_metrics_module.entries_count);
 
 const assert = std.debug.assert;
@@ -312,7 +311,7 @@ fn driver_config(
     spec: Spec,
     parsed: *const Parsed,
     chain_id: u64,
-) base.infra.tx_manager.driver.Config {
+) @import("infra/tx_manager").driver.Config {
     return .{
         .chain_id = chain_id,
         .private_key = parsed.signer.private_key,

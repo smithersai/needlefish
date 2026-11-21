@@ -18,9 +18,9 @@ needlefish mirrors base/base's crate layout as a tree of Zig modules, one per pa
 
 - **One module per package.** Each folder two levels under `src/` (`src/common/rlp`) is a
   Zig module with its own test binary; `packages.zon` lists the packages each one imports
-  by name (`@import("common/rlp")`). `src/base.zig` re-exports every group; binaries and
-  tools import it as `base`. `etc/scripts/packages.py` defines packages, rewrites imports,
-  and checks the import graph.
+  by name (`@import("common/rlp")`). Binaries (`bin/`) import the packages they use by
+  name too; `src/base.zig` re-exports every group for the tools that import it as `base`.
+  `etc/scripts/packages.py` defines packages, rewrites imports, and checks the import graph.
 - **IO is injected.** `src/utilities/io` provides io_uring (Linux), kqueue (macOS), and a
   simulated backend. Components take the IO type as a comptime parameter, so the same
   code runs in production and in the deterministic simulator.

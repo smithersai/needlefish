@@ -8,10 +8,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const base = @import("base");
 
-const enclave = base.proof.tee.enclave;
-const kzg = base.common.crypto.kzg;
+const enclave = @import("proof/tee").enclave;
+const kzg = @import("common/crypto").kzg;
 const Io = std.Io;
 
 const usage =
@@ -95,7 +94,7 @@ pub fn main(init: std.process.Init, args: []const []const u8) !u8 {
     var handler = try enclave.Handler.init(allocator, &server, .{
         .request_bytes_max = flags.request_bytes_max,
         .client_options = .{
-            .builder = base.proof.client.client.default_builder_config,
+            .builder = @import("proof/client").client.default_builder_config,
             .kzg_settings = &settings,
             .kzg_workspace = workspace,
         },

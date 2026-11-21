@@ -14,12 +14,11 @@
 //! answers with the local hash, and the sequencer's answer is only counted.
 
 const std = @import("std");
-const base = @import("base");
 const https_bridge = @import("https_bridge.zig");
 
 const Io = std.Io;
-const json = base.utilities.json;
-const http = base.utilities.http;
+const json = @import("utilities/json");
+const http = @import("utilities/http");
 const assert = std.debug.assert;
 const Hash = [32]u8;
 

@@ -7,16 +7,15 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const base = @import("base");
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 const metrics_server = @import("metrics_server.zig");
 
 const Io = std.Io;
-const cli = base.utilities.cli;
-const rpc = base.batcher.rpc;
-const load_test = base.infra.load_test;
-const metrics = base.utilities.metrics;
-const tx_metrics_module = base.infra.tx_manager.metrics;
+const cli = @import("utilities/cli");
+const rpc = @import("batcher/rpc");
+const load_test = @import("infra/load_test");
+const metrics = @import("utilities/metrics");
+const tx_metrics_module = @import("infra/tx_manager").metrics;
 
 const env_prefix = "BASE_LOAD_TEST_";
 
@@ -213,7 +212,7 @@ const Exporter = struct {
     failed: metrics.Counter = .{},
     send_errors: metrics.Counter = .{},
 
-    fn create(gpa: std.mem.Allocator, address: base.utilities.io.Address) !*Exporter {
+    fn create(gpa: std.mem.Allocator, address: @import("utilities/io").Address) !*Exporter {
         const exporter = try gpa.create(Exporter);
         errdefer gpa.destroy(exporter);
         exporter.* = .{ .server = try MetricsServer.create(gpa) };
@@ -326,7 +325,7 @@ test "load-test: --metrics-port defaults off and parses" {
     const off = try cli.parse(Spec, env_prefix, &base_args, env, &diagnostic);
     try testing.expectEqual(@as(u16, 0), off.metrics_port);
     const none = try metrics_server.listen_address(off.metrics_addr, off.metrics_port);
-    try testing.expectEqual(@as(?base.utilities.io.Address, null), none);
+    try testing.expectEqual(@as(?@import("utilities/io").Address, null), none);
     const on_args = base_args ++ [_][]const u8{ "--metrics-port", "7310" };
     const on = try cli.parse(Spec, env_prefix, &on_args, env, &diagnostic);
     const address = (try metrics_server.listen_address(on.metrics_addr, on.metrics_port)).?;
@@ -377,7 +376,7 @@ fn check_flags(accounts: []const u8, mix: []const u8, senders: u32) !void {
 }
 
 test "load-test: seeded fuzz flags" {
-    var prng = base.testing.Prng.init(0xf1a6);
+    var prng = @import("testing/prng").Prng.init(0xf1a6);
     const pieces = [_][]const u8{ "2", "3", "99999999999", ",", "x", "", "=", "1", "storage" };
     var accounts: [64]u8 = undefined;
     var mix: [64]u8 = undefined;
@@ -388,7 +387,11 @@ test "load-test: seeded fuzz flags" {
     }
 }
 
-fn fill_random(prng: *base.testing.Prng, pieces: []const []const u8, out: []u8) []const u8 {
+fn fill_random(
+    prng: *@import("testing/prng").Prng,
+    pieces: []const []const u8,
+    out: []u8,
+) []const u8 {
     var writer: std.Io.Writer = .fixed(out);
     const count = prng.below(12);
     for (0..count) |_| writer.writeAll(pieces[@intCast(prng.below(pieces.len))]) catch break;

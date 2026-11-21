@@ -19,11 +19,10 @@
 //! loopback only: the bridge adds no authentication.
 
 const std = @import("std");
-const base = @import("base");
 
 const Io = std.Io;
 const http = std.http;
-const cli = base.utilities.cli;
+const cli = @import("utilities/cli");
 const assert = std.debug.assert;
 
 const env_prefix = "BASE_HTTPS_BRIDGE_";
@@ -912,7 +911,7 @@ test "https bridge: fuzz parsers" {
 }
 
 test "https bridge: seeded fuzz parsers" {
-    var prng = base.testing.Prng.init(0xb41d6e);
+    var prng = @import("testing/prng").Prng.init(0xb41d6e);
     const alphabet = "0123456789=:/.?#hpst \r\nACEPTacept-";
     var bytes: [256]u8 = undefined;
     for (0..2_000) |_| {

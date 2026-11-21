@@ -261,7 +261,7 @@ fn parse_octal(field: []const u8) ?u64 {
 // ---- Tests ---------------------------------------------------------------------------
 
 const testing = std.testing;
-const Prng = @import("base").testing.Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// Writes a header for `name` of `size` bytes; base-256 when `size` needs it or `binary`.
 fn test_header(block: *[block_size]u8, name: []const u8, size: u64, kind: u8, binary: bool) void {

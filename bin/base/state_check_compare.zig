@@ -11,9 +11,8 @@
 //! or with zero hashes), so absent-or-empty matches absent-or-empty.
 
 const std = @import("std");
-const base = @import("base");
 
-const node = base.execution.trie.node;
+const node = @import("execution/trie").node;
 const json = std.json;
 const assert = std.debug.assert;
 
@@ -692,5 +691,8 @@ test "state-check: fuzz eth_getProof answers" {
         \\"codeHash":"0x00","storageHash":"0x00","storageProof":[{"key":"0x1","value":"0x2"},
         \\{"key":"0x0","value":"0x3"}]}
     };
-    try base.testing.fuzz.run_bytes({}, fuzz_decode, .{ .iterations = 512, .corpus = &corpus });
+    try @import("testing/fuzz").run_bytes({}, fuzz_decode, .{
+        .iterations = 512,
+        .corpus = &corpus,
+    });
 }

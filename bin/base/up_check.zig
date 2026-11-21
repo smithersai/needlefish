@@ -17,12 +17,11 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-const base = @import("base");
 const import_run_cli = @import("import_run.zig");
 
 const Io = std.Io;
-const ChainConfig = base.common.chains.ChainConfig;
-const eth_config = base.execution.rpc.eth_config;
+const ChainConfig = @import("common/chains").ChainConfig;
+const eth_config = @import("execution/rpc").eth_config;
 const assert = std.debug.assert;
 
 pub const Chain = struct {
@@ -44,7 +43,7 @@ pub const chains = [_]Chain{
     .{
         .name = "base-mainnet",
         .aliases = &.{ "mainnet", "base", "8453" },
-        .config = &base.common.chains.mainnet,
+        .config = &@import("common/chains").mainnet,
         .run = &import_run_cli.chains[1],
         .snapshot_network = "mainnet",
         .l1_rpcs = &.{
@@ -58,7 +57,7 @@ pub const chains = [_]Chain{
     .{
         .name = "base-sepolia",
         .aliases = &.{ "sepolia", "84532" },
-        .config = &base.common.chains.sepolia,
+        .config = &@import("common/chains").sepolia,
         .run = &import_run_cli.chains[0],
         .snapshot_network = "sepolia",
         .l1_rpcs = &.{
@@ -308,7 +307,7 @@ pub fn lock_holder(text: []const u8, inode: u64) ?u32 {
 /// alone, so they are left out (Base mainnet's peers advertise 169d85a3 on 2026-11-08,
 /// which only that set reproduces).
 pub fn fork_hash(chain: *const Chain, timestamp_s: u64) [4]u8 {
-    const Upgrade = base.execution.chainspec.Upgrade;
+    const Upgrade = @import("execution/chainspec").Upgrade;
     var times: [32]u64 = undefined;
     var count: usize = 0;
     for (chain.run.spec.upgrades, 0..) |entry, index| {

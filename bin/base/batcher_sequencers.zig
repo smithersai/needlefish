@@ -5,11 +5,10 @@
 //! separate processes). The legacy `--l2 [--rollup-rpc]` pair is one entry.
 
 const std = @import("std");
-const base = @import("base");
 
 const assert = std.debug.assert;
-const rpc = base.batcher.rpc;
-const sequencers = base.batcher.sequencers;
+const rpc = @import("batcher/rpc");
+const sequencers = @import("batcher/sequencers");
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 
 pub const Entry = struct {
@@ -120,7 +119,7 @@ test "batcher sequencers: parse entries" {
 }
 
 test "batcher sequencers: seeded fuzz of entry parsing" {
-    var prng = base.testing.Prng.init(0x5e1);
+    var prng = @import("testing/prng").Prng.init(0x5e1);
     var entries: [sequencers.sequencers_max]Entry = undefined;
     const alphabet = "ab=,";
     for (0..1000) |_| {

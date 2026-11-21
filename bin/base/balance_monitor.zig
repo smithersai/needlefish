@@ -3,13 +3,12 @@
 //! See `src/infra/balance_monitor`.
 
 const std = @import("std");
-const base = @import("base");
 const consensus = @import("consensus.zig");
 
-const io = base.utilities.io;
-const http = base.utilities.http;
-const cli = base.utilities.cli;
-const Exporter = base.infra.balance_monitor.Exporter(io.IO);
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const cli = @import("utilities/cli");
+const Exporter = @import("infra/balance_monitor").Exporter(io.IO);
 const Server = http.Server(io.IO, *Exporter, Exporter.handle);
 
 const env_prefix = "BASE_BALANCE_MONITOR_";
@@ -36,7 +35,7 @@ pub const Settings = struct {
     endpoint: io.Address,
     account: [20]u8,
     listen: io.Address,
-    options: base.infra.balance_monitor.Options,
+    options: @import("infra/balance_monitor").Options,
 };
 
 /// Validates parsed flags into runtime settings.
@@ -54,7 +53,7 @@ pub fn settings_of(spec: Spec) !Settings {
         .options = .{
             .monitor = .{ .poll_interval_ns = @as(u64, spec.poll_interval_s) * std.time.ns_per_s },
             .stale_after_intervals = spec.stale_after_intervals,
-            .version = base.build_options.version,
+            .version = @import("build_options").version,
         },
     };
 }

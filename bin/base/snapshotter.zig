@@ -10,14 +10,13 @@
 //! renames it into place. `verify` checks a manifest's chunks without writing anything.
 
 const std = @import("std");
-const base = @import("base");
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 
 const Io = std.Io;
 const Dir = Io.Dir;
-const cli = base.utilities.cli;
-const rpc = base.batcher.rpc;
-const snapshotter = base.infra.snapshotter;
+const cli = @import("utilities/cli");
+const rpc = @import("batcher/rpc");
+const snapshotter = @import("infra/snapshotter");
 const manifest = snapshotter.manifest;
 
 const env_prefix = "BASE_SNAPSHOTTER_";

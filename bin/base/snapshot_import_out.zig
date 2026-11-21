@@ -15,20 +15,19 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const Io = std.Io;
-const base = @import("base");
 
 const snapshot_import = @import("snapshot_import.zig");
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 
-const import = base.execution.import;
+const import = @import("execution/import");
 const to_disk = import.to_disk;
 const mdbx = import.mdbx;
-const header_json = base.consensus.sources.header_json;
+const header_json = @import("consensus/sources").header_json;
 const json = std.json;
 const assert = std.debug.assert;
 
-const IO = base.utilities.io.IO;
-const Storage = base.execution.db.storage.IoStorageType(IO);
+const IO = @import("utilities/io").IO;
+const Storage = @import("execution/db").storage.IoStorageType(IO);
 const Importer = to_disk.ImporterType(Storage);
 const Database = Importer.Database;
 const Hash = [32]u8;
@@ -324,14 +323,14 @@ pub const Opened = struct {
         gpa: std.mem.Allocator,
         backend: *IO,
         path: []const u8,
-        config: base.execution.db.database.Config,
+        config: @import("execution/db").database.Config,
         create: bool,
     ) !Opened {
         const fd = try backend.open_file(path, if (create) .create else .read_write);
         errdefer backend.close_now(fd);
         const storage = try gpa.create(Storage);
         errdefer gpa.destroy(storage);
-        const options: base.execution.db.storage.io_storage.Options = .{
+        const options: @import("execution/db").storage.io_storage.Options = .{
             .size_bytes = config.engine.size_bytes(),
         };
         storage.* = try Storage.init(gpa, backend, fd, options);

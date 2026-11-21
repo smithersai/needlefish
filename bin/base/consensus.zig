@@ -3,15 +3,13 @@
 //! over the authenticated Engine API, and serves `optimism_*` JSON-RPC.
 
 const std = @import("std");
-const base = @import("base");
 
 const Io = std.Io;
-const io = base.utilities.io;
-const log = base.utilities.log;
-const consensus = base.consensus;
-const Node = consensus.service.Node(io.IO);
-const p2p = consensus.p2p;
-const accounts = base.batcher.devnet.accounts;
+const io = @import("utilities/io");
+const log = @import("utilities/log");
+const Node = @import("consensus/service").Node(io.IO);
+const p2p = @import("consensus/p2p");
+const accounts = @import("batcher/devnet").accounts;
 
 const usage =
     \\usage: base consensus --rollup-config ROLLUP.json --l1 URL --l2 URL --l2-jwt FILE
@@ -59,7 +57,7 @@ pub const Flags = struct {
     /// Prometheus endpoint (base/base defaults: disabled, 0.0.0.0:9090).
     metrics_enabled: bool = false,
     metrics_addr: [4]u8 = .{ 0, 0, 0, 0 },
-    metrics_port: u16 = base.consensus.service.metrics.default_port,
+    metrics_port: u16 = @import("consensus/service").metrics.default_port,
     sequencer: bool = false,
     sequencer_key_index: u32 = 0,
     /// Hex secp256k1 key the sequencer signs gossip with (base/base
@@ -71,7 +69,7 @@ pub const Flags = struct {
     p2p: p2p.options.Options = .{},
     /// The L1 `ProtocolVersions` contract; defaults to the chain's public one.
     upgrade_signal_contract: ?[20]u8 = null,
-    upgrade_signal_block_tag: base.utilities.upgrade_signal.BlockTag = .finalized,
+    upgrade_signal_block_tag: @import("utilities/upgrade_signal").BlockTag = .finalized,
     /// Durable safe/finalized checkpoints; base/base defaults to a file under its data dir,
     /// here they are off unless a path is given.
     checkpoint_path: ?[]const u8 = null,
@@ -203,7 +201,7 @@ fn apply_value(flags: *Flags, arg: []const u8, value: []const u8) !void {
     } else if (eql(u8, arg, "--upgrade-signal.contract")) {
         flags.upgrade_signal_contract = try parse_address(value);
     } else if (eql(u8, arg, "--upgrade-signal.l1-block-tag")) {
-        const BlockTag = base.utilities.upgrade_signal.BlockTag;
+        const BlockTag = @import("utilities/upgrade_signal").BlockTag;
         flags.upgrade_signal_block_tag = std.meta.stringToEnum(BlockTag, value) orelse
             return error.UnknownBlockTag;
     } else if (eql(u8, arg, "--log.level")) {
@@ -261,13 +259,13 @@ pub fn main(init: std.process.Init, args: []const []const u8) !u8 {
     const path = flags.rollup_config.?;
     const text = try cwd.readFileAlloc(init.io, path, init.gpa, .limited(1 << 20));
     defer init.gpa.free(text);
-    const rollup = consensus.protocol.rollup_json.parse(text) catch |err| {
+    const rollup = @import("consensus/protocol").rollup_json.parse(text) catch |err| {
         std.debug.print("consensus: invalid rollup config: {t}\n", .{err});
         return 2;
     };
     var secret_buffer: [256]u8 = undefined;
     const secret_text = try cwd.readFile(init.io, flags.l2_jwt.?, &secret_buffer);
-    const secret = try base.utilities.jwt.Secret.parse_hex(secret_text);
+    const secret = try @import("utilities/jwt").Secret.parse_hex(secret_text);
 
     var os_io = if (@import("builtin").os.tag == .linux) try io.IO.init(.{}) else try io.IO.init();
     defer os_io.deinit();
@@ -295,7 +293,7 @@ pub fn main(init: std.process.Init, args: []const []const u8) !u8 {
             .sequencer_l1_confs = flags.sequencer_l1_confs,
         },
         .conductor = flags.conductor_rpc,
-        .version = base.build_options.version,
+        .version = @import("build_options").version,
         .p2p = p2p_config,
         .upgrade_signal = upgrade_settings(&flags, rollup.l2_chain_id),
         .checkpoint_path = flags.checkpoint_path,
@@ -348,8 +346,11 @@ fn server_addresses(flags: *const Flags) ServerAddresses {
 }
 
 /// The upgrade-signal contract to observe: the flag, else the chain's public default.
-fn upgrade_settings(flags: *const Flags, l2_chain_id: u64) ?consensus.service.node.UpgradeSignal {
-    const upgrade_signal = base.utilities.upgrade_signal;
+fn upgrade_settings(
+    flags: *const Flags,
+    l2_chain_id: u64,
+) ?@import("consensus/service").node.UpgradeSignal {
+    const upgrade_signal = @import("utilities/upgrade_signal");
     const contract = flags.upgrade_signal_contract orelse
         upgrade_signal.contract.default_contract(l2_chain_id) orelse return null;
     if (std.mem.allEqual(u8, &contract, 0)) return null;
@@ -360,9 +361,9 @@ fn upgrade_settings(flags: *const Flags, l2_chain_id: u64) ?consensus.service.no
 fn p2p_settings(
     init: std.process.Init,
     flags: *const Flags,
-    rollup: *const consensus.protocol.rollup_config.RollupConfig,
+    rollup: *const @import("consensus/protocol").rollup_config.RollupConfig,
     logger: *log.Logger,
-) !?consensus.service.node.P2p {
+) !?@import("consensus/service").node.P2p {
     if (flags.p2p_disabled) return null;
     const sequencer_key: ?[32]u8 = if (!flags.sequencer)
         null
@@ -373,13 +374,13 @@ fn p2p_settings(
     // base/base order: the L1 SystemConfig (read at runtime by the node), then the built-in
     // chain config, then the flag; a sequencer falls back to its own key.
     const own_signer = if (sequencer_key) |key| accounts.address_of(key) else null;
-    const chain_signer = if (base.common.chains.by_chain_id(rollup.l2_chain_id)) |chain|
+    const chain_signer = if (@import("common/chains").by_chain_id(rollup.l2_chain_id)) |chain|
         chain.unsafe_block_signer
     else
         null;
     const reads_l1 = !std.mem.allEqual(u8, &rollup.l1_system_config_address.bytes, 0);
     const fallback = chain_signer orelse flags.p2p.unsafe_block_signer orelse own_signer;
-    const signer = fallback orelse if (reads_l1) base.common.primitives.Address.zero else {
+    const signer = fallback orelse if (reads_l1) @import("common/primitives").Address.zero else {
         logger.log(.warn, "consensus", "p2p disabled: no unsafe block signer", .{});
         return null;
     };
@@ -407,7 +408,7 @@ fn read_sequencer_key(init: std.process.Init, path: []const u8) ![32]u8 {
     const text = try Io.Dir.cwd().readFile(init.io, path, &buffer);
     const trimmed = std.mem.trim(u8, text, " \t\r\n");
     std.debug.assert(trimmed.len <= buffer.len);
-    return base.common.primitives.hex.decode_array(32, trimmed);
+    return @import("common/primitives").hex.decode_array(32, trimmed);
 }
 
 test "consensus: flags" {

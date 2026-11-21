@@ -6,10 +6,9 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
-const rpc_client = base.utilities.rpc.client;
-const object = base.consensus.sources.json_object;
+const rpc_client = @import("utilities/rpc").client;
+const object = @import("consensus/sources").json_object;
 const assert = std.debug.assert;
 
 /// Attempts per HTTP exchange before the endpoint gives up on it.

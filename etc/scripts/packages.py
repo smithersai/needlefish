@@ -4,12 +4,15 @@
 A package is a folder of src/ two levels deep, plus the files under it:
   src/<group>/<name>/**          package "<group>/<name>"
   src/<group>/*.zig              package "<group>" (the group root and its loose files)
-  src/base.zig                   package "base" (the umbrella module binaries import)
+  src/base.zig                   package "base" (the umbrella module tools import)
   LEAVES below                   single-file packages: loose group files that subfolders
                                  import; inside "<group>" they would tie every subfolder
                                  to the group root, which imports every subfolder.
 Tool entry points (`src/**/*_main.zig`), and the files only tools import, are not package
 members; a tool imports packages by name or all of them as `base`.
+
+A binary's files are a package that imports the packages it uses by name, never `base`:
+  bin/<program>/**               package "bin/<program>" (root: bin/<program>/main.zig)
 
 A package without a named test, whose unnamed `test {}` blocks only reference declarations
 (`std.testing.refAllDecls(...)`, `_ = x;`), is a compile check: packages.zon marks it
@@ -63,11 +66,14 @@ REFERENCE = re.compile(r'^[ \t]*(?:_ = @import\("[^"\\]*"\)(?:\.%s)?|_ = %s|'
 
 
 def package_of(path):
-    """Package of a repo-relative `src/...` path (source or data file)."""
-    assert path.startswith('src/'), path
+    """Package of a repo-relative `src/...` or `bin/...` path (source or data file)."""
     if path in LEAVES:
         return LEAVES[path]
     parts = path.split('/')
+    if parts[0] == 'bin':
+        assert len(parts) >= 3, path
+        return 'bin/' + parts[1]
+    assert parts[0] == 'src', path
     if len(parts) == 2:
         return 'base'
     if len(parts) == 3:
@@ -80,15 +86,19 @@ def package_root(name):
     for path, leaf in LEAVES.items():
         if leaf == name:
             return path
+    if name.startswith('bin/'):
+        return name + '/main.zig'
     return 'src/base.zig' if name == 'base' else 'src/' + name + '/root.zig'
 
 
 def source_files():
     out = []
-    for directory, _, files in os.walk(os.path.join(ROOT, 'src')):
-        for f in files:
-            if f.endswith('.zig'):
-                out.append(os.path.relpath(os.path.join(directory, f), ROOT).replace(os.sep, '/'))
+    for top in ('src', 'bin'):
+        for directory, _, files in os.walk(os.path.join(ROOT, top)):
+            for f in files:
+                if f.endswith('.zig'):
+                    path = os.path.relpath(os.path.join(directory, f), ROOT)
+                    out.append(path.replace(os.sep, '/'))
     return sorted(out)
 
 
@@ -103,7 +113,8 @@ def imports(text):
 
 
 def read_sources():
-    """{path: text} for every .zig file under src/, the tool files, and the package set."""
+    """{path: text} for every .zig file under src/ and bin/, the tool files, and the package
+    set."""
     texts = {}
     for f in source_files():
         with open(os.path.join(ROOT, f), encoding='utf-8') as handle:
@@ -161,7 +172,8 @@ def target_package(path, kind, spec, packages):
 def resolve(path, spec):
     """Repo-relative file a relative @import/@embedFile path names."""
     target = os.path.normpath(os.path.join(os.path.dirname(path), spec)).replace(os.sep, '/')
-    assert target.startswith('src/'), '%s: %s leaves src/' % (path, spec)
+    top = path.split('/')[0]
+    assert target.startswith(top + '/'), '%s: %s leaves %s/' % (path, spec, top)
     assert os.path.exists(os.path.join(ROOT, target)), '%s: %s is missing' % (path, spec)
     return target
 
@@ -399,10 +411,20 @@ def selftest_compile_only():
     return failures
 
 
+def selftest_tool_imports():
+    """import_errors in memory: neither a src/ package file nor a tool may import a binary."""
+    failures = []
+    for f, tools in (('src/g/a/root.zig', set()), ('src/g/a/x_main.zig', {'src/g/a/x_main.zig'})):
+        errors = import_errors({f: 'const up = @import("bin/b/up");\n'}, tools)
+        if not any("bin/b/up is a binary's package" in e for e in errors):
+            failures.append('%s importing bin/b/up: no error, want one' % f)
+    return failures
+
+
 def selftest():
     """Failures of the in-memory fixtures (`packages.py selftest`; `check` runs them)."""
     failures = []
-    for case in (selftest_compile_only,):
+    for case in (selftest_compile_only, selftest_tool_imports):
         failures += case()
     return failures
 
@@ -452,20 +474,33 @@ def table(texts, tools, packages):
     return '\n'.join(lines + ['}', ''])
 
 
-def table_errors():
-    """Relative imports that cross a package boundary, and a stale packages.zon."""
-    texts, tools, packages = read_sources()
+def import_errors(texts, tools):
+    """Relative imports that cross a package boundary, a binary's file that imports `base`,
+    and a src/ file, a tool's included, that imports a binary's package."""
     errors = []
     for f in sorted(texts):
-        if f in tools:
-            continue
         for item in imports(texts[f]):
             if item.kind == 'import' and not item.spec.endswith('.zig'):
+                if f.startswith('bin/') and item.spec == 'base':
+                    errors.append('%s:%d: base is every package; import the ones this binary '
+                                  'file uses by name' % (f, item.line))
+                if f.startswith('src/') and item.spec.startswith('bin/'):
+                    errors.append('%s:%d: %s is a binary\'s package; a src/ file must not '
+                                  'import it' % (f, item.line, item.spec))
+                continue
+            if f in tools:  # a tool's relative imports are its own files
                 continue
             target = package_of(resolve(f, item.spec))
             if target != package_of(f):
                 errors.append('%s:%d: %s is in package %s; import it by name (convert)' %
                               (f, item.line, item.spec, target))
+    return errors
+
+
+def table_errors():
+    """import_errors, and a stale packages.zon."""
+    texts, tools, packages = read_sources()
+    errors = import_errors(texts, tools)
     with open(os.path.join(ROOT, TABLE), encoding='utf-8') as handle:
         if handle.read() != table(texts, tools, packages):
             errors.append('%s is stale; run etc/scripts/packages.py convert' % TABLE)

@@ -11,11 +11,10 @@
 //! 2 on bad usage.
 
 const std = @import("std");
-const base = @import("base");
 const Io = std.Io;
 
-const witness_diff = base.execution.db.witness_diff;
-const lazy = base.utilities.lazy_alloc;
+const witness_diff = @import("execution/db").witness_diff;
+const lazy = @import("utilities/lazy_alloc");
 const Witness = witness_diff.Witness;
 
 const assert = std.debug.assert;
@@ -170,7 +169,7 @@ fn load_file(
 fn parse_reporting(parser: *witness_diff.Parser, text: []const u8, out: *Witness) !void {
     parser.parse(text, out) catch |err| {
         if (err == error.RpcError) {
-            const message = base.utilities.json.find_path(text, &.{"error"}) catch null;
+            const message = @import("utilities/json").find_path(text, &.{"error"}) catch null;
             std.debug.print("witness-diff: rpc error: {s}\n", .{message orelse "?"});
         }
         return err;

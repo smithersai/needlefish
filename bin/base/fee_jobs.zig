@@ -13,16 +13,15 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Io = std.Io;
-const base = @import("base");
 
-const cli = base.utilities.cli;
-const rpc = base.batcher.rpc;
-const secp256k1 = base.common.crypto.secp256k1;
-const fee_jobs = base.infra.fee_jobs;
-const tx_manager = base.infra.tx_manager;
+const cli = @import("utilities/cli");
+const rpc = @import("batcher/rpc");
+const secp256k1 = @import("common/crypto").secp256k1;
+const fee_jobs = @import("infra/fee_jobs");
+const tx_manager = @import("infra/tx_manager");
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 const confirm = fee_jobs.confirm;
-const withdrawer = base.infra.withdrawer;
+const withdrawer = @import("infra/withdrawer");
 
 const env_prefix = "BASE_FEE_JOBS_";
 const key_variable = env_prefix ++ "PRIVATE_KEY";

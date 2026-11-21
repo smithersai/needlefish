@@ -45,7 +45,6 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
 const el_source = @import("el_source.zig");
 const el_feed = @import("el_feed.zig");
@@ -58,17 +57,17 @@ const el_rpc = @import("el_rpc.zig");
 const el_archive = @import("el_archive.zig");
 const log_relay = @import("log_relay.zig");
 
-const to_disk = base.execution.import.to_disk;
-const import_run = base.execution.import.run;
-const ChainConfig = base.common.chains.ChainConfig;
+const to_disk = @import("execution/import").to_disk;
+const import_run = @import("execution/import").run;
+const ChainConfig = @import("common/chains").ChainConfig;
 const assert = std.debug.assert;
 
-const IO = base.utilities.io.IO;
-const Storage = base.execution.db.storage.IoStorageType(IO);
+const IO = @import("utilities/io").IO;
+const Storage = @import("execution/db").storage.IoStorageType(IO);
 const Importer = to_disk.ImporterType(Storage);
 const Database = Importer.Database;
 const Runner = import_run.RunnerType(Storage);
-const Executor = base.execution.node.executor.Executor;
+const Executor = @import("execution/node").executor.Executor;
 
 /// The monotonic clock the runner times its phases with.
 const AwakeClock = struct {
@@ -147,7 +146,7 @@ const Flags = struct {
     enode: ?[]const u8 = null,
     peers: ?[]const u8 = null,
     chain: *const import_run_cli.Chain = &import_run_cli.chains[0],
-    config: *const ChainConfig = &base.common.chains.sepolia,
+    config: *const ChainConfig = &@import("common/chains").sepolia,
     blocks: ?u64 = null,
     duration_s: ?u64 = null,
     prefetching: import_run.Prefetching = .all,
@@ -178,7 +177,7 @@ fn parse_flags(args: []const []const u8) !Flags {
         }
         if (std.mem.startsWith(u8, name, "--p2p.")) {
             const has_value = std.mem.indexOfScalar(u8, name, '=') != null or
-                base.consensus.p2p.options.is_bool(name["--p2p.".len..]);
+                @import("consensus/p2p").options.is_bool(name["--p2p.".len..]);
             if (!has_value) index += 1;
             continue;
         }
@@ -196,9 +195,9 @@ fn parse_flags(args: []const []const u8) !Flags {
                 if (std.mem.eql(u8, chain.name, value)) break chain;
             } else return error.InvalidArguments;
             flags.config = if (std.mem.eql(u8, value, "base-mainnet"))
-                &base.common.chains.mainnet
+                &@import("common/chains").mainnet
             else
-                &base.common.chains.sepolia;
+                &@import("common/chains").sepolia;
         } else if (std.mem.eql(u8, name, "--rollup.sequencer-http")) {
             flags.rpc.sequencer_url = value;
         } else if (std.mem.eql(u8, name, "--blocks")) {
@@ -289,7 +288,7 @@ const Run = struct {
     archive: ?*el_archive.Service = null,
     /// Sequencer-signed gossip (`--gossip`), checked against every committed block.
     gossip: ?*el_gossip.Gossip = null,
-    rollup: base.consensus.protocol.RollupConfig,
+    rollup: @import("consensus/protocol").RollupConfig,
     first: u64,
     started_ms: i64,
     last_summary_ms: i64,
@@ -417,7 +416,7 @@ fn runner_config(flags: *const Flags, awake: *AwakeClock) import_run.Config {
     var config: import_run.Config = .{ .executor = .{} };
     const cores: u32 = @intCast(@max(std.Thread.getCpuCount() catch 1, 1));
     config.executor.recovery_threads = @min(cores - 1, 7);
-    config.executor.state_gas_basis = base.execution.node.executor.default_state_gas_basis;
+    config.executor.state_gas_basis = @import("execution/node").executor.default_state_gas_basis;
     config.clock = awake.clock();
     config.prefetching = flags.prefetching;
     return config;
@@ -463,10 +462,10 @@ fn run_reported(run: *Run, parent: [32]u8) !u8 {
 }
 
 /// Blocks of the flat trees' cache in `cache_mb` MiB (at least one cache set).
-fn cache_blocks_of(cache_mb: u32, config: *const base.execution.db.database.Config) u32 {
+fn cache_blocks_of(cache_mb: u32, config: *const @import("execution/db").database.Config) u32 {
     const block_size: u64 = config.engine.checkpoint_block_size;
     assert(block_size > 0 and block_size <= 1 << 20);
-    const ways = base.execution.db.storage.table.BlockCache.ways;
+    const ways = @import("execution/db").storage.table.BlockCache.ways;
     const blocks = @max(ways, (@as(u64, cache_mb) << 20) / block_size);
     assert(blocks <= std.math.maxInt(u32));
     return @intCast(blocks);
@@ -581,7 +580,7 @@ fn account_gap(run: *Run, number: u64, exec_ms: i64, lag_ms: u64, exec: *const E
     print_exec_split(exec);
 }
 
-const phase_count = @typeInfo(base.execution.import.room.Phase).@"enum".field_names.len;
+const phase_count = @typeInfo(@import("execution/import").room.Phase).@"enum".field_names.len;
 
 /// One block's runner phase times and room wait (`import.run.Stats`), as deltas.
 const ExecSplit = struct {
@@ -614,7 +613,7 @@ fn print_exec_split(exec: *const ExecSplit) void {
         if (ms >= 5) std.debug.print(" {s} {d}", .{ name[0 .. name.len - 3], ms });
     }
     std.debug.print("; room by storage phase:", .{});
-    const phases = @typeInfo(base.execution.import.room.Phase).@"enum".field_names;
+    const phases = @typeInfo(@import("execution/import").room.Phase).@"enum".field_names;
     inline for (phases, 0..) |name, index| {
         const ms = exec.room_phase_ns[index] / std.time.ns_per_ms;
         if (ms >= 5) std.debug.print(" {s} {d}", .{ name, ms });
@@ -710,7 +709,7 @@ fn run_one(run: *Run, block: *const el_source.Block) !bool {
 fn block_committed(
     run: *Run,
     block: *const el_source.Block,
-    receipts: []const base.common.consensus.Receipt,
+    receipts: []const @import("common/consensus").Receipt,
 ) void {
     assert(run.db.head_info.number == block.number);
     assert(std.mem.eql(u8, &run.db.head_info.hash, &block.hash));
@@ -728,7 +727,9 @@ fn block_committed(
     }, receipts) else null;
     if (run.archive) |archive| {
         // Proof: the runner decoded this header before executing the block.
-        const header = base.common.consensus.Header.decode(block.header_rlp) catch unreachable;
+        const header = @import("common/consensus").Header.decode(
+            block.header_rlp,
+        ) catch unreachable;
         const started = Io.Clock.awake.now(run.io);
         defer {
             const elapsed = started.durationTo(Io.Clock.awake.now(run.io));
@@ -852,8 +853,8 @@ fn print_room(run: *const Run) void {
     const room = &stats.room;
     const blocks: f64 = @floatFromInt(stats.blocks);
     std.debug.print("room ms/block:", .{});
-    inline for (@typeInfo(base.execution.import.room.Phase).@"enum".field_names) |name| {
-        const phase = @field(base.execution.import.room.Phase, name);
+    inline for (@typeInfo(@import("execution/import").room.Phase).@"enum".field_names) |name| {
+        const phase = @field(@import("execution/import").room.Phase, name);
         const ns: f64 = @floatFromInt(room.ns(phase));
         std.debug.print(" {s} {d:.2}", .{ name, ns / 1e6 / blocks });
     }

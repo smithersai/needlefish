@@ -4,16 +4,15 @@
 //! state at older blocks (views opened and closed around each read); the pool.
 
 const std = @import("std");
-const base = @import("base");
 const el_rpc = @import("el_rpc.zig");
 const el_ring = @import("el_ring.zig");
 const import_run_cli = @import("import_run.zig");
 
 const testing = std.testing;
-const consensus = base.common.consensus;
-const primitives = base.common.primitives;
-const Executor = base.execution.node.executor.Executor;
-const BlockEnv = base.execution.node.executor.BlockEnv;
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const Executor = @import("execution/node").executor.Executor;
+const BlockEnv = @import("execution/node").executor.BlockEnv;
 const B256 = primitives.B256;
 const Hash = [32]u8;
 const Address = [20]u8;
@@ -69,7 +68,7 @@ const Fixture = struct {
                 .base_fee_per_gas = 1_000_000,
                 .withdrawals_root = .init(@splat(0x77)),
             };
-            const encoded = base.common.rlp.encode_to(&fixture.header_rlp[index], header);
+            const encoded = @import("common/rlp").encode_to(&fixture.header_rlp[index], header);
             fixture.header_sizes[index] = encoded.len;
             fixture.hashes[index] = header.hash().bytes;
             parent = .{ .bytes = fixture.hashes[index] };
@@ -154,7 +153,7 @@ const FakeNode = struct {
     fn account(context: *anyopaque, wanted: Address) ?el_rpc.Account {
         const fake = of(context);
         if (std.mem.eql(u8, &wanted, &dev_address)) {
-            const empty = base.execution.trie.node.empty_code_hash;
+            const empty = @import("execution/trie").node.empty_code_hash;
             return .{ .nonce = fake.dev_nonce, .balance = 1 << 80, .code_hash = empty };
         }
         if (!std.mem.eql(u8, &wanted, &address)) return null;
@@ -189,7 +188,7 @@ const FakeNode = struct {
         context: *anyopaque,
         env: *const BlockEnv,
         call: Executor.Call,
-    ) base.execution.node.executor.Error!Executor.Simulated {
+    ) @import("execution/node").executor.Error!Executor.Simulated {
         const fake = of(context);
         std.debug.assert(env.number == fake.view orelse Fixture.first + fake.head_index);
         fake.call_gas = call.gas;
@@ -233,7 +232,7 @@ const Setup = struct {
         var out: std.Io.Writer = .fixed(&setup.out_buffer);
         _ = el_rpc.Router.handle(&setup.api, body, &out);
         const text = out.buffered();
-        try base.utilities.json.validate(text);
+        try @import("utilities/json").validate(text);
         return text;
     }
 };
@@ -350,7 +349,7 @@ fn expect_contains(text: []const u8, needle: []const u8) !void {
 fn hex(bytes: []const u8, buffer: []u8) []const u8 {
     buffer[0] = '0';
     buffer[1] = 'x';
-    base.utilities.json.hex_encode(buffer[2..][0 .. 2 * bytes.len], bytes);
+    @import("utilities/json").hex_encode(buffer[2..][0 .. 2 * bytes.len], bytes);
     return buffer[0 .. 2 + 2 * bytes.len];
 }
 

@@ -9,8 +9,6 @@
 //! config the same way).
 
 const std = @import("std");
-const base = @import("base");
-const batcher = base.batcher;
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 
 const assert = std.debug.assert;
@@ -36,7 +34,7 @@ pub const Settings = struct {
 pub fn apply_flag(settings: *Settings, arg: []const u8, value: []const u8) !bool {
     const eql = std.mem.eql;
     if (eql(u8, arg, "--shadow.inbox")) {
-        settings.inbox = base.common.primitives.hex.decode_array(20, value) catch
+        settings.inbox = @import("common/primitives").hex.decode_array(20, value) catch
             return error.InvalidShadowInbox;
     } else if (eql(u8, arg, "--shadow.validator-rollup-rpc")) {
         settings.validator_rollup = try checked_url(value);
@@ -73,9 +71,9 @@ const summary_blocks = 100;
 pub const Shadow = struct {
     rollup_http: HttpTransport,
     l2_http: HttpTransport,
-    rollup: batcher.rpc.Client,
-    l2: batcher.rpc.Client,
-    monitor: batcher.parity.Monitor = .{},
+    rollup: @import("batcher/rpc").Client,
+    l2: @import("batcher/rpc").Client,
+    monitor: @import("batcher/parity").Monitor = .{},
     mismatches_logged: u32 = 0,
     checked_logged: u32 = 0,
 
@@ -110,7 +108,7 @@ pub const Shadow = struct {
     }
 
     /// One parity pass against the leader's L2 RPC; logs new mismatches only.
-    pub fn check(shadow: *Shadow, leader_l2: *batcher.rpc.Client) void {
+    pub fn check(shadow: *Shadow, leader_l2: *@import("batcher/rpc").Client) void {
         const stats = shadow.monitor.step(leader_l2, &shadow.l2) catch |err| {
             std.debug.print("batcher: parity pass failed: {t}\n", .{err});
             return;
@@ -161,7 +159,7 @@ test "shadow: flags together or not at all, and only without throttling" {
 }
 
 test "shadow: seeded fuzz of flag combinations" {
-    var prng = base.testing.Prng.init(0x5ad0);
+    var prng = @import("testing/prng").Prng.init(0x5ad0);
     const inbox = "0x" ++ "1111111111111111111111111111111111111111";
     const values = [_][]const u8{ inbox, "http://v:1", "https://v:2", "x", "" };
     const names = [_][]const u8{

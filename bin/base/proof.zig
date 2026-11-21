@@ -4,12 +4,10 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
-const proof = base.proof;
 const proof_run = @import("proof_run.zig");
 const proof_verify_tee = @import("proof_verify_tee.zig");
-const kzg = base.common.crypto.kzg;
+const kzg = @import("common/crypto").kzg;
 
 const usage =
     \\usage: base proof replay <archive>
@@ -51,11 +49,11 @@ pub fn parse(args: []const []const u8) error{InvalidArguments}!Command {
 fn config_hash(init: std.process.Init, path: []const u8) !u8 {
     const text = try Io.Dir.cwd().readFileAlloc(init.io, path, init.gpa, .limited(1 << 20));
     defer init.gpa.free(text);
-    const rollup = base.consensus.protocol.rollup_json.parse(text) catch |err| {
+    const rollup = @import("consensus/protocol").rollup_json.parse(text) catch |err| {
         std.debug.print("proof: {s}: {t}\n", .{ path, err });
         return 2;
     };
-    var config = base.proof.primitives.PerChainConfig.from_rollup_config(&rollup) orelse {
+    var config = @import("proof/primitives").PerChainConfig.from_rollup_config(&rollup) orelse {
         std.debug.print("proof: {s} has no genesis system config\n", .{path});
         return 2;
     };
@@ -107,8 +105,8 @@ pub fn main(init: std.process.Init, args: []const []const u8) !u8 {
     const workspace = try allocator.create(kzg.blob.Workspace);
     defer allocator.destroy(workspace);
     const settings = try kzg.blob.Settings.init(storage);
-    const verdict = proof.host.offline.replay(allocator, bytes, .{
-        .builder = proof.client.client.default_builder_config,
+    const verdict = @import("proof/host").offline.replay(allocator, bytes, .{
+        .builder = @import("proof/client").client.default_builder_config,
         .kzg_settings = &settings,
         .kzg_workspace = workspace,
     }) catch |err| {

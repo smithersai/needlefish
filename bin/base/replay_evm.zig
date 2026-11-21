@@ -22,14 +22,13 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 const cli = @import("replay.zig");
 
-const replay = base.infra.replay;
-const evm = base.execution.evm;
-const node = base.execution.node;
-const consensus = base.common.consensus;
-const primitives = base.common.primitives;
+const replay = @import("infra/replay");
+const evm = @import("execution/evm");
+const node = @import("execution/node");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
 const Archive = replay.Archive;
 const Executor = node.executor.Executor;
 const Clock = Executor.Clock;
@@ -118,7 +117,7 @@ const Recorder = struct {
 
 /// Records the pre-state with one normal replay; every block must reproduce its header.
 fn record(gpa: std.mem.Allocator, archive: *const Archive, recorder: *Recorder) !void {
-    const spec = &base.execution.chainspec.ChainSpec.presets.base_mainnet;
+    const spec = &@import("execution/chainspec").ChainSpec.presets.base_mainnet;
     const replayer = try gpa.create(replay.Replayer);
     defer gpa.destroy(replayer);
     try replayer.init(gpa, spec, archive, cli.replayer_config(archive, 0));
@@ -319,7 +318,7 @@ fn evm_run(
     out: *Io.Writer,
 ) !bool {
     assert(senders.len == archive.block_count);
-    const spec = &base.execution.chainspec.ChainSpec.presets.base_mainnet;
+    const spec = &@import("execution/chainspec").ChainSpec.presets.base_mainnet;
     var flat: Flat = .{ .database = database };
     const config = cli.replayer_config(archive, 0).executor;
     var executor = try Executor.init_backend(gpa, spec, flat.backend(), config);
@@ -343,7 +342,7 @@ fn evm_run(
             raw.* = archive.transaction(block, @intCast(position));
         }
         const env = node.chain.env_of(&header);
-        const withdrawals: ?[]const base.execution.payload.Withdrawal =
+        const withdrawals: ?[]const @import("execution/payload").Withdrawal =
             if (header.withdrawals_root != null) &.{} else null;
         executor.given_senders = senders[block];
         const start_ns = clock.read();

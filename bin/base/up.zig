@@ -27,7 +27,6 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-const base = @import("base");
 const up_check = @import("up_check.zig");
 const up_snapshot = @import("up_snapshot.zig");
 const up_tar = @import("up_tar.zig");
@@ -38,7 +37,7 @@ const el_engine = @import("el_engine.zig");
 const Io = std.Io;
 const Chain = up_check.Chain;
 const Snapshot = up_snapshot.Snapshot;
-const jwt = base.utilities.jwt;
+const jwt = @import("utilities/jwt");
 const View = up_view.View;
 const assert = std.debug.assert;
 
@@ -748,7 +747,7 @@ fn check_layout(up: *const Up) bool {
             "database `base snapshot-import --out` wrote", .{});
         return false;
     };
-    const counts = base.execution.import.to_disk.Counts.decode(bytes) catch {
+    const counts = @import("execution/import").to_disk.Counts.decode(bytes) catch {
         up.view.fail("database", "{s} has a layout this needlefish does not know", .{up.db});
         up.view.fix("update needlefish (git pull && just release), or `base up --reimport`", .{});
         return false;

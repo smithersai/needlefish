@@ -35,7 +35,6 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 const import_run_cli = @import("import_run.zig");
@@ -45,13 +44,13 @@ const sample = @import("state_check_sample.zig");
 const rpc = @import("state_check_rpc.zig");
 const Endpoint = rpc.Endpoint;
 
-const to_disk = base.execution.import.to_disk;
-const node = base.execution.trie.node;
+const to_disk = @import("execution/import").to_disk;
+const node = @import("execution/trie").node;
 const json = std.json;
 const assert = std.debug.assert;
 
-const IO = base.utilities.io.IO;
-const Storage = base.execution.db.storage.IoStorageType(IO);
+const IO = @import("utilities/io").IO;
+const Storage = @import("execution/db").storage.IoStorageType(IO);
 const Importer = to_disk.ImporterType(Storage);
 const Database = Importer.Database;
 const DiskState = Database.DiskState;

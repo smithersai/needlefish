@@ -4,22 +4,21 @@
 //! `EngineClient` over the simulated network.
 
 const std = @import("std");
-const base = @import("base");
 const el_engine = @import("el_engine.zig");
 const el_ring = @import("el_ring.zig");
 const import_run_cli = @import("import_run.zig");
 
 const testing = std.testing;
 const assert = std.debug.assert;
-const io = base.utilities.io;
-const jwt = base.utilities.jwt;
-const http_client = base.utilities.http.client;
-const consensus = base.common.consensus;
-const primitives = base.common.primitives;
-const engine_types = base.execution.engine.types;
-const engine_block = base.execution.engine.block;
-const sources = base.consensus.sources;
-const L1BlockInfo = base.consensus.protocol.L1BlockInfo;
+const io = @import("utilities/io");
+const jwt = @import("utilities/jwt");
+const http_client = @import("utilities/http").client;
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const engine_types = @import("execution/engine").types;
+const engine_block = @import("execution/engine").block;
+const sources = @import("consensus/sources");
+const L1BlockInfo = @import("consensus/protocol").L1BlockInfo;
 
 const B256 = primitives.B256;
 const Hash = [32]u8;
@@ -51,7 +50,9 @@ const Fixture = struct {
                 .parent_hash = parent,
                 .beneficiary = .init(@splat(0xfe)),
                 .state_root = .init(@splat(0x51)),
-                .transactions_root = .{ .bytes = base.execution.trie.ordered_trie_root(items) },
+                .transactions_root = .{
+                    .bytes = @import("execution/trie").ordered_trie_root(items),
+                },
                 .number = first + index,
                 .gas_limit = 60_000_000,
                 .gas_used = 21_000,
@@ -65,7 +66,7 @@ const Fixture = struct {
                 .parent_beacon_block_root = .init(@splat(0xbe)),
                 .requests_hash = engine_block.empty_requests_hash,
             };
-            const encoded = base.common.rlp.encode_to(
+            const encoded = @import("common/rlp").encode_to(
                 &fixture.header_rlp[index],
                 fixture.headers[index],
             );
@@ -83,7 +84,7 @@ const Fixture = struct {
             .block_hash = .init(@splat(@intCast(0x10 + index / 4))),
             .sequence_number = index % 4,
         };
-        var calldata: [base.consensus.protocol.l1_info.calldata_length_max]u8 = undefined;
+        var calldata: [@import("consensus/protocol").l1_info.calldata_length_max]u8 = undefined;
         const inputs = [2][]const u8{ info.encode_calldata(&calldata), "hello" };
         for (inputs, 0..) |input, which| {
             var source: B256 = .init(@splat(@intCast(which + 1)));
@@ -283,7 +284,7 @@ test "el engine: newPayload over JSON-RPC, version checks" {
     defer setup.deinit();
     var request_buffer: [16 * 1024]u8 = undefined;
     var request: std.Io.Writer = .fixed(&request_buffer);
-    var writer = base.utilities.json.Writer.init(&request);
+    var writer = @import("utilities/json").Writer.init(&request);
     try request.writeAll("{\"jsonrpc\":\"2.0\",\"id\":1,");
     try request.writeAll("\"method\":\"engine_newPayloadV4\",\"params\":");
     const payload = setup.fixture.payload(12);
@@ -354,7 +355,7 @@ fn get_block(setup: *Setup, buffer: []u8, tag: []const u8, full: bool) ![]const 
 
 /// The `result` of a response, decoded as a full L2 block.
 fn decode_full(arena: std.mem.Allocator, text: []const u8) !sources.l2_block_full.L2Block {
-    const result = (try base.utilities.json.find_path(text, &.{"result"})).?;
+    const result = (try @import("utilities/json").find_path(text, &.{"result"})).?;
     return sources.l2_block_full.decode(arena, result, &.{}, .{});
 }
 
@@ -434,8 +435,8 @@ test "el engine: an EIP-7702 transaction's JSON rebuilds to its own bytes" {
     const raw = envelope.encode_to(&raw_buffer);
     var text_buffer: [4096]u8 = undefined;
     var out: std.Io.Writer = .fixed(&text_buffer);
-    var w: base.utilities.json.Writer = .init(&out);
-    try base.execution.rpc.format.transaction(&w, raw, null, consensus.recover_address);
+    var w: @import("utilities/json").Writer = .init(&out);
+    try @import("execution/rpc").format.transaction(&w, raw, null, consensus.recover_address);
     var arena: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena.deinit();
     const decoded = try sources.transaction_json.decode(
@@ -540,7 +541,7 @@ test "el engine: empty ring reads fail clearly" {
 const Server = el_engine.Server(io.SimIo);
 const Client = sources.EngineClient(io.SimIo);
 
-const test_server_options: base.utilities.http.server.Options = .{
+const test_server_options: @import("utilities/http").server.Options = .{
     .connections_max = 4,
     .recv_buffer_size = 2 * 64 * 1024,
     .send_buffer_size = 64 * 1024,

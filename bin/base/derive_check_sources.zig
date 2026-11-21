@@ -13,14 +13,13 @@
 //! failing surfaces as `error.NotAvailable` and the driver backs off.
 
 const std = @import("std");
-const base = @import("base");
 
 const net = @import("derive_check_net.zig");
-const sources = base.consensus.sources;
-const protocol = base.consensus.protocol;
-const derive = base.consensus.derive;
-const primitives = base.common.primitives;
-const kzg = base.common.crypto.kzg;
+const sources = @import("consensus/sources");
+const protocol = @import("consensus/protocol");
+const derive = @import("consensus/derive");
+const primitives = @import("common/primitives");
+const kzg = @import("common/crypto").kzg;
 const assert = std.debug.assert;
 
 const Address = primitives.Address;

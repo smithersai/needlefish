@@ -19,13 +19,12 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 const cli = @import("replay.zig");
 const evm_only = @import("replay_evm.zig");
 
-const replay = base.infra.replay;
+const replay = @import("infra/replay");
 const Archive = replay.Archive;
-const Clock = base.execution.node.executor.Executor.Clock;
+const Clock = @import("execution/node").executor.Executor.Clock;
 const assert = std.debug.assert;
 
 const warm_runs_default: u32 = 5;
@@ -103,7 +102,7 @@ fn bench_run(
     out: *Io.Writer,
 ) !bool {
     assert(archive.block_count > 0);
-    const spec = &base.execution.chainspec.ChainSpec.presets.base_mainnet;
+    const spec = &@import("execution/chainspec").ChainSpec.presets.base_mainnet;
     const replayer = try gpa.create(replay.Replayer);
     defer gpa.destroy(replayer);
     try replayer.init(gpa, spec, archive, config);

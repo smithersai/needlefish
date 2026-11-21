@@ -21,14 +21,13 @@
 //! reaches them. A single-peer `Source` follows the tip from there.
 
 const std = @import("std");
-const base = @import("base");
 
 const el_source = @import("el_source.zig");
 const unsafe_watch = @import("unsafe_watch.zig");
-const enode = base.consensus.p2p.peers.enode;
-const curve = base.common.crypto.secp256k1;
-const ChainConfig = base.common.chains.ChainConfig;
-const RollupConfig = base.consensus.protocol.RollupConfig;
+const enode = @import("consensus/p2p").peers.enode;
+const curve = @import("common/crypto").secp256k1;
+const ChainConfig = @import("common/chains").ChainConfig;
+const RollupConfig = @import("consensus/protocol").RollupConfig;
 const Io = std.Io;
 const assert = std.debug.assert;
 
@@ -639,7 +638,7 @@ fn fetch_segment(worker: *Worker, first: u64) !u32 {
 }
 
 test "el-pool: the tip estimate inverts the block schedule" {
-    const rollup = unsafe_watch.rollup_for(&base.common.chains.sepolia);
+    const rollup = unsafe_watch.rollup_for(&@import("common/chains").sepolia);
     // Both sides of the boundary, in the 200 ms (Denim) era and well before it.
     for ([_]u64{ 1_000_000, 55_000_000, 55_700_123 }) |number| {
         const time_ms = rollup.l2_block_timestamp_ms(number);

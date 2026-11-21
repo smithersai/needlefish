@@ -16,9 +16,8 @@
 //! whole no-overlap invariant.
 
 const std = @import("std");
-const base = @import("base");
 const assert = std.debug.assert;
-const lazy_alloc = base.utilities.lazy_alloc;
+const lazy_alloc = @import("utilities/lazy_alloc");
 
 pub const Options = struct {
     blocks_max: u32 = 16_384,
@@ -237,7 +236,7 @@ pub const Ring = struct {
 };
 
 const testing = std.testing;
-const Prng = base.testing.Prng;
+const Prng = @import("testing/prng").Prng;
 
 /// Deterministic block contents for `number`: a header and up to `transactions_max` bytes
 /// strings whose sizes and bytes depend only on the number and the size class.

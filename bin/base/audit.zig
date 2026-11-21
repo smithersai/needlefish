@@ -9,12 +9,11 @@
 //! The endpoints are unauthenticated: bind them to a private network (as base/base says).
 
 const std = @import("std");
-const base = @import("base");
 
 const Io = std.Io;
-const io = base.utilities.io;
-const cli = base.utilities.cli;
-const audit = base.infra.audit;
+const io = @import("utilities/io");
+const cli = @import("utilities/cli");
+const audit = @import("infra/audit");
 const Archiver = audit.Archiver(io.IO);
 
 const env_prefix = "BASE_AUDIT_";
@@ -105,7 +104,7 @@ pub fn settings_of(spec: Spec) !Settings {
             .large_send_buffers_max = 4,
             .large_send_buffer_size = 16 * 1024 * 1024,
         },
-        .version = base.build_options.version,
+        .version = @import("build_options").version,
     } };
 }
 

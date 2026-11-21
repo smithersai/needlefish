@@ -18,13 +18,12 @@
 //! the schedule is read only when metering is enabled, and an empty schedule fails closed).
 
 const std = @import("std");
-const base = @import("base");
 
 const Io = std.Io;
-const io = base.utilities.io;
-const log = base.utilities.log;
-const node = base.execution.node;
-const node_service = base.execution.service.service;
+const io = @import("utilities/io");
+const log = @import("utilities/log");
+const node = @import("execution/node");
+const node_service = @import("execution/service").service;
 const Service = node_service.Service(io.IO);
 
 const usage =
@@ -177,7 +176,7 @@ fn authrpc_address(flags: Flags) ?io.Address {
     return io.Address.ip4(flags.http_addr, port);
 }
 
-const rehash_threads_max = base.execution.trie.state_trie.rehash_threads_max;
+const rehash_threads_max = @import("execution/trie").state_trie.rehash_threads_max;
 
 /// Default limits, plus one sender-recovery thread per spare core (at most 7) and the
 /// storage-rehash workers (`--rehash-threads`, else one per spare core, at most 4).
@@ -211,14 +210,14 @@ pub fn main(init: std.process.Init, args: []const []const u8) !u8 {
     }
     const text = try cwd.readFileAlloc(init.io, flags.chain.?, init.gpa, .limited(256 << 20));
     defer init.gpa.free(text);
-    const parsed = try base.common.genesis.parse(init.gpa, text);
+    const parsed = try @import("common/genesis").parse(init.gpa, text);
     defer parsed.deinit();
 
-    var secret: ?base.utilities.jwt.Secret = null;
+    var secret: ?@import("utilities/jwt").Secret = null;
     if (flags.jwt_secret_path) |path| {
         var buffer: [256]u8 = undefined;
         const secret_text = try cwd.readFile(init.io, path, &buffer);
-        secret = try base.utilities.jwt.Secret.parse_hex(secret_text);
+        secret = try @import("utilities/jwt").Secret.parse_hex(secret_text);
     }
     const schedule_json = try read_schedule(init, flags);
     defer if (schedule_json) |schedule| init.gpa.free(schedule);

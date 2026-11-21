@@ -18,12 +18,11 @@
 //! candidate: `el-fetch` checks its network id and genesis in Status.
 
 const std = @import("std");
-const base = @import("base");
 
-const discv4 = base.execution.p2p.discv4;
-const enode = base.consensus.p2p.peers.enode;
-const enr = base.consensus.p2p.peers.enr;
-const curve = base.common.crypto.secp256k1;
+const discv4 = @import("execution/p2p").discv4;
+const enode = @import("consensus/p2p").peers.enode;
+const enr = @import("consensus/p2p").peers.enr;
+const curve = @import("common/crypto").secp256k1;
 const Io = std.Io;
 const assert = std.debug.assert;
 
@@ -47,7 +46,7 @@ const lookups_per_node = 3;
 const lookups_per_bootnode = 64;
 
 const Flags = struct {
-    chain: *const base.common.chains.ChainConfig = &base.common.chains.sepolia,
+    chain: *const @import("common/chains").ChainConfig = &@import("common/chains").sepolia,
     duration_s: u64 = 120,
     fork_hash: ?[4]u8 = null,
     port: u16 = 0,
@@ -83,9 +82,9 @@ fn parse_flags(args: []const []const u8) !Flags {
             flags.seeds_count += 1;
         } else if (std.mem.eql(u8, name, "--chain")) {
             flags.chain = if (std.mem.eql(u8, value, "base-mainnet"))
-                &base.common.chains.mainnet
+                &@import("common/chains").mainnet
             else
-                &base.common.chains.sepolia;
+                &@import("common/chains").sepolia;
         } else return error.InvalidArguments;
     }
     if (index != args.len or flags.duration_s == 0) return error.InvalidArguments;

@@ -4,13 +4,12 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-const base = @import("base");
 
 const assert = std.debug.assert;
-const io = base.utilities.io;
-const http = base.utilities.http;
-const Metrics = base.batcher.metrics.Metrics;
-const Admin = base.batcher.admin.Admin;
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const Metrics = @import("batcher/metrics").Metrics;
+const Admin = @import("batcher/admin").Admin;
 const MetricsServer = http.Server(io.IO, *Metrics, Metrics.handle);
 const AdminServer = http.Server(io.IO, *Admin, Admin.handle);
 

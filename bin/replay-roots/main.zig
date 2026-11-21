@@ -11,10 +11,9 @@
 //! Exit codes: 0 when every root matched, 1 on a mismatch or error, 2 on bad usage.
 
 const std = @import("std");
-const base = @import("base");
 const Io = std.Io;
 
-const replay = base.execution.db.replay_roots;
+const replay = @import("execution/db").replay_roots;
 const assert = std.debug.assert;
 
 const usage = "usage: replay-roots DIR [BLOCK]\n";

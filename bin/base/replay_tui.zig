@@ -4,9 +4,8 @@
 //! prints the same rows without color or redraws, so logs and CI stay readable.
 
 const std = @import("std");
-const base = @import("base");
 
-const replay = base.infra.replay;
+const replay = @import("infra/replay");
 const Outcome = replay.replayer.Outcome;
 const Check = replay.replayer.Check;
 const assert = std.debug.assert;

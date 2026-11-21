@@ -11,9 +11,8 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
-const replay = base.infra.replay;
+const replay = @import("infra/replay");
 const tui = @import("replay_tui.zig");
 const fetch = @import("replay_fetch.zig");
 const bench = @import("replay_bench.zig");
@@ -176,7 +175,7 @@ pub fn import_blocks(init: std.process.Init, dir: Io.Dir, archive: *Archive, win
     const headers = try dir.readFileAlloc(init.io, "headers.json", gpa, .limited(file_bytes_max));
     defer gpa.free(headers);
     try replay.import.add_ancestors(arena_state.allocator(), archive, headers, window.first);
-    archive.chain_id = base.execution.chainspec.ChainSpec.presets.base_mainnet.chain_id;
+    archive.chain_id = @import("execution/chainspec").ChainSpec.presets.base_mainnet.chain_id;
     var seen: replay.import.Seen = .{};
     defer seen.deinit(gpa);
     var pre_state_root = archive.parent_state_root;
@@ -258,7 +257,7 @@ fn run_main(init: std.process.Init, args: []const []const u8) !u8 {
         .style = .{ .color = color },
         .block_count = limit,
     };
-    const first = base.execution.db.witness.header_number(archive.block_header(0)) catch
+    const first = @import("execution/db").witness.header_number(archive.block_header(0)) catch
         return error.InvalidArchive;
     try view.header(first, file.len);
     return run_archive(init, &archive, &view, recovery_threads);
@@ -271,7 +270,7 @@ fn run_archive(
     recovery_threads: u32,
 ) !u8 {
     const gpa = init.gpa;
-    const spec = &base.execution.chainspec.ChainSpec.presets.base_mainnet;
+    const spec = &@import("execution/chainspec").ChainSpec.presets.base_mainnet;
     const replayer = try gpa.create(replay.Replayer);
     defer gpa.destroy(replayer);
     try replayer.init(gpa, spec, archive, replayer_config(archive, recovery_threads));
@@ -378,7 +377,7 @@ pub fn check_archive(
     arena: std.mem.Allocator,
     archive: *const Archive,
 ) !?[]const GapReport {
-    const spec = &base.execution.chainspec.ChainSpec.presets.base_mainnet;
+    const spec = &@import("execution/chainspec").ChainSpec.presets.base_mainnet;
     const replayer = try gpa.create(replay.Replayer);
     defer gpa.destroy(replayer);
     const config = replayer_config(archive, recovery_threads_default());
@@ -416,12 +415,12 @@ pub fn replayer_config(archive: *const Archive, recovery_threads: u32) replay.re
     assert(recovery_threads <= recovery_threads_max);
     var config = replay.replayer.config_for(archive);
     config.executor.recovery_threads = recovery_threads;
-    config.executor.state_gas_basis = base.execution.node.executor.default_state_gas_basis;
+    config.executor.state_gas_basis = @import("execution/node").executor.default_state_gas_basis;
     return config;
 }
 
 /// Most `--recovery-threads` (the executor's recovery pool bound).
-pub const recovery_threads_max: u32 = base.execution.node.senders.threads_max;
+pub const recovery_threads_max: u32 = @import("execution/node").senders.threads_max;
 
 /// One sender-recovery worker per spare core, at most 7, as `base node` runs.
 pub fn recovery_threads_default() u32 {

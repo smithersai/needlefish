@@ -15,10 +15,9 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
 const HttpTransport = @import("http_transport.zig").HttpTransport;
-const follow = base.infra.follow;
+const follow = @import("infra/follow");
 const Follower = follow.Follower;
 const json = std.json;
 const assert = std.debug.assert;
@@ -35,7 +34,7 @@ const usage =
 
 const Chain = struct {
     name: []const u8,
-    spec: *const base.execution.chainspec.ChainSpec,
+    spec: *const @import("execution/chainspec").ChainSpec,
     block_url: []const u8,
     proof_url: []const u8,
     proof_batch: u32,
@@ -49,7 +48,7 @@ const Chain = struct {
 const chains = [_]Chain{
     .{
         .name = "base-sepolia",
-        .spec = &base.execution.chainspec.ChainSpec.presets.base_sepolia,
+        .spec = &@import("execution/chainspec").ChainSpec.presets.base_sepolia,
         .block_url = "https://base-sepolia-rpc.publicnode.com",
         // Serves `eth_getProof` for the most recent 10,000 blocks; batches of 5.
         .proof_url = "https://sepolia.base.org",
@@ -59,7 +58,7 @@ const chains = [_]Chain{
     },
     .{
         .name = "base-mainnet",
-        .spec = &base.execution.chainspec.ChainSpec.presets.base_mainnet,
+        .spec = &@import("execution/chainspec").ChainSpec.presets.base_mainnet,
         .block_url = "https://mainnet.base.org",
         .proof_url = "https://base.drpc.org",
         .proof_batch = 1,
@@ -327,9 +326,9 @@ const Driver = struct {
         const hashes = try driver.alloc().alloc(Hash, @intCast(count));
         var state_root: Hash = undefined;
         for (results, hashes, 0..) |result, *hash, offset| {
-            var extra: [base.consensus.sources.header_json.extra_data_size_max]u8 = undefined;
+            var extra: [@import("consensus/sources").header_json.extra_data_size_max]u8 = undefined;
             const text = try json.Stringify.valueAlloc(driver.alloc(), result, .{});
-            const decoded = try base.consensus.sources.header_json.decode(text, &extra);
+            const decoded = try @import("consensus/sources").header_json.decode(text, &extra);
             if (decoded.header.number != low + offset) return error.InconsistentHeaders;
             if (offset > 0 and !decoded.header.parent_hash.eql(.{ .bytes = hashes[offset - 1] })) {
                 return error.InconsistentHeaders;
@@ -739,7 +738,7 @@ pub fn main(init: std.process.Init, args: []const []const u8) !u8 {
     var config = follow.follower.default_config();
     const cores: u32 = @intCast(@max(std.Thread.getCpuCount() catch 1, 1));
     config.executor.recovery_threads = @min(cores - 1, 7);
-    config.executor.state_gas_basis = base.execution.node.executor.default_state_gas_basis;
+    config.executor.state_gas_basis = @import("execution/node").executor.default_state_gas_basis;
     try follower.init(gpa, chain.spec, config);
     defer follower.deinit(gpa);
     var driver: Driver = .{
@@ -793,7 +792,7 @@ fn verify_one(driver: *Driver, block: *const follow.follower.Block) !bool {
         return false;
     }
     const finished = Io.Clock.awake.now(io).toMilliseconds();
-    const header = try base.common.consensus.Header.decode(block.header_rlp);
+    const header = try @import("common/consensus").Header.decode(block.header_rlp);
     driver.last_lag_ms = Io.Clock.real.now(io).toMilliseconds() -
         @as(i64, @intCast(header.timestamp)) * 1000;
     driver.gas_window += header.gas_used;

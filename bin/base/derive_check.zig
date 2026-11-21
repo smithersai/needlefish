@@ -20,22 +20,21 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
 const net = @import("derive_check_net.zig");
 const check_sources = @import("derive_check_sources.zig");
-const derive_check = base.consensus.derive_check;
+const derive_check = @import("consensus/derive_check");
 const compare = derive_check.compare;
 const start_rules = derive_check.start;
-const derive_errors = base.consensus.derive.errors;
-const protocol = base.consensus.protocol;
-const sources = base.consensus.sources;
-const chains = base.common.chains;
-const kzg = base.common.crypto.kzg;
+const derive_errors = @import("consensus/derive").errors;
+const protocol = @import("consensus/protocol");
+const sources = @import("consensus/sources");
+const chains = @import("common/chains");
+const kzg = @import("common/crypto").kzg;
 const assert = std.debug.assert;
 
-const Pipeline = base.consensus.derive.pipeline.Pipeline;
-const AttributesWithParent = base.consensus.derive.pipeline.AttributesWithParent;
+const Pipeline = @import("consensus/derive").pipeline.Pipeline;
+const AttributesWithParent = @import("consensus/derive").pipeline.AttributesWithParent;
 const L2BlockInfo = protocol.block.L2BlockInfo;
 const RollupConfig = protocol.rollup_config.RollupConfig;
 const L1BlobSchedule = protocol.l1_info.L1BlobSchedule;
@@ -258,7 +257,7 @@ const Checker = struct {
 
     fn reset_pipeline(checker: *Checker) !void {
         for (0..reset_attempts_max) |attempt| {
-            const signal: base.consensus.derive.pipeline.Signal = .{
+            const signal: @import("consensus/derive").pipeline.Signal = .{
                 .reset = .{ .l2_safe_head = checker.cursor },
             };
             checker.pipeline.signal(checker.l1, checker.l2, signal) catch |err| {
@@ -604,7 +603,7 @@ pub fn main(init: std.process.Init, args: []const []const u8) !u8 {
     const rollup = start_rules.rollup_config_for(chain);
     const l1_config = chains.l1_by_chain_id(rollup.l1_chain_id) orelse return error.UnknownL1;
     var bpo: [2]L1BlobSchedule.Entry = undefined;
-    const blob_schedule = base.proof.client.client.blob_schedule_of(l1_config, &bpo);
+    const blob_schedule = @import("proof/client").client.blob_schedule_of(l1_config, &bpo);
 
     const endpoints = try gpa.create(Endpoints);
     defer gpa.destroy(endpoints);
@@ -616,9 +615,9 @@ pub fn main(init: std.process.Init, args: []const []const u8) !u8 {
     defer gpa.destroy(setup);
     setup.settings = try kzg.blob.Settings.init(&setup.storage);
     const blob_max = check_sources.BlobSource.blobs_max;
-    const fetched = try gpa.alloc(base.consensus.derive.blob.Blob, blob_max);
+    const fetched = try gpa.alloc(@import("consensus/derive").blob.Blob, blob_max);
     defer gpa.free(fetched);
-    var pointers: [blob_max]*const base.consensus.derive.blob.Blob = undefined;
+    var pointers: [blob_max]*const @import("consensus/derive").blob.Blob = undefined;
 
     var l1 = try check_sources.L1Source.init(gpa, &endpoints.l1, rollup.batch_inbox_address, 128);
     defer l1.deinit();

@@ -5,10 +5,9 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
-const base = @import("base");
 
-const io = base.utilities.io;
-const metrics_endpoint = base.infra.metrics_endpoint;
+const io = @import("utilities/io");
+const metrics_endpoint = @import("infra/metrics_endpoint");
 
 pub const sync_counter = metrics_endpoint.sync_counter;
 
@@ -46,7 +45,7 @@ pub fn Server(comptime entries_max: u32) type {
             else
                 try io.IO.init();
             errdefer server.os_io.deinit();
-            try server.endpoint.init(gpa, &server.os_io, base.build_options.version);
+            try server.endpoint.init(gpa, &server.os_io, @import("build_options").version);
             assert(server.endpoint.pages.registry.count == 0);
             return server;
         }
@@ -95,7 +94,7 @@ test "metrics server: serves a counter on the OS backend" {
         return err;
     };
     defer server.destroy(testing.allocator);
-    var sent: base.utilities.metrics.Counter = .{};
+    var sent: @import("utilities/metrics").Counter = .{};
     try server.registry().counter("tool_sent_total", "Sent.", &sent);
     const bound = try server.listen(io.Address.loopback(0));
     try testing.expect(bound.port != 0);

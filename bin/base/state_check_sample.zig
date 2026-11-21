@@ -25,9 +25,8 @@
 //!      which are nonzero, to fill the rest of the budget.
 
 const std = @import("std");
-const base = @import("base");
 
-const node = base.execution.trie.node;
+const node = @import("execution/trie").node;
 const assert = std.debug.assert;
 
 pub const Hash = [32]u8;
@@ -633,7 +632,7 @@ test "state-check: slot plans keep their budgets, never repeat a key, and are se
     }
     try testing.expect(learned_keys > 0);
     // A seeded fuzz: many seeds and budgets, all invariants checked inside `plan_all`.
-    var prng = base.testing.Prng.init(0x7363_6865_636b);
+    var prng = @import("testing/prng").Prng.init(0x7363_6865_636b);
     for (0..16) |_| {
         _ = arena_state.reset(.retain_capacity);
         _ = try plan_all(arena_state.allocator(), prng.int(u64), prng.range(200, 4000));

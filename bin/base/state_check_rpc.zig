@@ -624,6 +624,8 @@ test "state-check: fuzz batch answers" {
         "[{\"id\":0,\"result\":1},{\"id\":2,\"error\":{\"message\":\"request limit reached\"}}]",
         "[{\"id\":2,\"result\":1},{\"id\":2,\"result\":1},{\"id\":1,\"result\":1}]",
     };
-    const base = @import("base");
-    try base.testing.fuzz.run_bytes({}, fuzz_answer, .{ .iterations = 512, .corpus = &corpus });
+    try @import("testing/fuzz").run_bytes({}, fuzz_answer, .{
+        .iterations = 512,
+        .corpus = &corpus,
+    });
 }

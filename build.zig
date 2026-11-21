@@ -2,9 +2,9 @@
 //!
 //! Layout mirrors base/base: `src/` holds the libraries, grouped like base/base's `crates/`,
 //! and `bin/<name>/main.zig` holds binaries. Every package (a folder two levels under `src/`,
-//! defined in etc/scripts/packages.py) is its own Zig module. `packages.zon` lists each
-//! package and the packages it imports by name; the compiler rejects any other import.
-//! `base` (src/base.zig) re-exports every group for binaries and tools.
+//! and a binary's files, defined in etc/scripts/packages.py) is its own Zig module.
+//! `packages.zon` lists each package and the packages it imports by name; the compiler
+//! rejects any other import. `base` (src/base.zig) re-exports every group for tools.
 //!
 //! Steps:
 //!   zig build              install every binary into zig-out/bin
@@ -94,7 +94,7 @@ pub fn build(b: *std.Build) void {
 
     // The edge counters (`-ffuzz`) need the LLVM backend and linker.
     const use_llvm: ?bool = if (configured.diff_coverage) true else null;
-    add_binaries(b, base, target, optimize, test_step, filters, use_llvm);
+    add_binaries(b, modules, use_llvm);
 
     // Deterministic simulation testing and micro benchmarks.
     const uses_base: []const std.Build.Module.Import = &.{.{ .name = "base", .module = base }};
@@ -183,11 +183,13 @@ fn add_packages(
     const modules = b.allocator.alloc(*std.Build.Module, packages.len) catch @panic("OOM");
     for (packages, modules) |package, *module| {
         const root = package.root orelse b.fmt("src/{s}/root.zig", .{package.name});
+        // A binary's own files (`bin/`) take no edge counters.
+        const program = std.mem.startsWith(u8, package.name, "bin/");
         module.* = b.addModule(package.name, .{
             .root_source_file = b.path(root),
             .target = target,
             .optimize = optimize,
-            .fuzz = if (configured.diff_coverage) true else null,
+            .fuzz = if (configured.diff_coverage and !program) true else null,
         });
     }
     // One `build_options` module: a file may belong to only one module per compilation.
@@ -346,26 +348,14 @@ fn add_tool(
     return exe;
 }
 
-/// Each binary gets an install, a `run-<name>` step, and its own test binary.
-fn add_binaries(
-    b: *std.Build,
-    base: *std.Build.Module,
-    target: std.Build.ResolvedTarget,
-    optimize: std.builtin.OptimizeMode,
-    test_step: *std.Build.Step,
-    filters: []const []const u8,
-    use_llvm: ?bool,
-) void {
+/// Each binary gets an install and a `run-<name>` step. Its root module is the package
+/// `bin/<name>` (packages.zon), so its tests are package tests like any other.
+fn add_binaries(b: *std.Build, modules: []const *std.Build.Module, use_llvm: ?bool) void {
     for (binaries) |name| {
         const exe = b.addExecutable(.{
             .name = name,
             .use_llvm = use_llvm,
-            .root_module = b.createModule(.{
-                .root_source_file = b.path(b.fmt("bin/{s}/main.zig", .{name})),
-                .target = target,
-                .optimize = optimize,
-                .imports = &.{.{ .name = "base", .module = base }},
-            }),
+            .root_module = modules[package_index(b.fmt("bin/{s}", .{name}))],
         });
         b.installArtifact(exe);
 
@@ -377,20 +367,5 @@ fn add_binaries(
             b.step(name, "Check state/receipts/transactions roots: replay-roots -- DIR [BLOCK]")
                 .dependOn(&run.step);
         }
-    }
-
-    // Binary tests (each main.zig may hold integration tests).
-    for (binaries) |name| {
-        const bin_tests = b.addTest(.{
-            .name = b.fmt("test-{s}", .{name}),
-            .root_module = b.createModule(.{
-                .root_source_file = b.path(b.fmt("bin/{s}/main.zig", .{name})),
-                .target = target,
-                .optimize = optimize,
-                .imports = &.{.{ .name = "base", .module = base }},
-            }),
-            .filters = filters,
-        });
-        test_step.dependOn(&b.addRunArtifact(bin_tests).step);
     }
 }

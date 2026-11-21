@@ -10,8 +10,7 @@
 //! concurrently the request runs without a timeout (the timeout is optional).
 
 const std = @import("std");
-const base = @import("base");
-const rpc = base.batcher.rpc;
+const rpc = @import("batcher/rpc");
 
 const assert = std.debug.assert;
 

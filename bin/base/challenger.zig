@@ -2,22 +2,20 @@
 //! moving and claims bonds (base/base `bin/challenger`, `crates/proof/challenge`).
 
 const std = @import("std");
-const base = @import("base");
 const consensus_cli = @import("consensus.zig");
 const telemetry_servers = @import("telemetry.zig");
 
-const io = base.utilities.io;
-const http = base.utilities.http;
-const proof = base.proof;
-const challenger = proof.challenger;
-const secp256k1 = base.common.crypto.secp256k1;
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const challenger = @import("proof/challenger");
+const secp256k1 = @import("common/crypto").secp256k1;
 
-const RpcClient = proof.host.rpc_source.RpcSource(io.IO).Client;
-const Endpoint = proof.rpc.Endpoint(io.IO);
+const RpcClient = @import("proof/host").rpc_source.RpcSource(io.IO).Client;
+const Endpoint = @import("proof/rpc").Endpoint(io.IO);
 const Chain = challenger.rpc_chain.RpcChain(Endpoint);
 const Submitter = challenger.tx_submitter.TxSubmitter(Endpoint);
-const ServiceClient = proof.prover_service.client.Client(io.IO);
-const ChallengerProver = proof.prover_service.challenger_prover.ChallengerProver(io.IO);
+const ServiceClient = @import("proof/prover_service").client.Client(io.IO);
+const ChallengerProver = @import("proof/prover_service").challenger_prover.ChallengerProver(io.IO);
 const Telemetry = telemetry_servers.Servers(challenger.exporter.Exporter);
 
 const usage =
@@ -58,7 +56,7 @@ const Process = struct {
         try os_io.run_for_ns(std.time.ns_per_ms);
     }
 
-    fn pump(process: *Process) proof.rpc.endpoint.Pump {
+    fn pump(process: *Process) @import("proof/rpc").endpoint.Pump {
         return .{ .context = &process.os_io, .step = step };
     }
 };
@@ -153,7 +151,7 @@ fn connect(
         .factory = flags.dispute_game_factory,
         .anchor_state_registry = flags.anchor_state_registry,
     });
-    const chain_id = try proof.rpc.endpoint.parse_quantity(
+    const chain_id = try @import("proof/rpc").endpoint.parse_quantity(
         try process.l1_tx.call("eth_chainId", &.{}),
     );
     process.l1_tx.reset();

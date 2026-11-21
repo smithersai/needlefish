@@ -19,21 +19,20 @@
 //! (one sequential write per block, synced every `sync_blocks`), its reads are synchronous.
 
 const std = @import("std");
-const base = @import("base");
 const el_rpc = @import("el_rpc.zig");
 
-const io_module = base.utilities.io;
-const archive_module = base.execution.archive;
-const db = base.execution.db;
+const io_module = @import("utilities/io");
+const archive_module = @import("execution/archive");
+const db = @import("execution/db");
 const branch_record = db.branch_record;
 const flat_trees = db.flat_trees;
 const disk_state = db.disk_state;
-const keccak256 = base.execution.trie.node.keccak256;
+const keccak256 = @import("execution/trie").node.keccak256;
 const assert = std.debug.assert;
 
 const IO = io_module.IO;
 const Storage = db.storage.IoStorageType(IO);
-const Database = base.execution.import.to_disk.ImporterType(Storage).Database;
+const Database = @import("execution/import").to_disk.ImporterType(Storage).Database;
 pub const Archive = archive_module.ArchiveType(Storage);
 const Hash = [32]u8;
 
@@ -131,7 +130,7 @@ pub const Service = struct {
         service.db = database;
         service.changeset = try db.Changeset.init(gpa, changeset_config);
         errdefer service.changeset.deinit(gpa);
-        const lazy = base.utilities.lazy_alloc;
+        const lazy = @import("utilities/lazy_alloc");
         service.changes = try lazy.alloc(gpa, archive_module.Change, changes_max);
         service.keys = try lazy.alloc(gpa, [65]u8, keys_max);
         service.words = try lazy.alloc(gpa, [32]u8, changeset_config.storage_max);
@@ -144,7 +143,7 @@ pub const Service = struct {
         service.archive.flush() catch |err| {
             std.debug.print("el-run: archive flush failed: {t}\n", .{err});
         };
-        const lazy = base.utilities.lazy_alloc;
+        const lazy = @import("utilities/lazy_alloc");
         lazy.free(gpa, service.hashes);
         lazy.free(gpa, service.words);
         lazy.free(gpa, service.keys);

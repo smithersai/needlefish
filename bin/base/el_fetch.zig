@@ -25,14 +25,13 @@
 //! gossip block at its height (`el_gossip.zig`).
 
 const std = @import("std");
-const base = @import("base");
 
 const el_source = @import("el_source.zig");
 const el_feed = @import("el_feed.zig");
 const el_gossip = @import("el_gossip.zig");
 const unsafe_watch = @import("unsafe_watch.zig");
-const enode = base.consensus.p2p.peers.enode;
-const curve = base.common.crypto.secp256k1;
+const enode = @import("consensus/p2p").peers.enode;
+const curve = @import("common/crypto").secp256k1;
 const Io = std.Io;
 const assert = std.debug.assert;
 
@@ -61,7 +60,7 @@ const Flags = struct {
     consume_us: u64 = 0,
     count: u64 = 1000,
     batch: u32 = 128,
-    chain: *const base.common.chains.ChainConfig = &base.common.chains.sepolia,
+    chain: *const @import("common/chains").ChainConfig = &@import("common/chains").sepolia,
 };
 
 fn parse_flags(args: []const []const u8) !Flags {
@@ -87,7 +86,7 @@ fn parse_flags(args: []const []const u8) !Flags {
         }
         if (std.mem.startsWith(u8, name, "--p2p.")) {
             const has_value = std.mem.indexOfScalar(u8, name, '=') != null or
-                base.consensus.p2p.options.is_bool(name["--p2p.".len..]);
+                @import("consensus/p2p").options.is_bool(name["--p2p.".len..]);
             if (!has_value) index += 1;
             continue;
         }
@@ -120,9 +119,9 @@ fn parse_flags(args: []const []const u8) !Flags {
             flags.batch = try std.fmt.parseInt(u32, value, 10);
         } else if (std.mem.eql(u8, name, "--chain")) {
             flags.chain = if (std.mem.eql(u8, value, "base-mainnet"))
-                &base.common.chains.mainnet
+                &@import("common/chains").mainnet
             else
-                &base.common.chains.sepolia;
+                &@import("common/chains").sepolia;
         } else return error.InvalidArguments;
     }
     if ((flags.enode == null) == (flags.peers == null)) return error.InvalidArguments;

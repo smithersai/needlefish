@@ -21,23 +21,22 @@
 //! any other (state root, receipts, gas, bloom).
 
 const std = @import("std");
-const base = @import("base");
 
 const unsafe_watch = @import("unsafe_watch.zig");
 const el_source = @import("el_source.zig");
-const io = base.utilities.io;
-const p2p = base.consensus.p2p;
-const chains = base.common.chains;
+const io = @import("utilities/io");
+const p2p = @import("consensus/p2p");
+const chains = @import("common/chains");
 const block = p2p.gossip.block;
-const gossip_bridge = base.consensus.service.gossip_bridge;
-const engine_block = base.execution.engine.block;
-const engine_types = base.execution.engine.types;
-const ChainSpec = base.execution.chainspec.ChainSpec;
-const rlp = base.common.rlp;
+const gossip_bridge = @import("consensus/service").gossip_bridge;
+const engine_block = @import("execution/engine").block;
+const engine_types = @import("execution/engine").types;
+const ChainSpec = @import("execution/chainspec").ChainSpec;
+const rlp = @import("common/rlp");
 const snappy = p2p.gossip.snappy;
 const Io = std.Io;
 const Network = p2p.network.Network(io.IO);
-const Address = base.common.primitives.Address;
+const Address = @import("common/primitives").Address;
 const assert = std.debug.assert;
 const ns_per_ms = std.time.ns_per_ms;
 
@@ -295,7 +294,7 @@ pub const Anchor = struct {
 pub const Gossip = struct {
     allocator: std.mem.Allocator,
     io: Io,
-    rollup: base.consensus.protocol.RollupConfig,
+    rollup: @import("consensus/protocol").RollupConfig,
     options: p2p.options.Options,
     signer: Address,
     /// Null: gossip only anchors; no blocks are kept for `take`.
@@ -543,7 +542,7 @@ test "el-gossip: anchor ring keeps the newer height and ignores a too-old one" {
 /// An Isthmus header over `transactions` (the shape of a Base block), and its signed gossip
 /// form: the payload's fields, its transactions in SSZ (`storage`), and the beacon root.
 const TestBlock = struct {
-    header: base.common.consensus.Header,
+    header: @import("common/consensus").Header,
     envelope: block.Envelope,
 
     fn init(
@@ -552,12 +551,14 @@ const TestBlock = struct {
         transactions: []const []const u8,
         storage: []u8,
     ) TestBlock {
-        const B256 = base.common.primitives.B256;
-        const header: base.common.consensus.Header = .{
+        const B256 = @import("common/primitives").B256;
+        const header: @import("common/consensus").Header = .{
             .parent_hash = .{ .bytes = parent },
             .beneficiary = .init(@splat(0xfe)),
             .state_root = .init(@splat(0x51)),
-            .transactions_root = .{ .bytes = base.execution.trie.ordered_trie_root(transactions) },
+            .transactions_root = .{
+                .bytes = @import("execution/trie").ordered_trie_root(transactions),
+            },
             .receipts_root = .init(@splat(0x52)),
             .number = number,
             .gas_limit = 60_000_000,

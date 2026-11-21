@@ -6,11 +6,10 @@
 //! linked to the one before and the first to `parent`.
 
 const std = @import("std");
-const base = @import("base");
 
 const el_source = @import("el_source.zig");
 const el_pool = @import("el_pool.zig");
-const ChainConfig = base.common.chains.ChainConfig;
+const ChainConfig = @import("common/chains").ChainConfig;
 const Io = std.Io;
 const assert = std.debug.assert;
 

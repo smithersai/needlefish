@@ -11,15 +11,14 @@
 //! devp2p implementation of the catch-up block source (docs/UNSAFE_TIP.md).
 
 const std = @import("std");
-const base = @import("base");
 
-const p2p = base.execution.p2p;
+const p2p = @import("execution/p2p");
 const rlpx = p2p.rlpx;
 const eth = p2p.eth;
-const snappy = base.consensus.p2p.gossip.snappy;
-const curve = base.common.crypto.secp256k1;
-const keccak = base.common.crypto.keccak;
-const Header = base.common.consensus.Header;
+const snappy = @import("consensus/p2p").gossip.snappy;
+const curve = @import("common/crypto").secp256k1;
+const keccak = @import("common/crypto").keccak;
+const Header = @import("common/consensus").Header;
 const Io = std.Io;
 const assert = std.debug.assert;
 
@@ -48,7 +47,7 @@ pub const Target = struct {
     address: Io.net.IpAddress,
     remote: curve.PublicKey,
     secret: [32]u8,
-    chain: *const base.common.chains.ChainConfig,
+    chain: *const @import("common/chains").ChainConfig,
 };
 
 const Span = struct { offset: u32, length: u32 };
@@ -238,7 +237,7 @@ fn request_bodies(peer: *Peer, batch: *const Batch, id: u64, range: [2]u32) !voi
 /// returns how many came.
 fn store_bodies(
     batch: *Batch,
-    items: *base.common.rlp.Decoder,
+    items: *@import("common/rlp").Decoder,
     range: [2]u32,
     scratch: [][]const u8,
 ) !u32 {
@@ -606,7 +605,7 @@ pub const Peer = struct {
     fn greet(
         peer: *Peer,
         secret: [32]u8,
-        chain: *const base.common.chains.ChainConfig,
+        chain: *const @import("common/chains").ChainConfig,
     ) !eth.Status {
         const node_id = try curve.public_key(secret);
         var buffer: [512]u8 = undefined;

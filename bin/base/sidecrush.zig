@@ -4,13 +4,12 @@
 //! `/healthz`), and readiness (`/readyz`). See `src/infra/sidecrush`.
 
 const std = @import("std");
-const base = @import("base");
 const consensus = @import("consensus.zig");
 
-const io = base.utilities.io;
-const http = base.utilities.http;
-const cli = base.utilities.cli;
-const sidecrush = base.infra.sidecrush;
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const cli = @import("utilities/cli");
+const sidecrush = @import("infra/sidecrush");
 const Checker = sidecrush.Checker(io.IO);
 const Server = http.Server(io.IO, *Checker, Checker.handle);
 
@@ -51,7 +50,7 @@ pub fn settings_of(spec: Spec) !Settings {
             .unhealthy_ms = spec.unhealthy_threshold_ms,
         },
         .new_instance = spec.new_instance,
-        .version = base.build_options.version,
+        .version = @import("build_options").version,
     };
     if (!options.thresholds.valid()) return error.InvalidThresholds;
     return .{

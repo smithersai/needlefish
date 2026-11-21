@@ -2,7 +2,6 @@
 //! batcher, and tooling entry points as they land.
 
 const std = @import("std");
-const base = @import("base");
 const devnet = @import("devnet.zig");
 const batcher = @import("batcher.zig");
 const node = @import("node.zig");
@@ -138,8 +137,8 @@ pub fn main(init: std.process.Init) !void {
     const command = args[1];
     if (std.mem.eql(u8, command, "version")) {
         std.debug.print("base {s} ({s})\n", .{
-            base.build_options.version,
-            base.build_options.git_rev,
+            @import("build_options").version,
+            @import("build_options").git_rev,
         });
         return;
     }

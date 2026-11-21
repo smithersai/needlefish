@@ -7,28 +7,26 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 const consensus_cli = @import("consensus.zig");
 const beacon = @import("beacon.zig");
 const telemetry_servers = @import("telemetry.zig");
 
-const io = base.utilities.io;
-const http = base.utilities.http;
-const proof = base.proof;
-const service_module = proof.prover_service.service;
-const kzg = base.common.crypto.kzg;
-const protocol = base.consensus.protocol;
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const service_module = @import("proof/prover_service").service;
+const kzg = @import("common/crypto").kzg;
+const protocol = @import("consensus/protocol");
 
-const Store = proof.prover_service.store.Store;
+const Store = @import("proof/prover_service").store.Store;
 const Service = service_module.Service;
 const Server = http.Server(io.IO, *Service, Service.handle_http);
-const Client = proof.prover_service.client.Client(io.IO);
-const Worker = proof.prover_service.worker.Worker(io.IO);
-const Native = proof.prover_service.native_backend.Native(io.IO);
-const tee_host = proof.tee.host;
+const Client = @import("proof/prover_service").client.Client(io.IO);
+const Worker = @import("proof/prover_service").worker.Worker(io.IO);
+const Native = @import("proof/prover_service").native_backend.Native(io.IO);
+const tee_host = @import("proof/tee").host;
 const SignerServer = http.Server(io.IO, *tee_host.Server, tee_host.Server.handle_http);
-const Endpoint = proof.rpc.Endpoint(io.IO);
-const exporters = proof.prover_service.exporter;
+const Endpoint = @import("proof/rpc").Endpoint(io.IO);
+const exporters = @import("proof/prover_service").exporter;
 const ServiceTelemetry = telemetry_servers.Servers(exporters.ServiceExporter);
 const WorkerTelemetry = telemetry_servers.Servers(exporters.WorkerExporter);
 
@@ -135,7 +133,7 @@ pub fn parse_worker(args: []const []const u8) !WorkerFlags {
         } else if (std.mem.eql(u8, name, "--enclave-request-bytes-max")) {
             flags.enclave_request_bytes_max = try parse_u32(value);
         } else if (std.mem.eql(u8, name, "--tee-prover-registry-address")) {
-            const address = base.utilities.json.parse_fixed(20, value) catch
+            const address = @import("utilities/json").parse_fixed(20, value) catch
                 return error.InvalidArguments;
             if (std.mem.allEqual(u8, &address, 0)) return error.InvalidArguments;
             flags.tee_prover_registry = address;
@@ -152,7 +150,7 @@ pub fn parse_worker(args: []const []const u8) !WorkerFlags {
     return flags;
 }
 
-const protocol_worker_id_max = proof.prover_service.protocol.worker_id_bytes_max;
+const protocol_worker_id_max = @import("proof/prover_service").protocol.worker_id_bytes_max;
 
 fn open_io() !io.IO {
     const builtin = @import("builtin");
@@ -237,7 +235,7 @@ const WorkerProcess = struct {
         try os_io.run_for_ns(std.time.ns_per_ms);
     }
 
-    fn pump(process: *WorkerProcess) proof.rpc.endpoint.Pump {
+    fn pump(process: *WorkerProcess) @import("proof/rpc").endpoint.Pump {
         return .{ .context = &process.os_io, .step = step };
     }
 };
@@ -286,7 +284,7 @@ fn connect_worker(
     process.source = .init(allocator, &process.l1, &process.l2, process.pump(), .{
         .steps_max = 300_000,
     });
-    base.proof.host.handler.fill_roots(&process.roots);
+    @import("proof/host").handler.fill_roots(&process.roots);
     process.settings = try kzg.blob.Settings.init(&process.kzg_storage);
 }
 
@@ -306,7 +304,7 @@ fn run_worker(init: std.process.Init, process: *WorkerProcess, flags: *const Wor
         init.io,
         flags.rollup_config.?,
         allocator,
-        .limited(proof.program.boot.rollup_config_bytes_max),
+        .limited(@import("proof/program").boot.rollup_config_bytes_max),
     );
     defer allocator.free(rollup_json);
     const l1_genesis = if (flags.l1_genesis) |path|
@@ -329,7 +327,7 @@ fn run_worker(init: std.process.Init, process: *WorkerProcess, flags: *const Wor
         .l1_config = l1_config,
         .chain_id = rollup.l2_chain_id,
         .client_options = .{
-            .builder = proof.client.client.default_builder_config,
+            .builder = @import("proof/client").client.default_builder_config,
             .kzg_settings = &process.settings,
             .kzg_workspace = &process.kzg_workspace,
         },
@@ -345,7 +343,7 @@ const WorkerInputs = struct {
     rollup_json: []const u8,
     l1_config: []const u8,
     chain_id: u64,
-    client_options: proof.client.client.Options,
+    client_options: @import("proof/client").client.Options,
 };
 
 fn run_native(
@@ -385,8 +383,8 @@ fn run_tee(
     var key_buffer: [256]u8 = undefined;
     const key_text = try Io.Dir.cwd().readFile(init.io, flags.enclave_key_file.?, &key_buffer);
     const key_hex = std.mem.trim(u8, key_text, " \t\r\n");
-    const signer = try proof.tee.enclave.Signer.from_hex(key_hex);
-    var server: proof.tee.enclave.Server = .init_local(signer);
+    const signer = try @import("proof/tee").enclave.Signer.from_hex(key_hex);
+    var server: @import("proof/tee").enclave.Server = .init_local(signer);
     server.derive_unknown_chain_config = flags.enclave_allow_custom_chain;
     const local = try tee_host.LocalEnclave.create(allocator, server, .{
         .request_bytes_max = flags.enclave_request_bytes_max,

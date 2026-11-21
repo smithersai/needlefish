@@ -7,19 +7,17 @@
 //! so `--crl-nitro-verifier-address` is refused instead of silently skipping CRL checks.
 
 const std = @import("std");
-const base = @import("base");
 const consensus_cli = @import("consensus.zig");
 const telemetry_servers = @import("telemetry.zig");
 
-const io = base.utilities.io;
-const http = base.utilities.http;
-const proof = base.proof;
-const registrar = proof.tee.registrar;
-const secp256k1 = base.common.crypto.secp256k1;
-const accounts = base.batcher.devnet.accounts;
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const registrar = @import("proof/tee").registrar;
+const secp256k1 = @import("common/crypto").secp256k1;
+const accounts = @import("batcher/devnet").accounts;
 
-const RpcClient = proof.host.rpc_source.RpcSource(io.IO).Client;
-const Endpoint = proof.rpc.Endpoint(io.IO);
+const RpcClient = @import("proof/host").rpc_source.RpcSource(io.IO).Client;
+const Endpoint = @import("proof/rpc").Endpoint(io.IO);
 const Chain = registrar.rpc_l1.RpcChain(Endpoint);
 const Transactor = registrar.rpc_l1.RpcTransactor(Endpoint);
 const ProverClient = registrar.prover.RpcClient(io.IO);
@@ -69,7 +67,7 @@ const Process = struct {
         try os_io.run_for_ns(std.time.ns_per_ms);
     }
 
-    fn pump(process: *Process) proof.rpc.endpoint.Pump {
+    fn pump(process: *Process) @import("proof/rpc").endpoint.Pump {
         return .{ .context = &process.os_io, .step = step };
     }
 
@@ -191,7 +189,7 @@ fn connect(
     const registry = config.tee_prover_registry_address;
     const cert_manager = try Chain.resolve_cert_manager(&process.l1_view, registry);
     process.chain = .init(&process.l1_view, registry, cert_manager);
-    const chain_id = try proof.rpc.endpoint.parse_quantity(
+    const chain_id = try @import("proof/rpc").endpoint.parse_quantity(
         try process.l1_tx.call("eth_chainId", &.{}),
     );
     process.l1_tx.reset();

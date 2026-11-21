@@ -21,14 +21,13 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-const base = @import("base");
 const up_check = @import("up_check.zig");
 const up_view = @import("up_view.zig");
 
 const Io = std.Io;
 const View = up_view.View;
 const Line = up_view.Line;
-const jwt = base.utilities.jwt;
+const jwt = @import("utilities/jwt");
 const assert = std.debug.assert;
 
 pub const Role = enum { peers, el, bridge, consensus };

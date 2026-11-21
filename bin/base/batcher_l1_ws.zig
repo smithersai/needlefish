@@ -8,8 +8,7 @@
 //! come from `utilities/ws`. Plain `ws://` only: there is no TLS in the standard library.
 
 const std = @import("std");
-const base = @import("base");
-const ws = base.utilities.ws;
+const ws = @import("utilities/ws");
 
 const Io = std.Io;
 const assert = std.debug.assert;
@@ -367,7 +366,7 @@ test "l1 ws: a new head cuts the poll wait short" {
 }
 
 test "l1 ws: seeded fuzz of URLs and waits" {
-    var prng = base.testing.Prng.init(0x1e5);
+    var prng = @import("testing/prng").Prng.init(0x1e5);
     for (0..200) |_| {
         var url: [48]u8 = undefined;
         prng.fill(&url);

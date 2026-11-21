@@ -34,31 +34,30 @@
 //! default. Only `eth_sendRawTransaction` changes anything, and only the pool.
 
 const std = @import("std");
-const base = @import("base");
 const el_ring = @import("el_ring.zig");
 const el_engine = @import("el_engine.zig");
 const el_sequencer = @import("el_sequencer.zig");
 
-const json = base.utilities.json;
-const rpc = base.utilities.rpc;
-const http = base.utilities.http;
-const io_module = base.utilities.io;
-const lazy_alloc = base.utilities.lazy_alloc;
-const rlp = base.common.rlp;
-const consensus = base.common.consensus;
-const primitives = base.common.primitives;
-const format = base.execution.rpc.format;
-const eth = base.execution.rpc.eth;
-const eth_proof = base.execution.rpc.eth_proof;
-const node_chain = base.execution.node.chain;
-const state_trie = base.execution.trie.state_trie;
-const txpool = base.execution.txpool;
-const send_sync = base.execution.rpc.eth.send_sync;
-const ChainSpec = base.execution.chainspec.ChainSpec;
-const Executor = base.execution.node.executor.Executor;
-const BlockEnv = base.execution.node.executor.BlockEnv;
-const ExecutorError = base.execution.node.executor.Error;
-pub const AccountState = base.execution.db.history.AccountState;
+const json = @import("utilities/json");
+const rpc = @import("utilities/rpc");
+const http = @import("utilities/http");
+const io_module = @import("utilities/io");
+const lazy_alloc = @import("utilities/lazy_alloc");
+const rlp = @import("common/rlp");
+const consensus = @import("common/consensus");
+const primitives = @import("common/primitives");
+const format = @import("execution/rpc").format;
+const eth = @import("execution/rpc").eth;
+const eth_proof = @import("execution/rpc").eth_proof;
+const node_chain = @import("execution/node").chain;
+const state_trie = @import("execution/trie").state_trie;
+const txpool = @import("execution/txpool");
+const send_sync = @import("execution/rpc").eth.send_sync;
+const ChainSpec = @import("execution/chainspec").ChainSpec;
+const Executor = @import("execution/node").executor.Executor;
+const BlockEnv = @import("execution/node").executor.BlockEnv;
+const ExecutorError = @import("execution/node").executor.Error;
+pub const AccountState = @import("execution/db").history.AccountState;
 const Io = std.Io;
 const assert = std.debug.assert;
 
@@ -670,7 +669,7 @@ pub const Router = rpc.Router(*Api, &methods);
 
 fn client_version(_: *Api, call: *Call) HandlerError!void {
     try call.params.finish();
-    try call.writer.string("needlefish/v" ++ base.build_options.version ++ "/el-run");
+    try call.writer.string("needlefish/v" ++ @import("build_options").version ++ "/el-run");
 }
 
 fn net_version(api: *Api, call: *Call) HandlerError!void {
@@ -1003,8 +1002,8 @@ fn get_proof(api: *Api, call: *Call) HandlerError!void {
     try eth_proof.write_account(w, &address, &proofs.account, found.account orelse .{
         .nonce = 0,
         .balance = 0,
-        .storage_root = base.execution.trie.node.empty_root,
-        .code_hash = base.execution.trie.node.empty_code_hash,
+        .storage_root = @import("execution/trie").node.empty_root,
+        .code_hash = @import("execution/trie").node.empty_code_hash,
     });
     try w.begin_array();
     for (keys[0..keys_count]) |*key| {

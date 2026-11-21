@@ -3,13 +3,12 @@
 //! devnet (`docs/DEVNET.md`); an empty URL leaves that endpoint unconfigured.
 
 const std = @import("std");
-const base = @import("base");
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 
 const Io = std.Io;
-const cli = base.utilities.cli;
-const rpc = base.batcher.rpc;
-const basectl = base.infra.basectl;
+const cli = @import("utilities/cli");
+const rpc = @import("batcher/rpc");
+const basectl = @import("infra/basectl");
 const types = basectl.types;
 
 const assert = std.debug.assert;

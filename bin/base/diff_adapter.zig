@@ -4,9 +4,8 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
-const diff = base.infra.diff_adapter;
+const diff = @import("infra/diff_adapter");
 const assert = std.debug.assert;
 
 const usage =
@@ -70,7 +69,7 @@ pub fn main(init: std.process.Init, args: []const []const u8) !u8 {
 fn coverage_from_environment(init: std.process.Init) !?diff.Coverage {
     const setting = init.environ_map.get("BASE_DIFF_COVERAGE") orelse return null;
     if (setting.len == 0 or std.mem.eql(u8, setting, "0")) return null;
-    if (!base.execution.evm.coverage.enabled) {
+    if (!@import("execution/evm").coverage.enabled) {
         std.log.err("BASE_DIFF_COVERAGE needs a binary built with -Ddiff-coverage", .{});
         return error.CoverageNotBuilt;
     }

@@ -1,7 +1,6 @@
 //! `base batcher`: submits L2 batches to L1 (see docs/DEVNET.md for the flags).
 
 const std = @import("std");
-const base = @import("base");
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 const Servers = @import("batcher_servers.zig").Servers;
 const sequencer_clients = @import("batcher_sequencers.zig");
@@ -9,7 +8,6 @@ const shadow_mode = @import("batcher_shadow.zig");
 const l1_ws = @import("batcher_l1_ws.zig");
 
 const Io = std.Io;
-const batcher = base.batcher;
 
 const usage =
     \\usage: base batcher --rollup-config FILE --l1 URL --l2 URL [--rollup-rpc URL]
@@ -42,26 +40,26 @@ const Flags = struct {
     /// Comma-separated sequencer endpoints (`URL` or `L2_URL=ROLLUP_URL`); replaces
     /// `--l2`/`--rollup-rpc` (base/base `--sequencer-urls`).
     sequencer_urls: ?[]const u8 = null,
-    key_index: u32 = @backingInt(batcher.devnet.accounts.Role.batcher),
+    key_index: u32 = @backingInt(@import("batcher/devnet").accounts.Role.batcher),
     private_key: ?[32]u8 = null,
     max_channel_duration: u64 = 2,
     /// L1 blocks subtracted from `max_channel_duration` so channels close with room to land
     /// before they could time out (base/base `--sub-safety-margin`).
     sub_safety_margin: u64 = 0,
     poll_interval_ms: u64 = 1000,
-    data_availability: batcher.txmgr.DataAvailability = .calldata,
+    data_availability: @import("batcher/txmgr").DataAvailability = .calldata,
     /// base/base batches with brotli (Fjord is active from genesis on the devnet).
-    compression: batcher.comp.Algorithm = .brotli,
+    compression: @import("batcher/comp").Algorithm = .brotli,
     /// Serve Prometheus metrics on this port (op-batcher `--metrics.port`).
     metrics_port: ?u16 = null,
     /// Admin JSON-RPC API (base/base `--admin-port`, `--admin-addr`, default loopback).
     admin_port: ?u16 = null,
-    admin_address: base.utilities.io.Address = .loopback(0),
+    admin_address: @import("utilities/io").Address = .loopback(0),
     /// Start with ingestion stopped until `admin_startBatcher` (base/base `--stopped`).
     stopped: bool = false,
     /// DA throttling of the sequencer (base/base default: quadratic).
     /// DA throttling (base/base defaults); `--throttle-*` flags override fields.
-    throttle: batcher.throttle.Config = .{},
+    throttle: @import("batcher/throttle").Config = .{},
     /// base/base txmgr flags.
     confirmations: u64 = 1,
     min_tip_wei: u128 = 0,
@@ -88,7 +86,7 @@ const Flags = struct {
     l1_ws_url: ?[]const u8 = null,
     /// Compressed bytes a channel aims for before it closes; 0 = one full frame.
     compressed_size_target: u32 = 0,
-    brotli_quality: u4 = batcher.comp.brotli.quality_default,
+    brotli_quality: u4 = @import("batcher/comp").brotli.quality_default,
     shadow: shadow_mode.Settings = .{},
     /// 1 = EIP-7594 cell-proof sidecars (base/base default, Osaka L1s); 0 = EIP-4844.
     blob_sidecar_version: u1 = 1,
@@ -128,7 +126,7 @@ fn parse_flags(args: []const []const u8) !Flags {
         } else if (eql(u8, arg, "--key-index")) {
             flags.key_index = try std.fmt.parseInt(u32, value, 10);
         } else if (eql(u8, arg, "--private-key")) {
-            flags.private_key = try base.common.primitives.hex.decode_array(32, value);
+            flags.private_key = try @import("common/primitives").hex.decode_array(32, value);
         } else if (eql(u8, arg, "--max-channel-duration")) {
             flags.max_channel_duration = try std.fmt.parseInt(u64, value, 10);
         } else if (eql(u8, arg, "--poll-interval-ms")) {
@@ -137,7 +135,7 @@ fn parse_flags(args: []const []const u8) !Flags {
             flags.metrics_port = try std.fmt.parseInt(u16, value, 10);
         } else if (eql(u8, arg, "--data-availability")) {
             flags.data_availability = std.meta.stringToEnum(
-                batcher.txmgr.DataAvailability,
+                @import("batcher/txmgr").DataAvailability,
                 value,
             ) orelse return error.UnknownDataAvailability;
         } else if (eql(u8, arg, "--check-recent-txs-depth")) {
@@ -149,13 +147,17 @@ fn parse_flags(args: []const []const u8) !Flags {
         } else if (eql(u8, arg, "--admin-port")) {
             flags.admin_port = try std.fmt.parseInt(u16, value, 10);
         } else if (eql(u8, arg, "--admin-addr")) {
-            flags.admin_address = try base.utilities.io.Address.parse(value);
+            flags.admin_address = try @import("utilities/io").Address.parse(value);
         } else if (eql(u8, arg, "--throttle-strategy")) {
-            flags.throttle.strategy = std.meta.stringToEnum(batcher.throttle.Strategy, value) orelse
-                return error.UnknownThrottleStrategy;
+            flags.throttle.strategy = std.meta.stringToEnum(
+                @import("batcher/throttle").Strategy,
+                value,
+            ) orelse return error.UnknownThrottleStrategy;
         } else if (eql(u8, arg, "--compression")) {
-            flags.compression = std.meta.stringToEnum(batcher.comp.Algorithm, value) orelse
-                return error.UnknownCompression;
+            flags.compression = std.meta.stringToEnum(
+                @import("batcher/comp").Algorithm,
+                value,
+            ) orelse return error.UnknownCompression;
         } else return error.UnknownFlag;
         i += 2;
     }
@@ -171,7 +173,7 @@ pub fn main(init: std.process.Init, args: []const []const u8) !u8 {
     };
     const rollup_path = flags.rollup_config orelse return usage_error();
     const l1_url = flags.l1 orelse return usage_error();
-    var entries: [batcher.sequencers.sequencers_max]sequencer_clients.Entry = undefined;
+    var entries: [@import("batcher/sequencers").sequencers_max]sequencer_clients.Entry = undefined;
     const entry_count = if (flags.sequencer_urls) |text|
         try sequencer_clients.parse_entries(text, &entries)
     else blk: {
@@ -185,27 +187,27 @@ pub fn main(init: std.process.Init, args: []const []const u8) !u8 {
         .limited(1 << 20),
     );
     defer init.gpa.free(rollup_text);
-    const rollup = try batcher.service.RollupFields.parse(init.gpa, rollup_text);
+    const rollup = try @import("batcher/service").RollupFields.parse(init.gpa, rollup_text);
     try shadow_mode.check_inbox(flags.shadow, rollup.batch_inbox_address.bytes);
-    const accounts = batcher.devnet.accounts;
+    const accounts = @import("batcher/devnet").accounts;
     const account = flags.private_key orelse accounts.derive_dev(flags.key_index).private_key;
     var seed: [16]u8 = undefined;
     init.io.random(&seed);
     const config = service_config(flags, rollup, account);
-    var service = try batcher.service.Service.init(init.gpa, config, seed);
+    var service = try @import("batcher/service").Service.init(init.gpa, config, seed);
     defer service.deinit(init.gpa);
     return run(init, flags, &service, l1_url, entries[0..entry_count]);
 }
 
 fn service_config(
     flags: Flags,
-    rollup: batcher.service.RollupFields,
+    rollup: @import("batcher/service").RollupFields,
     account: [32]u8,
-) batcher.service.Config {
+) @import("batcher/service").Config {
     // One frame per transaction payload: the payload is `version byte ++ frame`.
     const payload_max: u32 = switch (flags.data_availability) {
         .calldata => flags.calldata_bytes_max,
-        .blobs => batcher.blobs.blob_data_length_max,
+        .blobs => @import("batcher/blobs").blob_data_length_max,
     };
     // Forcing blobs needs the KZG prover in calldata mode; skip it when it cannot apply.
     const force_blobs = flags.force_blobs_when_throttling and
@@ -224,7 +226,7 @@ fn service_config(
         .txs = .{
             .chain_id = rollup.l1_chain_id,
             .private_key = account,
-            .from = batcher.devnet.accounts.address_of(account),
+            .from = @import("batcher/devnet").accounts.address_of(account),
             .to = rollup.batch_inbox_address,
             .tx_data_bytes_max = payload_max,
             .data_availability = flags.data_availability,
@@ -251,15 +253,15 @@ fn service_config(
 fn run(
     init: std.process.Init,
     flags: Flags,
-    service: *batcher.service.Service,
+    service: *@import("batcher/service").Service,
     l1_url: []const u8,
     entries: []const sequencer_clients.Entry,
 ) !u8 {
-    const limits: batcher.rpc.Limits = .{};
+    const limits: @import("batcher/rpc").Limits = .{};
     var l1_http = HttpTransport.init(init.gpa, init.io, l1_url);
     defer l1_http.deinit();
     l1_http.timeout_ms = flags.network_timeout_ms;
-    var l1 = try batcher.rpc.Client.init(init.gpa, l1_http.transport(), limits);
+    var l1 = try @import("batcher/rpc").Client.init(init.gpa, l1_http.transport(), limits);
     defer l1.deinit(init.gpa);
     const endpoints = try init.gpa.create(sequencer_clients.SequencerClients);
     defer init.gpa.destroy(endpoints);
@@ -274,13 +276,13 @@ fn run(
         const rollup = if (shadow) |validator| &validator.rollup else leader.current().rollup;
         try wait_for_node_sync(init, flags, &l1, rollup, service);
     }
-    var metrics: batcher.metrics.Metrics = .{};
+    var metrics: @import("batcher/metrics").Metrics = .{};
     try metrics.register();
-    var admin: batcher.admin.Admin = .{ .service = service };
+    var admin: @import("batcher/admin").Admin = .{ .service = service };
     var servers: Servers = undefined;
     const serving = start_servers(&servers, init.gpa, flags, &metrics, &admin);
     const l1_heads = start_l1_ws(init, flags);
-    var throttle_logged: batcher.throttle.Outcome = .idle;
+    var throttle_logged: @import("batcher/throttle").Outcome = .idle;
     var blobs_forced_logged = false;
     while (true) {
         const now_ms: u64 = @intCast(Io.Clock.awake.now(init.io).toMilliseconds());
@@ -362,12 +364,12 @@ fn stop_shadow(allocator: std.mem.Allocator, shadow: *shadow_mode.Shadow) void {
 /// Re-checks which sequencer is active and returns the clients for this step. A new
 /// leader gets the DA limits pushed again; with no active sequencer the leader is kept.
 fn follow_leader(
-    leader: *batcher.sequencers.Sequencers,
-    l1: *batcher.rpc.Client,
+    leader: *@import("batcher/sequencers").Sequencers,
+    l1: *@import("batcher/rpc").Client,
     has_rollup: bool,
-    service: *batcher.service.Service,
+    service: *@import("batcher/service").Service,
     last_active_count: *u8,
-) batcher.service.Clients {
+) @import("batcher/service").Clients {
     const refresh = leader.refresh();
     const active_changed = refresh.active_count != last_active_count.*;
     last_active_count.* = refresh.active_count;
@@ -386,7 +388,10 @@ fn follow_leader(
 }
 
 /// Logs throttle outcomes when they change (pushes repeat every refresh).
-fn log_throttle(outcome: batcher.throttle.Outcome, last: *batcher.throttle.Outcome) void {
+fn log_throttle(
+    outcome: @import("batcher/throttle").Outcome,
+    last: *@import("batcher/throttle").Outcome,
+) void {
     if (outcome == .idle or outcome == last.*) return;
     last.* = outcome;
     switch (outcome) {
@@ -493,7 +498,7 @@ fn apply_alias_settings(flags: *Flags, arg: []const u8, value: []const u8) !bool
         flags.blob_sidecar_version = @intCast(version);
     } else if (eql(u8, arg, "--brotli-quality")) {
         const quality = try parse(u8, value, 10);
-        if (quality > batcher.comp.brotli.quality_max) return error.InvalidBrotliQuality;
+        if (quality > @import("batcher/comp").brotli.quality_max) return error.InvalidBrotliQuality;
         flags.brotli_quality = @intCast(quality);
     } else if (eql(u8, arg, "--compressed-size-target")) {
         flags.compressed_size_target = try parse(u32, value, 10);
@@ -531,7 +536,7 @@ fn validate_flags(flags: Flags) !void {
     if (flags.sub_safety_margin >= flags.max_channel_duration) return error.SubSafetyMarginTooLarge;
     if (flags.throttle.problem() != null) return error.InvalidThrottleConfig;
     try shadow_mode.validate(flags.shadow, flags.throttle.strategy == .off);
-    const recent_depth_max = batcher.sync.recent_txs_depth_max;
+    const recent_depth_max = @import("batcher/sync").recent_txs_depth_max;
     if (flags.check_recent_txs_depth > recent_depth_max) return error.RecentTxsDepthTooLarge;
     if (flags.check_recent_txs_depth > 0 and !flags.wait_node_sync)
         return error.RecentTxsDepthRequiresWaitNodeSync;
@@ -547,9 +552,9 @@ fn validate_flags(flags: Flags) !void {
 fn wait_for_node_sync(
     init: std.process.Init,
     flags: Flags,
-    l1: *batcher.rpc.Client,
-    rollup: *batcher.rpc.Client,
-    service: *const batcher.service.Service,
+    l1: *@import("batcher/rpc").Client,
+    rollup: *@import("batcher/rpc").Client,
+    service: *const @import("batcher/service").Service,
 ) !void {
     std.debug.assert(flags.wait_node_sync);
     const start_ms: u64 = @intCast(Io.Clock.awake.now(init.io).toMilliseconds());
@@ -560,7 +565,7 @@ fn wait_for_node_sync(
         if (now_ms >= deadline_ms) return error.NodeSyncTimeout;
         if (target == null) target = sync_target(flags, l1, service) catch null;
         if (target) |target_l1| {
-            if (batcher.sync.node_synced(rollup, target_l1)) |synced| {
+            if (@import("batcher/sync").node_synced(rollup, target_l1)) |synced| {
                 if (synced) {
                     std.debug.print("batcher: rollup node synced to L1 {d}\n", .{target_l1});
                     return;
@@ -573,14 +578,14 @@ fn wait_for_node_sync(
 
 fn sync_target(
     flags: Flags,
-    l1: *batcher.rpc.Client,
-    service: *const batcher.service.Service,
+    l1: *@import("batcher/rpc").Client,
+    service: *const @import("batcher/service").Service,
 ) !u64 {
     if (flags.check_recent_txs_depth == 0) {
-        return batcher.rpc.quantity(u64, try l1.call("eth_blockNumber", "[]"));
+        return @import("batcher/rpc").quantity(u64, try l1.call("eth_blockNumber", "[]"));
     }
     const from = service.txs.config.from;
-    return batcher.sync.recent_tx_target(l1, from, flags.check_recent_txs_depth);
+    return @import("batcher/sync").recent_tx_target(l1, from, flags.check_recent_txs_depth);
 }
 
 /// Parses a decimal gwei amount ("2", "0.25", up to 9 fraction digits) into wei.
@@ -605,8 +610,8 @@ fn start_servers(
     servers: *Servers,
     allocator: std.mem.Allocator,
     flags: Flags,
-    metrics: *batcher.metrics.Metrics,
-    admin: *batcher.admin.Admin,
+    metrics: *@import("batcher/metrics").Metrics,
+    admin: *@import("batcher/admin").Admin,
 ) bool {
     if (flags.metrics_port == null and flags.admin_port == null) return false;
     servers.init() catch |err| {
@@ -622,7 +627,7 @@ fn start_servers(
     return servers.active();
 }
 
-fn log_report(report: batcher.service.Report) void {
+fn log_report(report: @import("batcher/service").Report) void {
     const activity = report.blocks_loaded + report.txs_submitted + report.txs_confirmed;
     if (activity + report.resets == 0) return;
     std.debug.print("batcher: l1={d} safe={d} unsafe={d} ", .{
@@ -846,7 +851,7 @@ test "batcher: parse_duration_ms forms and bounds" {
     for ([_][]const u8{ "", "s", "ms", "-1s", "2h", "61m", "1.5s", "99999999999999999999" }) |bad| {
         try std.testing.expectError(error.InvalidDuration, parse_duration_ms(bad));
     }
-    var prng = base.testing.Prng.init(0xd0d0);
+    var prng = @import("testing/prng").Prng.init(0xd0d0);
     var buffer: [12]u8 = undefined;
     const alphabet = "0123456789msh.";
     for (0..2000) |_| {
@@ -870,7 +875,7 @@ fn fuzz_duration(_: void, smith: *std.testing.Smith) anyerror!void {
 fn check_flag_invariants(flags: Flags) !void {
     try std.testing.expect(flags.blobs_per_tx >= 1 and flags.blobs_per_tx <= 6);
     try std.testing.expect(flags.poll_interval_ms > 0);
-    try std.testing.expect(flags.brotli_quality <= batcher.comp.brotli.quality_max);
+    try std.testing.expect(flags.brotli_quality <= @import("batcher/comp").brotli.quality_max);
     try std.testing.expect(flags.network_timeout_ms <= 3600 * std.time.ms_per_s);
     try std.testing.expect(flags.resubmit_after_ms > 0);
     try std.testing.expect(flags.calldata_bytes_max >= 64);
@@ -894,7 +899,7 @@ fn fuzz_args(bytes: []const u8, args: *[16][]const u8) usize {
 }
 
 test "batcher: seeded fuzz of flag parsing keeps invariants" {
-    var prng = base.testing.Prng.init(0xf1a9);
+    var prng = @import("testing/prng").Prng.init(0xf1a9);
     for (0..2000) |_| {
         var bytes: [16]u8 = undefined;
         prng.fill(&bytes);

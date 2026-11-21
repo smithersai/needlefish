@@ -3,11 +3,10 @@
 //! `--metrics.enabled` and different; both serve the same endpoints.
 
 const std = @import("std");
-const base = @import("base");
 
-const io = base.utilities.io;
-const http = base.utilities.http;
-const telemetry = base.proof.telemetry;
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const telemetry = @import("proof/telemetry");
 
 pub const server_options: http.server.Options = .{
     .connections_max = 8,
@@ -117,7 +116,7 @@ pub const Flags = struct {
         } else return false;
         if (index.* + 1 == args.len) return error.InvalidArguments;
         const value = args[index.* + 1];
-        const ip4 = base.proof.proposer.config.parse_ip4;
+        const ip4 = @import("proof/proposer").config.parse_ip4;
         switch (which) {
             0 => flags.health_addr = try ip4(value),
             1 => flags.health_port = try std.fmt.parseUnsigned(u16, value, 10),

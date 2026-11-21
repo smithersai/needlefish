@@ -4,17 +4,15 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 const consensus_cli = @import("consensus.zig");
 const beacon = @import("beacon.zig");
 
-const io = base.utilities.io;
-const http = base.utilities.http;
-const proof = base.proof;
-const host = proof.host;
-const kzg = base.common.crypto.kzg;
-const crypto = base.common.crypto;
-const protocol = base.consensus.protocol;
+const io = @import("utilities/io");
+const http = @import("utilities/http");
+const host = @import("proof/host");
+const kzg = @import("common/crypto").kzg;
+const crypto = @import("common/crypto");
+const protocol = @import("consensus/protocol");
 
 const Source = host.rpc_source.RpcSource(io.IO);
 
@@ -55,7 +53,7 @@ pub fn parse(args: []const []const u8) !Flags {
         } else if (std.mem.eql(u8, name, "--l1-head")) {
             flags.l1_head = try std.fmt.parseInt(u64, value, 10);
         } else if (std.mem.eql(u8, name, "--claim-root")) {
-            flags.claim_root = try base.utilities.json.parse_fixed(32, value);
+            flags.claim_root = try @import("utilities/json").parse_fixed(32, value);
         } else if (std.mem.eql(u8, name, "--out")) {
             flags.out = value;
         } else if (std.mem.eql(u8, name, "--l1-genesis")) {
@@ -155,7 +153,7 @@ pub fn main(init: std.process.Init, flags: Flags) !u8 {
         init.io,
         flags.rollup_config.?,
         allocator,
-        .limited(proof.program.boot.rollup_config_bytes_max),
+        .limited(@import("proof/program").boot.rollup_config_bytes_max),
     );
     defer allocator.free(rollup_json);
     const endpoints = try allocator.create(Endpoints);
@@ -219,8 +217,8 @@ fn prove(
     defer allocator.destroy(roots);
     host.handler.fill_roots(roots);
     const settings = try kzg.blob.Settings.init(storage);
-    const options: proof.client.client.Options = .{
-        .builder = proof.client.client.default_builder_config,
+    const options: @import("proof/client").client.Options = .{
+        .builder = @import("proof/client").client.default_builder_config,
         .kzg_settings = &settings,
         .kzg_workspace = workspace,
     };
@@ -228,7 +226,7 @@ fn prove(
     const witness = context.witness;
     const url = context.beacon_url orelse
         return host.native.run(allocator, store, source.as_source(), roots, options, witness);
-    const pump: proof.rpc.endpoint.Pump = .{ .context = os_io, .step = Endpoints.step };
+    const pump: @import("proof/rpc").endpoint.Pump = .{ .context = os_io, .step = Endpoints.step };
     const blobs = try beacon.Blobs.create(allocator, os_io, url, &settings, http_options, pump);
     defer blobs.destroy(allocator);
     source.blobs = blobs.fetcher();

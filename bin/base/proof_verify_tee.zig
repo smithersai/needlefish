@@ -4,13 +4,11 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
-const json = base.utilities.json;
-const proof = base.proof;
-const protocol = proof.prover_service.protocol;
-const codec = proof.prover_service.codec;
-const verify = proof.tee.verify;
+const json = @import("utilities/json");
+const protocol = @import("proof/prover_service").protocol;
+const codec = @import("proof/prover_service").codec;
+const verify = @import("proof/tee").verify;
 
 pub const usage =
     \\       base proof verify-tee --response <file> --proposer <addr> --starting-block <n>

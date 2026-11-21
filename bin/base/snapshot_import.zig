@@ -16,11 +16,10 @@
 
 const std = @import("std");
 const Io = std.Io;
-const base = @import("base");
 
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 const snapshot_import_out = @import("snapshot_import_out.zig");
-const import = base.execution.import;
+const import = @import("execution/import");
 const mdbx = import.mdbx;
 const json = std.json;
 const assert = std.debug.assert;
@@ -42,7 +41,7 @@ const Flags = struct {
     rpc: []const u8 = "https://sepolia.base.org",
     state_root: ?Hash = null,
     blake3: ?Hash = null,
-    genesis_hash: Hash = base.common.chains.sepolia.genesis_l2_hash.bytes,
+    genesis_hash: Hash = @import("common/chains").sepolia.genesis_l2_hash.bytes,
     out: ?[]const u8 = null,
     headers: ?[]const u8 = null,
     test_head: bool = false,
@@ -75,10 +74,10 @@ fn parse(args: []const []const u8) !Flags {
         } else if (std.mem.eql(u8, arg, "--chain")) {
             if (std.mem.eql(u8, value, "base-sepolia")) {
                 flags.rpc = "https://sepolia.base.org";
-                flags.genesis_hash = base.common.chains.sepolia.genesis_l2_hash.bytes;
+                flags.genesis_hash = @import("common/chains").sepolia.genesis_l2_hash.bytes;
             } else if (std.mem.eql(u8, value, "base-mainnet")) {
                 flags.rpc = "https://mainnet.base.org";
-                flags.genesis_hash = base.common.chains.mainnet.genesis_l2_hash.bytes;
+                flags.genesis_hash = @import("common/chains").mainnet.genesis_l2_hash.bytes;
             } else return error.InvalidArguments;
         } else if (std.mem.eql(u8, arg, "--state-root")) {
             flags.state_root = try parse_hash(value);
@@ -224,9 +223,9 @@ fn header_state_root(init: std.process.Init, url: []const u8, number: u64) !Hash
         if (value != .object) continue;
         const result = value.object.get("result") orelse continue;
         if (result == .null) return error.BlockNotFound;
-        var extra: [base.consensus.sources.header_json.extra_data_size_max]u8 = undefined;
+        var extra: [@import("consensus/sources").header_json.extra_data_size_max]u8 = undefined;
         const header_text = try json.Stringify.valueAlloc(arena, result, .{});
-        const decoded = try base.consensus.sources.header_json.decode(header_text, &extra);
+        const decoded = try @import("consensus/sources").header_json.decode(header_text, &extra);
         if (decoded.header.number != number) return error.WrongBlock;
         std.debug.print("block {d} hash {x} (header bound to its hash)\n", .{
             number,
@@ -373,7 +372,7 @@ pub fn code_stats(gpa: std.mem.Allocator, reader: *mdbx.Reader) !CodeStats {
     while (try cursor.next()) |entry| {
         if (entry.key.len != 32) return error.Corrupt;
         const code = try import.reth.decode_bytecode(entry.value);
-        const hash = base.execution.trie.node.keccak256(code);
+        const hash = @import("execution/trie").node.keccak256(code);
         if (!std.mem.eql(u8, &hash, entry.key)) return error.CodeHashMismatch;
         codes += 1;
         codes_empty += @intFromBool(code.len == 0);

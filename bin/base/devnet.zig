@@ -13,8 +13,7 @@
 //! batcher account).
 
 const std = @import("std");
-const base = @import("base");
-const devnet = base.batcher.devnet;
+const devnet = @import("batcher/devnet");
 const Io = std.Io;
 const HttpTransport = @import("http_transport.zig").HttpTransport;
 const BeaconBlobs = @import("devnet_beacon.zig").BeaconBlobs;
@@ -65,9 +64,9 @@ fn parse_flags(args: []const []const u8) !Flags {
         } else if (std.mem.eql(u8, arg, "--timestamp")) {
             flags.timestamp = try std.fmt.parseInt(u64, value, 10);
         } else if (std.mem.eql(u8, arg, "--l1-hash")) {
-            flags.l1_hash = try base.common.primitives.hex.decode_array(32, value);
+            flags.l1_hash = try @import("common/primitives").hex.decode_array(32, value);
         } else if (std.mem.eql(u8, arg, "--l2-hash")) {
-            flags.l2_hash = try base.common.primitives.hex.decode_array(32, value);
+            flags.l2_hash = try @import("common/primitives").hex.decode_array(32, value);
         } else {
             try parse_transfer_flag(&flags, arg, value);
         }
@@ -83,7 +82,7 @@ fn parse_transfer_flag(flags: *Flags, arg: []const u8, value: []const u8) !void 
     } else if (std.mem.eql(u8, arg, "--key-index")) {
         flags.key_index = try std.fmt.parseInt(u32, value, 10);
     } else if (std.mem.eql(u8, arg, "--to")) {
-        flags.to = try base.common.primitives.hex.decode_array(20, value);
+        flags.to = try @import("common/primitives").hex.decode_array(20, value);
     } else if (std.mem.eql(u8, arg, "--value")) {
         flags.value = try std.fmt.parseInt(u256, value, 10);
     } else if (std.mem.eql(u8, arg, "--gas")) {
@@ -94,7 +93,7 @@ fn parse_transfer_flag(flags: *Flags, arg: []const u8, value: []const u8) !void 
 }
 
 fn parse_batches_flag(flags: *Flags, arg: []const u8, value: []const u8) !void {
-    const hex = base.common.primitives.hex;
+    const hex = @import("common/primitives").hex;
     if (std.mem.eql(u8, arg, "--from")) {
         flags.from_block = try std.fmt.parseInt(u64, value, 10);
     } else if (std.mem.eql(u8, arg, "--to-block")) {
@@ -211,7 +210,7 @@ fn command_transfer(init: std.process.Init, flags: Flags) !u8 {
     };
     var http = HttpTransport.init(init.gpa, init.io, url);
     defer http.deinit();
-    var client = try base.batcher.rpc.Client.init(init.gpa, http.transport(), .{
+    var client = try @import("batcher/rpc").Client.init(init.gpa, http.transport(), .{
         .request_bytes_max = 4096,
         .response_bytes_max = 1024 * 1024,
         .parse_bytes_max = 4 * 1024 * 1024,
@@ -230,10 +229,10 @@ fn command_batches(init: std.process.Init, flags: Flags) !u8 {
     const from_block = flags.from_block orelse return usage_error();
     var http = HttpTransport.init(init.gpa, init.io, url);
     defer http.deinit();
-    var client = try base.batcher.rpc.Client.init(init.gpa, http.transport(), .{});
+    var client = try @import("batcher/rpc").Client.init(init.gpa, http.transport(), .{});
     defer client.deinit(init.gpa);
     const to_block = flags.to_block orelse
-        try base.batcher.rpc.quantity(u64, try client.call("eth_blockNumber", "[]"));
+        try @import("batcher/rpc").quantity(u64, try client.call("eth_blockNumber", "[]"));
     if (to_block < from_block) return usage_error();
     var beacon: ?BeaconBlobs = if (flags.beacon_url) |beacon_url|
         BeaconBlobs.init(init.gpa, init.io, beacon_url)
