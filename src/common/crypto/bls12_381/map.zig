@@ -112,8 +112,9 @@ fn sswu_y_generic(comptime F: type, comptime params: SswuParameters(F), z_u2: F,
 /// Z u^3 sqrt(-Z) y' because Z gx1 = (-Z)(-gx1). Updates `x` to x2 in that case.
 fn sswu_y_fp(comptime params: SswuParameters(Fp), u: Fp, z_u2: Fp, x: *Fp) Fp {
     const sqrt_minus_z = comptime blk: {
-        @setEvalBranchQuota(10_000_000);
-        break :blk params.z.neg().sqrt().?;
+        assert(params.z.eql(g1_sswu.z));
+        assert(g1_sqrt_minus_z.square().eql(params.z.neg()));
+        break :blk g1_sqrt_minus_z;
     };
     const gx1 = curve_rhs(Fp, params, x.*);
     const candidate = gx1.pow((fields.p + 1) / 4);
@@ -185,6 +186,12 @@ const g1_sswu: SswuParameters(Fp) = .{
     .b_over_za = Fp.from_int_comptime(0x123939a31626a32de772bc7a591ea140683bca0c62efb105 << 192 |
         0x310d5ce1d27d1aadf79a5d5cbe8e2c4ff7d4816af76d2814),
 };
+
+/// sqrt(-Z) for `g1_sswu` (Z = 11): (-Z)^((p+1)/4), the root `Fp.sqrt` returns. A literal,
+/// because that exponentiation at compile time cost every compilation that reaches the
+/// map seconds of comptime evaluation; `sswu_y_fp` checks its square at compile time.
+const g1_sqrt_minus_z = Fp.from_int_comptime(0x04610e003bd3ac94dfa9246c390d7a78942602029175a4ca <<
+    192 | 0x366d601f33f3946e3ed39794735c38315d874bc1d70637c3);
 
 const g2_sswu: SswuParameters(Fp2) = .{
     .a = Fp2.from_ints_comptime(0, 240),
@@ -553,4 +560,13 @@ test "map: SSWU constants and exceptional inputs" {
     // u = 0 takes the tv1 = 0 branch.
     try testing.expect(g1.is_in_subgroup(map_fp_to_g1(Fp.zero)));
     try testing.expect(g2.is_in_subgroup(map_fp2_to_g2(Fp2.zero)));
+}
+
+test "map: G1 sqrt(-Z) literal is the root Fp.sqrt returns" {
+    // At run time, the exponentiation sswu_y_fp evaluated at compile time before the literal.
+    var z = g1_sswu.z;
+    _ = &z;
+    const root = z.neg().sqrt().?;
+    try testing.expect(root.eql(g1_sqrt_minus_z));
+    try testing.expect(!root.neg().eql(g1_sqrt_minus_z));
 }
