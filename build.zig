@@ -14,6 +14,8 @@
 //!   zig build check        compile every test binary and tool without running them
 //!   zig build test:common/rlp  run one package's tests (reruns only when its inputs change)
 //!   zig build check:common/rlp compile one package's test binary without running it
+//!   zig build test:common/crypto@2/4  run the second quarter of a sharded package's shards
+//!                          (`test_group_counts`), so CI jobs can share one package
 //!   `test` and `check` depend only on named steps (`ci_steps`), so CI can run them in parts
 //!   -Dtest-debug-info      Debug test binaries keep their debug info (see `test_root_module`):
 //!                          a failing test then prints file:line and its stack and error
@@ -78,6 +80,13 @@ const test_shards = [_]Shards{
     .{ .package = "testing", .count = 10 },
     .{ .package = "testing/sim", .count = 16 },
 };
+
+/// The group counts a sharded package's runs also come in, so that several CI jobs can share
+/// one package (etc/scripts/ci-shards.py reads this list). For each count G up to the
+/// package's shard count N, `test:<package>@K/G` (K from 1 to G) runs the shards from
+/// (K-1)*N/G to K*N/G - 1: the groups of one G run every shard of `test:<package>` exactly
+/// once (`assert_groups_partition`). Each job that runs a group compiles the binary itself.
+const test_group_counts = [_]u32{ 2, 3, 4 };
 
 fn shard_count(package: []const u8) u32 {
     for (test_shards) |shards| {
@@ -366,6 +375,10 @@ fn add_package_tests(
             }
             run_step.dependOn(&run_tests.step);
         }
+        if (shards > 1) {
+            add_test_groups(b, package.name, run_step);
+            assert_groups_partition(b, package.name, run_step);
+        }
         if (!package.compile_only) test_step.dependOn(run_step);
         const compile_description = b.fmt("Compile the {s} package's test binary", .{package.name});
         const compile_step = b.step(b.fmt("check:{s}", .{package.name}), compile_description);
@@ -374,6 +387,64 @@ fn add_package_tests(
         install_step.dependOn(&b.addInstallArtifact(unit_tests, .{
             .dest_dir = .{ .override = .{ .custom = "test" } },
         }).step);
+    }
+}
+
+/// `test:<package>@K/G` for each G of `test_group_counts` up to the package's shard count N:
+/// group K depends on the run steps of `test:<package>` from (K-1)*N/G to K*N/G - 1.
+fn add_test_groups(b: *std.Build, package_name: []const u8, run_step: *std.Build.Step) void {
+    const runs = run_step.dependencies.items;
+    const count: u32 = @intCast(runs.len);
+    std.debug.assert(count >= 2);
+    for (test_group_counts) |groups| {
+        std.debug.assert(groups >= 2);
+        if (groups > count) continue;
+        var end_previous: u32 = 0;
+        for (0..groups) |index| {
+            const group: u32 = @intCast(index);
+            const first = group * count / groups;
+            const end = (group + 1) * count / groups;
+            std.debug.assert(first == end_previous and end > first);
+            const step = b.step(
+                b.fmt("test:{s}@{d}/{d}", .{ package_name, group + 1, groups }),
+                b.fmt("Run test shards {d} to {d} of {d} of the {s} package", .{
+                    first, end - 1, count, package_name,
+                }),
+            );
+            for (runs[first..end]) |run| step.dependOn(run);
+            end_previous = end;
+        }
+        std.debug.assert(end_previous == count);
+    }
+}
+
+/// For each G of `test_group_counts` up to the shard count, the groups `test:<package>@K/G`
+/// depend on nothing but run steps of `test:<package>`, and on each of them exactly once
+/// over all K: CI runs a package as its groups of one G, so this proves that every test still
+/// runs, and runs once.
+fn assert_groups_partition(
+    b: *std.Build,
+    package_name: []const u8,
+    run_step: *std.Build.Step,
+) void {
+    const runs = run_step.dependencies.items;
+    std.debug.assert(runs.len >= 2);
+    for (test_group_counts) |groups| {
+        if (groups > runs.len) continue;
+        var held: usize = 0;
+        for (runs) |run| {
+            var times: u32 = 0;
+            for (1..groups + 1) |group| {
+                const name = b.fmt("test:{s}@{d}/{d}", .{ package_name, group, groups });
+                const dependencies = top_level_step(b, name).dependencies.items;
+                if (run == runs[0]) held += dependencies.len;
+                for (dependencies) |dependency| times += @intFromBool(dependency == run);
+            }
+            if (times != 1) std.debug.panic("the groups 'test:{s}@K/{d}' run '{s}' {d} times, " ++
+                "not once", .{ package_name, groups, run.name, times });
+        }
+        if (held != runs.len) std.debug.panic("the groups 'test:{s}@K/{d}' hold {d} steps, not " ++
+            "the {d} runs of 'test:{s}'", .{ package_name, groups, held, runs.len, package_name });
     }
 }
 
