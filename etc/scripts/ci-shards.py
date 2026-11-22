@@ -70,11 +70,13 @@ DEFAULT_SECONDS = 10.0  # a step the table does not list yet
 MIN_SECONDS = 0.1  # the least a measured step costs in the table, so none rounds to 0.0
 MAX_SHARDS = 64  # `check` verifies every count up to this one
 # The cost `plan` puts in one shard before it starts another (a step's compile plus its runs,
-# or a group's). On GitHub's 4-vCPU runners, jobs whose steps summed 40 to 50 s worked 29 s at
-# the median (294 job logs): about as long as the longest test, infra/follow's, which no
-# split shortens, so a push's other shards end near it. With the shard's setup a job stays
-# within the one minute GitHub bills a job at least.
-SHARD_SECONDS = 48.0
+# or a group's). A smaller budget deals a plan to more, shorter jobs, down to its costliest
+# part: in a mid-graph plan test:testing/sim@1/4, 36 s. Each job more is one more wait for a
+# runner. On GitHub's 4-vCPU runners mid-graph pushes took 65 to 86 s at 48 s (6 shards), 56
+# to 61 s at 36 s (10), 47 to 113 s at 30 s (12; three of six over 60 s) and, at 24 s (15),
+# two of three waited 23 and 29 minutes for runners. A plan that the limit caps (most-imported:
+# 16 shards) is dealt to LIMIT shards whatever the budget.
+SHARD_SECONDS = 36.0
 # What a part's chain, its compile plus its slowest run, which no processor of the job shares,
 # weighs against the budget: the summed step seconds of a job were 1.6 times its work at the
 # median over 294 job logs of GitHub's 4-vCPU runners, so a chain of c seconds fills c * 1.6
