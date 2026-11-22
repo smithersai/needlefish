@@ -8,11 +8,14 @@
 
 const std = @import("std");
 const assert = std.debug.assert;
+const safegcd = @import("common/crypto").safegcd;
 const types = @import("types.zig");
 const x509 = @import("../nitro/x509.zig");
 
 const P384 = std.crypto.ecc.P384;
 const Fe = P384.Fe;
+/// Variable-time inversion modulo the base field's prime: `invert_public` only.
+const FieldInverse = safegcd.Modulus(u384, Fe.field_order);
 const Scalar = P384.scalar.Scalar;
 const Ecdsa = std.crypto.sign.ecdsa.EcdsaP384Sha384;
 const Sha384 = std.crypto.hash.sha2.Sha384;
@@ -346,7 +349,7 @@ pub const P384Hints = struct {
 
     fn record_field_inverse(hints: *P384Hints, value: Fe) Error!void {
         if (value.isZero()) return error.HintInvertZero;
-        const inverse = value.invert();
+        const inverse = invert_public(value);
         assert(inverse.mul(value).equivalent(Fe.one));
         try hints.push(inverse.toBytes(.big));
     }
@@ -399,6 +402,24 @@ fn scalar_reduce(value: u384) Scalar {
     return Scalar.fromBytes(bytes, .big) catch unreachable; // reduced < n.
 }
 
+/// `value⁻¹` in the base field (zero for zero, as `Fe.invert`) by common/crypto's safegcd,
+/// in variable time: how long it takes depends on `value`, so it inverts public values only.
+/// Its one caller, `record_field_inverse`, inverts `2y` or `x1 - x2` of points of the hint
+/// walk: multiples of the generator and of the public key under verification, by scalars from
+/// the signature and digest (`collect_verify_hints`'s arguments, of a certificate or of the
+/// attestation). The inverse is itself a hint, and the signer manager sends every hint
+/// stream, with the certificates and attestation they verify, to L1 in calldata: none of it is
+/// secret. `Fe.invert` stays the inversion for anything else; it runs in constant time.
+fn invert_public(value: Fe) Fe {
+    const inverse = FieldInverse.invert(value.toInt());
+    assert(inverse < Fe.field_order);
+    var bytes: [scalar_size]u8 = undefined;
+    std.mem.writeInt(u384, &bytes, inverse, .little);
+    const result = Fe.fromBytes(bytes, .little) catch unreachable; // inverse < p.
+    assert(result.isZero() == value.isZero());
+    return result;
+}
+
 fn window3(s1: u384, s2: u384, shift: u32) u64 {
     assert(shift < 384);
     return window_bits((s1 >> @intCast(shift)) & 7, (s2 >> @intCast(shift)) & 7, 0);
@@ -410,6 +431,48 @@ fn window_bits(s1: u384, s2: u384, shift: u32) u64 {
     const b1: u64 = @truncate(s1 >> @intCast(shift));
     const b2: u64 = @truncate(s2 >> @intCast(shift));
     return (b1 << 3) | b2;
+}
+
+// `invert_public` is private, so its tests live here rather than in hints_test.zig.
+const testing = std.testing;
+const Prng = @import("testing/prng").Prng;
+
+fn expect_std_inverse(value: u384) !void {
+    assert(value < Fe.field_order);
+    var bytes: [scalar_size]u8 = undefined;
+    std.mem.writeInt(u384, &bytes, value, .little);
+    const element = try Fe.fromBytes(bytes, .little);
+    try testing.expect(invert_public(element).equivalent(element.invert()));
+}
+
+test "registrar hints: invert_public equals the std inversion on edge values" {
+    const p: u384 = Fe.field_order;
+    for ([_]u384{ 0, 1, 2, 3, p - 1, p - 2, p - 3, (p - 1) / 2, (p + 1) / 2 }) |value| {
+        try expect_std_inverse(value);
+    }
+    // Powers of two, all-ones runs and p minus a power: long runs of zero or one bits.
+    const shifts = [_]u9{ 1, 31, 32, 63, 64, 95, 96, 127, 128, 129, 191, 255, 256, 382, 383 };
+    for (shifts) |shift| {
+        const power = @as(u384, 1) << shift;
+        try expect_std_inverse(power);
+        try expect_std_inverse(power - 1);
+        try expect_std_inverse(p - power);
+    }
+    try testing.expect(invert_public(Fe.zero).isZero());
+    try testing.expect(invert_public(Fe.one).equivalent(Fe.one));
+}
+
+test "registrar hints: invert_public equals the std inversion on seeded values" {
+    var prng = Prng.init(0x696e_7665_7274);
+    for (0..256) |_| try expect_std_inverse(prng.int(u384) % Fe.field_order);
+}
+
+fn fuzz_invert_public(_: void, smith: *testing.Smith) anyerror!void {
+    try expect_std_inverse(smith.value(u384) % Fe.field_order);
+}
+
+test "registrar hints: fuzz invert_public" {
+    try testing.fuzz({}, fuzz_invert_public, .{});
 }
 
 test {
