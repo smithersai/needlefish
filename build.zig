@@ -59,21 +59,15 @@ const Shards = struct { package: []const u8, count: u32 };
 /// smallest, up to 16, whose slowest shard is within 5% of the package's slowest test
 /// (per-test CPU seconds), else the count up to 16 with the shortest slowest shard: no count
 /// makes a run shorter than its slowest test.
-///
-/// A package here is also bound by how long its tests run, not by its compile, so its test
-/// binary is compiled by LLVM on every target. That changes x86_64 Linux only, where Debug
-/// defaults to Zig's own backend: it compiles several times faster, but its code runs these
-/// tests several times slower. Every other test binary keeps the default backend.
 const test_shards = [_]Shards{
-    .{ .package = "batcher/blobs", .count = 4 },
     .{ .package = "batcher/devnet", .count = 3 },
-    .{ .package = "batcher/txmgr", .count = 4 },
     .{ .package = "common/crypto", .count = 16 },
     .{ .package = "consensus/p2p", .count = 10 },
     .{ .package = "execution/db", .count = 15 },
     .{ .package = "execution/import", .count = 14 },
     .{ .package = "execution/node", .count = 13 },
     .{ .package = "execution/trie", .count = 7 },
+    .{ .package = "infra/follow", .count = 2 },
     .{ .package = "infra/replay", .count = 7 },
     .{ .package = "proof", .count = 14 },
     .{ .package = "proof/tee", .count = 12 },
@@ -87,6 +81,29 @@ const test_shards = [_]Shards{
 /// (K-1)*N/G to K*N/G - 1: the groups of one G run every shard of `test:<package>` exactly
 /// once (`assert_groups_partition`). Each job that runs a group compiles the binary itself.
 const test_group_counts = [_]u32{ 2, 3, 4 };
+
+/// Packages whose test binary LLVM compiles on every target, because Zig's own backend, the
+/// Debug default on x86_64 Linux, emits code that runs their tests slower by more than LLVM's
+/// longer compile costs. That changes x86_64 Linux only. Every other test binary keeps the
+/// default backend, which compiles three to five times faster; for most packages its code runs
+/// the tests about as fast as LLVM's.
+const llvm_test_packages = [_][]const u8{
+    "batcher/devnet",
+    "common/crypto",
+    "consensus/p2p",
+    "execution/trie",
+    "infra/follow",
+    "proof/tee",
+    "testing",
+    "testing/sim",
+};
+
+fn llvm_test(package: []const u8) bool {
+    for (llvm_test_packages) |name| {
+        if (std.mem.eql(u8, name, package)) return true;
+    }
+    return false;
+}
 
 fn shard_count(package: []const u8) u32 {
     for (test_shards) |shards| {
@@ -347,6 +364,9 @@ fn add_package_tests(
         std.debug.assert(shards.count >= 2);
         std.debug.assert(!packages[package_index(shards.package)].compile_only);
     }
+    // Each name is a package: package_index panics otherwise.
+    for (llvm_test_packages) |name| std.debug.assert(!packages[package_index(name)].compile_only);
+    for (optimized_test_packages) |name| _ = package_index(name);
     // etc/scripts/test-times.sh runs each installed binary to time its tests.
     const install_step = b.step("test-bins", "Install every package's test binary in zig-out/test");
     for (packages, modules) |package, module| {
@@ -359,7 +379,7 @@ fn add_package_tests(
             .name = name,
             .root_module = test_root_module(b, package.name, module, debug_info),
             .filters = filters,
-            .use_llvm = if (shard_count(package.name) > 1) true else null,
+            .use_llvm = if (llvm_test(package.name)) true else null,
             .test_runner = if (!sharded) null else .{
                 .path = b.path("src/testing/test_runner.zig"),
                 .mode = .server,
@@ -455,6 +475,9 @@ fn assert_groups_partition(
 /// The root module's mode is what optimizes a compilation: a ReleaseSafe common/crypto module
 /// inside a Debug test binary runs no faster.
 const optimized_test_packages = [_][]const u8{
+    // KZG: "blobs: ..." and "txmgr: blob mode sends a 4844 tx committing to the frame ...".
+    "batcher/blobs",
+    "batcher/txmgr",
     // "digest table: matches a hash map across growth, clears, and a full table".
     "execution/digest_table",
     // "driver: blob sends carry a v1 (cell proof) sidecar": an FK20 setup and 128 KZG proofs.
