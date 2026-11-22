@@ -42,6 +42,10 @@ const chain_module = @import("execution/node").chain;
 const replayer = replay.replayer;
 const SparseState = db.witness.SparseState;
 const Executor = node_executor.Executor;
+const node_senders = @import("execution/node").senders;
+/// A transaction's sender as the executor takes it (null: a deposit, or no valid signature).
+pub const Sender = @FieldType(Executor, "known_sender");
+const SenderAddress = @typeInfo(Sender).optional.child;
 const Header = consensus.Header;
 const Gaps = replayer.Gaps;
 const Hash = [32]u8;
@@ -174,6 +178,12 @@ pub const Follower = struct {
     deleted_slots: []SlotKey,
     deleted_slots_len: u32 = 0,
     deletions_dropped: u32 = 0,
+    /// The senders of the transactions whose digest is `senders_digest` (`senders_for`): a
+    /// block's are recovered once for all its probe passes and its verify.
+    senders: []Sender,
+    senders_digest: ?Hash = null,
+    /// `senders` as the executor's `given_senders` takes them (`given_for`).
+    given: []SenderAddress,
     /// Why the last pass hit a full pool (`Probe.full`) or the commit failed.
     full_error: ?anyerror = null,
     /// Why the last probe failed over a complete witness (`Probe.failed`).
@@ -206,6 +216,8 @@ pub const Follower = struct {
             .opaque_max = config.opaque_max,
             .deleted_accounts = undefined,
             .deleted_slots = undefined,
+            .senders = undefined,
+            .given = undefined,
         };
         self.sparse = try SparseState.init(allocator, config.sparse);
         errdefer self.sparse.deinit(allocator);
@@ -217,12 +229,18 @@ pub const Follower = struct {
         errdefer allocator.free(self.deleted_accounts);
         self.deleted_slots = try allocator.alloc(SlotKey, config.deleted_slots_max);
         errdefer allocator.free(self.deleted_slots);
+        self.senders = try allocator.alloc(Sender, config.executor.transactions_max);
+        errdefer allocator.free(self.senders);
+        self.given = try allocator.alloc(SenderAddress, config.executor.transactions_max);
+        errdefer allocator.free(self.given);
         self.executor = try Executor.init_backend(allocator, spec, self.backend(), config.executor);
         assert(!self.started);
     }
 
     pub fn deinit(self: *Follower, allocator: std.mem.Allocator) void {
         self.executor.deinit(allocator);
+        allocator.free(self.given);
+        allocator.free(self.senders);
         allocator.free(self.deleted_slots);
         allocator.free(self.deleted_accounts);
         self.opaque_hashes.deinit(allocator);
@@ -394,7 +412,11 @@ pub const Follower = struct {
         var building = self.executor.begin_block(&env) catch |err| return self.pass_failure(err);
         defer self.executor.abort_block();
         var failure: ?anyerror = null;
+        const senders = self.senders_for(block.transactions);
         for (block.transactions, 0..) |raw, index| {
+            // A null sender (or no cache) leaves the recovery to the executor.
+            self.executor.known_sender = if (senders) |known| known[index] else null;
+            defer self.executor.known_sender = null;
             self.executor.apply(&building, raw) catch |err| {
                 if (failure != null) continue;
                 failure = err;
@@ -517,6 +539,8 @@ pub const Follower = struct {
     ) ?node_executor.Executed {
         const env = chain_module.env_of(header);
         const transactions = block.transactions;
+        self.executor.given_senders = self.given_for(transactions);
+        defer self.executor.given_senders = null;
         return self.executor.execute_block(&env, transactions, withdrawals_of(header)) catch |err| {
             const gap = self.sparse.incomplete or !self.gaps.empty();
             outcome.failure = self.full_error orelse if (gap) error.WitnessIncomplete else err;
@@ -525,6 +549,40 @@ pub const Follower = struct {
             assert(outcome.failure != null);
             return null;
         };
+    }
+
+    /// The senders of `transactions` (null for a deposit or a transaction with no valid
+    /// signature), recovered when their digest differs from the last call's and reused
+    /// otherwise: the follower probes a block several times and then verifies it, and sender
+    /// recovery was most of a pass. Null when they do not fit the buffer.
+    pub fn senders_for(self: *Follower, transactions: []const []const u8) ?[]const Sender {
+        if (transactions.len > self.senders.len) return null;
+        const digest = transactions_digest(transactions);
+        const out = self.senders[0..transactions.len];
+        const known = if (self.senders_digest) |last| std.mem.eql(u8, &last, &digest) else false;
+        if (!known) {
+            const pool = self.executor.recovery_pool;
+            node_senders.recover(transactions, out, self.executor.recoverer, pool);
+            self.senders_digest = digest;
+        }
+        assert(std.mem.eql(u8, &self.senders_digest.?, &digest));
+        return out;
+    }
+
+    /// The senders of `transactions` as `given_senders`, which skips recovery, or null (the
+    /// executor recovers) when a transaction that is not a deposit has none.
+    fn given_for(self: *Follower, transactions: []const []const u8) ?[]const SenderAddress {
+        const senders = self.senders_for(transactions) orelse return null;
+        const out = self.given[0..transactions.len];
+        for (transactions, senders, out) |raw, sender, *given| {
+            given.* = sender orelse blk: {
+                const envelope = consensus.Envelope.decode(raw) catch return null;
+                if (envelope != .deposit) return null;
+                break :blk std.mem.zeroes(SenderAddress); // a deposit's is ignored
+            };
+        }
+        assert(out.len == senders.len);
+        return out;
     }
 
     /// After a retryable failure: a full node store resets, anything else rebases.
@@ -714,6 +772,18 @@ pub fn retryable(outcome: *const Outcome) bool {
 }
 
 /// Base blocks carry an empty withdrawals list from Canyon on.
+/// A digest of a transaction list: the keccak256 chain of each transaction's keccak256.
+fn transactions_digest(transactions: []const []const u8) Hash {
+    var digest: Hash = @splat(0);
+    var pair: [64]u8 = undefined;
+    for (transactions) |raw| {
+        pair[0..32].* = digest;
+        pair[32..64].* = keccak256(raw);
+        digest = keccak256(&pair);
+    }
+    return digest;
+}
+
 fn withdrawals_of(header: *const Header) ?[]const payload.Withdrawal {
     return if (header.withdrawals_root != null) &.{} else null;
 }

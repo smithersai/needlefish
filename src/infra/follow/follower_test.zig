@@ -7,7 +7,8 @@ const std = @import("std");
 const testing = std.testing;
 
 const chainspec = @import("execution/chainspec");
-const Header = @import("common/consensus").Header;
+const consensus = @import("common/consensus");
+const Header = consensus.Header;
 const trie = @import("execution/trie");
 const keccak256 = trie.node.keccak256;
 const replay = @import("infra/replay");
@@ -208,6 +209,51 @@ test "follow: ten Base mainnet blocks verify with the witness fetched on demand"
     // The chain moved on: block 0 is no longer the head's child.
     const stale = try block_of(&archive, 0, views);
     try testing.expectError(error.NotChild, follower.probe(&stale));
+}
+
+/// The sender recovered from `raw` alone, or null for a deposit.
+fn own_sender(raw: []const u8) !follower_module.Sender {
+    const envelope = try consensus.Envelope.decode(raw);
+    if (envelope == .deposit) return null;
+    return envelope.recover_sender(consensus.recover_address);
+}
+
+test "follow: a block's senders are recovered once and match each transaction's own" {
+    const allocator = testing.allocator;
+    var archive = try Archive.init(allocator, mainnet_test.fixture_config);
+    defer archive.deinit(allocator);
+    try replay.archive.decode(allocator, mainnet_test.fixture, &archive);
+    const follower = try allocator.create(Follower);
+    defer allocator.destroy(follower);
+    try follower.init(allocator, &chainspec.ChainSpec.presets.base_mainnet, test_config());
+    defer follower.deinit(allocator);
+    const views = try allocator.alloc([]const u8, 1 << 10);
+    defer allocator.free(views);
+    var recovered: u32 = 0;
+    var deposits: u32 = 0;
+    for (0..archive.block_count) |index| {
+        const block = try block_of(&archive, @intCast(index), views);
+        const transactions = block.transactions;
+        try testing.expect(transactions.len >= 2);
+        const senders = follower.senders_for(transactions).?;
+        try testing.expectEqual(transactions.len, senders.len);
+        for (transactions, senders) |raw, sender| {
+            try testing.expectEqual(try own_sender(raw), sender);
+            recovered += @intFromBool(sender != null);
+            deposits += @intFromBool(sender == null);
+        }
+        // The same transactions again are a hit: what the cache holds comes back as is.
+        const last = transactions.len - 1;
+        follower.senders[last] = null;
+        try testing.expect(follower.senders_for(transactions).?[last] == null);
+        // Other transactions are recovered anew, and so are these after them.
+        _ = follower.senders_for(transactions[0..last]).?;
+        const again = follower.senders_for(transactions).?;
+        try testing.expectEqual(try own_sender(transactions[last]), again[last]);
+    }
+    // Each Base block opens with its L1 attributes deposit.
+    try testing.expect(deposits >= archive.block_count);
+    try testing.expect(recovered > 0);
 }
 
 test "follow: a block whose hash disagrees with its header is a mismatch" {
