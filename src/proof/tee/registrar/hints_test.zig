@@ -203,19 +203,16 @@ test "registrar hints: certificate parsing extracts keys and signatures" {
 
 /// Property: random hashes, signatures, and keys never crash the transcript, and an
 /// accepted transcript is a whole number of 48-byte inverses within the bound.
-fn fuzz_verify(_: void, smith: *testing.Smith) anyerror!void {
+fn fuzz_verify(public_key: *const [96]u8, smith: *testing.Smith) anyerror!void {
     var hash: [48]u8 = undefined;
     const hash_length = smith.slice(&hash);
     var signature: [96]u8 = undefined;
     smith.bytes(&signature);
     var buffer: [types.hint_stream_size_max]u8 = undefined;
-    // A random key is almost never on the curve; use a real one most of the time.
-    const key_pair = try Ecdsa.KeyPair.fromSecretKey(try Ecdsa.SecretKey.fromBytes(@splat(9)));
-    const key_bytes = key_pair.public_key.toUncompressedSec1();
     const transcript = P384Hints.collect_verify_hints(
         hash[0..hash_length],
         &signature,
-        key_bytes[1..],
+        public_key,
         &buffer,
     ) catch return;
     try testing.expect(transcript.len % 48 == 0);
@@ -223,7 +220,11 @@ fn fuzz_verify(_: void, smith: *testing.Smith) anyerror!void {
 }
 
 test "registrar hints: fuzz verify inputs" {
-    try fuzz.run({}, fuzz_verify, .{ .iterations = 64 });
+    // A random key is almost never on the curve; use a real one most of the time. It is the
+    // same key in every iteration, so it is derived once.
+    const key_pair = try Ecdsa.KeyPair.fromSecretKey(try Ecdsa.SecretKey.fromBytes(@splat(9)));
+    const key_bytes = key_pair.public_key.toUncompressedSec1();
+    try fuzz.run(key_bytes[1..], fuzz_verify, .{ .iterations = 64 });
 }
 
 /// Property: signatures the std verifier accepts always produce a transcript.
