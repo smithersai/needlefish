@@ -2,8 +2,8 @@
 //! `registrar/src/hints.rs`).
 //!
 //! Walks the onchain verifier's affine schedule, records each modular inverse as a
-//! 48-byte big-endian hint, and delegates point addition and doubling to the
-//! projective formulas of `std.crypto.ecc.P384`. The transcript must stay
+//! 48-byte big-endian hint, and adds and doubles in affine coordinates with that
+//! inverse, one per step, as the verifier does. The transcript must stay
 //! byte-identical to base/base: the onchain verifier consumes it in order.
 
 const std = @import("std");
@@ -27,6 +27,7 @@ pub const public_key_size: u32 = 96;
 const uncompressed_size: u32 = 97;
 const mask_256: u384 = (@as(u384, 1) << 256) - 1;
 const curve_order: u384 = P384.scalar.field_order;
+const three = Fe.fromInt(3) catch unreachable; // 3 < p.
 
 comptime {
     assert(public_key_size == 2 * scalar_size);
@@ -67,11 +68,6 @@ pub const Affine = struct {
     pub fn eql(a: Affine, b: Affine) bool {
         if (a.infinity or b.infinity) return a.infinity == b.infinity;
         return a.x.equivalent(b.x) and a.y.equivalent(b.y);
-    }
-
-    fn to_projective(point: Affine) P384 {
-        if (point.infinity) return P384.identityElement;
-        return .{ .x = point.x, .y = point.y, .z = Fe.one };
     }
 
     /// Normalize without `affineCoordinates`, which also maps affine `(0, 1)` to
@@ -327,8 +323,19 @@ pub const P384Hints = struct {
 
     fn double_affine_recording(hints: *P384Hints, point: Affine, y: Fe) Error!Affine {
         assert(!point.infinity);
-        try hints.record_field_inverse(y.add(y));
-        return Affine.from_projective(point.to_projective().dbl());
+        assert(point.y.equivalent(y));
+        // λ = (3x² + a) / 2y with a = -3, by the hint (2y)⁻¹: the affine double, as y ≠ 0.
+        const inverse = try hints.record_field_inverse(y.add(y));
+        const x_squared = point.x.sq();
+        const lambda = x_squared.add(x_squared).add(x_squared).sub(three).mul(inverse);
+        const x = lambda.sq().sub(point.x).sub(point.x);
+        const result: Affine = .{
+            .x = x,
+            .y = lambda.mul(point.x.sub(x)).sub(y),
+            .infinity = false,
+        };
+        assert(on_curve(result));
+        return result;
     }
 
     pub fn add_affine(hints: *P384Hints, a: Affine, b: Affine) Error!Affine {
@@ -343,15 +350,25 @@ pub const P384Hints = struct {
             if (first.y.equivalent(second.y)) return hints.twice_affine(a);
             return Affine.identity;
         }
-        try hints.record_field_inverse(first.x.sub(second.x));
-        return Affine.from_projective(a.to_projective().add(b.to_projective()));
+        // λ = (y1 - y2) / (x1 - x2), by the hint (x1 - x2)⁻¹: the affine sum, as x1 ≠ x2.
+        const inverse = try hints.record_field_inverse(first.x.sub(second.x));
+        const lambda = first.y.sub(second.y).mul(inverse);
+        const x = lambda.sq().sub(first.x).sub(second.x);
+        const result: Affine = .{
+            .x = x,
+            .y = lambda.mul(first.x.sub(x)).sub(first.y),
+            .infinity = false,
+        };
+        assert(on_curve(result));
+        return result;
     }
 
-    fn record_field_inverse(hints: *P384Hints, value: Fe) Error!void {
+    fn record_field_inverse(hints: *P384Hints, value: Fe) Error!Fe {
         if (value.isZero()) return error.HintInvertZero;
         const inverse = invert_public(value);
         assert(inverse.mul(value).equivalent(Fe.one));
         try hints.push(inverse.toBytes(.big));
+        return inverse;
     }
 
     fn record_scalar_inverse(hints: *P384Hints, value: Scalar) Error!Scalar {
@@ -368,6 +385,13 @@ pub fn affine_finite_xy(point: Affine) ?FiniteXy {
     if (point.infinity) return null;
     if (point.x.isZero()) return null;
     return .{ .x = point.x, .y = point.y };
+}
+
+/// `y² = x³ - 3x + b`: a step's result is a finite point of the curve.
+fn on_curve(point: Affine) bool {
+    if (point.infinity) return false;
+    _ = P384.fromAffineCoordinates(.{ .x = point.x, .y = point.y }) catch return false;
+    return true;
 }
 
 /// Intermediate `_twice3Affine` gate: stop on identity or `y == 0`, not `x == 0`.
