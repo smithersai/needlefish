@@ -35,7 +35,8 @@ The workflow is thin; the logic lives here and in `etc/scripts/`:
   `--summary all` logs (`costs LOG...`) and checks that the shards cover every step exactly
   once and that the Justfile's `ci`, `tidy`, `test` and `check` recipes still say what the
   shards run and that its settings and module lines are the pinned ones (`check`, run by
-  `just tidy`).
+  `just tidy`), and that the groups `zig build -l` lists run the shards it prices (`groups
+  LISTING`, run by each job that runs Zig, on the listing that compiles its build runner).
   The workflow runs the same commands as `just ci` but does not run `just`, so it does not
   prove that the Justfile or the module it loads parses.
 - `baseline.sh` prints the last green commit of the branch: the plan's BASE.

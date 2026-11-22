@@ -30,8 +30,10 @@ cost so far (ties: the lowest index), so every job computes the same split.
 every package that imports one of them (packages.zon), and the tools that import one. It deals
 them to as many shards as they fill at SHARD_SECONDS each, at most LIMIT, and prints them as
 GitHub outputs. A step whose runs cost more than its compile and that costs more than a shard
-carries is split into the fewest groups of one G whose every group fits (`split_steps`); a
-compile-bound step is never split, since each group compiles the binary again. BASE is the tree of the last commit CI passed (etc/ci/baseline.sh). An unknown
+carries is split into the fewest groups of one G whose every group fits, or into the groups of
+the largest G when none fits, so a group can still cost more than a shard (`split_steps`); a
+compile-bound step is never split, since each group compiles the binary again. BASE is the tree
+of the last commit CI passed (etc/ci/baseline.sh). An unknown
 BASE, a change to a file in EVERYTHING, or a path the lists below cannot place plans every step;
 a path in NO_STEP_FILES or NO_STEP_DIRECTORIES plans none. Tidy is not planned: it runs on
 every push, in its own job.
@@ -41,8 +43,17 @@ usage: python3 -I etc/scripts/ci-shards.py steps              every CI step, one
        python3 -I etc/scripts/ci-shards.py plan BASE HEAD LIMIT   count= and matrix= outputs
        python3 -I etc/scripts/ci-shards.py costs LOG...       rewrite etc/ci/costs.tsv from logs
        python3 -I etc/scripts/ci-shards.py check              the shards cover each step once
+       python3 -I etc/scripts/ci-shards.py groups LISTING     build.zig's groups are these
+
+`groups` reads LISTING, the output of `zig build -l`, where each group's description names its
+shards, and fails unless build.zig declares exactly the groups `group_shards` prices: each side
+proves its own partition, and only this comparison catches two groups whose ranges were
+swapped. A CI job that runs Zig runs it (`zig build -l` is how it compiles the build runner);
+`check` cannot, since tidy's job has no build runner and compiling one takes a minute.
 """
+import contextlib
 import functools
+import io
 import importlib.util
 import json
 import math
@@ -76,6 +87,9 @@ TEST_SHARDS = re.compile(r'^const test_shards = \[_\]Shards\{\n(.*?)^\};', re.M 
 TEST_SHARD = re.compile(r'^    \.\{ \.package = "([^"]+)", \.count = (\d+) \},$', re.M)
 GROUP_COUNTS = re.compile(r'^const test_group_counts = \[_\]u32\{ ([0-9, ]+) \};$', re.M)
 GROUP = re.compile(r'^(test:.+)@(\d+)/(\d+)$')
+# A group as `zig build -l` lists it: build.zig add_test_groups writes the description.
+LISTED_GROUP = re.compile(r'^  (test:(\S+)@\d+/\d+) +Run test shards (\d+) to (\d+) of (\d+) '
+                          r'of the (\S+) package$')
 DURATION = re.compile(r' (\d+)(ns|us|ms|s|m)(?= |$)')
 RUN_SHARD = re.compile(r'run test \S+ shard (\d+)/(\d+)')
 TIMESTAMP = re.compile(r'^\d{4}-\d\d-\d\dT[\d:.]+Z ')
@@ -472,10 +486,16 @@ def group_selftest():
                         ('a group build.zig lacks', ['test:x@1/1', 'tidy'])]:
         if not coverage_errors(names, counts):
             errors.append('%s is not caught' % name)
+    def groups_of(count):
+        return ['test:x@%d/%d' % (group, count) for group in range(1, count + 1)]
     for cost, target, expected in [
-            ((2.0, (10.0, 10.0, 10.0, 10.0)), 25.0, ['test:x@1/2', 'test:x@2/2']),
+            ((2.0, (10.0, 10.0, 10.0, 10.0)), 25.0, groups_of(2)),
             ((2.0, (10.0, 10.0, 10.0, 10.0)), 42.0, ['test:x']),
-            ((30.0, (5.0, 5.0, 5.0, 5.0)), 20.0, ['test:x'])]:
+            ((30.0, (5.0, 5.0, 5.0, 5.0)), 20.0, ['test:x']),
+            ((20.0, (5.0, 5.0, 5.0, 5.0)), 20.0, ['test:x']),  # compile equal to the runs
+            ((2.0, (10.0,) * 6), 25.0, groups_of(3)),
+            ((2.0, (10.0,) * 8), 25.0, groups_of(4)),
+            ((1.0, (100.0, 0.0, 0.0, 0.0)), 48.0, groups_of(4))]:  # none fits: the largest G
         if sorted(split_steps({'test:x': cost}, target)) != expected:
             errors.append('%r at %.0f s does not split into %s' % (cost, target, expected))
     chain = SHARD_SECONDS / CHAIN_WEIGHT
@@ -483,6 +503,83 @@ def group_selftest():
     long.update({'test:%d' % i: (0.0, (chain / 3.0,)) for i in range(5)})
     if ['test:long'] not in plan_shards(long, 12):
         errors.append('a step whose one run fills a shard does not get a shard to itself')
+    return errors + selection_selftest() + listing_selftest()
+
+
+def selection_selftest():
+    """Partial selections of the real steps, and steps the cost table lacks, are planned to run
+    each shard of each selected step once, at every limit."""
+    errors, everything = [], steps()
+    with contextlib.redirect_stderr(io.StringIO()):  # the missing rows' warnings
+        table = read_costs()
+        missing = {step: table[step] for step in table if step != 'test:common/crypto'}
+        selections = [(everything[::k], table) for k in (2, 3, 7)]
+        selections += [(sorted(test_shards()), table), (everything, missing),
+                       (['test:common/crypto', 'test:no-row'], {})]
+        for names, rows in selections:
+            costs = costs_of(names, rows)
+            counts = {name: test_shards().get(name, 1) for name in names}
+            for limit in range(1, MAX_SHARDS + 1):
+                planned = [name for shard in plan_shards(costs, limit) for name in shard]
+                if coverage_errors(planned, counts):
+                    errors.append('a selection of %d steps (%d without a cost row) at limit %d'
+                                  ' is not planned once each' % (
+                                      len(names), len(set(names) - set(rows)), limit))
+                    break
+    return errors
+
+
+def listing(ranges):
+    """`zig build -l` lines of groups {name: (first, last, count)}, as build.zig writes them."""
+    return ''.join('  %-28s Run test shards %d to %d of %d of the %s package\n' % (
+        name, first, last, count, GROUP.match(name).group(1)[len('test:'):])
+        for name, (first, last, count) in sorted(ranges.items()))
+
+
+def priced_groups():
+    """{group: (first shard, last shard, count)} of every group group_shards prices."""
+    out = {}
+    for step, count in sorted(test_shards().items()):
+        for groups in [g for g in group_counts() if g <= count]:
+            for group in range(1, groups + 1):
+                shards = group_shards(group, groups, count)
+                out[group_name(step, group, groups)] = (shards.start, shards.stop - 1, count)
+    return out
+
+
+def listing_errors(text):
+    """Why the groups that `zig build -l` lists in `text` are not the ones group_shards prices,
+    with the same shards, or []."""
+    errors, listed = [], {}
+    for line in text.splitlines():
+        if not re.match(r'  test:\S+@\d', line):
+            continue
+        match = LISTED_GROUP.match(line)
+        if not match or match.group(2) != match.group(6):
+            errors.append('zig build -l: %r is not a group as add_test_groups lists it' % line)
+            continue
+        listed[match.group(1)] = tuple(int(match.group(n)) for n in (3, 4, 5))
+    expected = priced_groups()
+    for name in sorted(set(expected) | set(listed)):
+        if listed.get(name) != expected.get(name):
+            errors.append('%s: build.zig runs shards %s, ci-shards.py prices %s' % (
+                name, listed.get(name, 'none'), expected.get(name, 'none')))
+    return errors
+
+
+def listing_selftest():
+    """listing_errors accepts build.zig's groups and catches swapped, missing and extra ones."""
+    errors, ranges = [], priced_groups()
+    if listing_errors('  test:x                       Run tests\n' + listing(ranges)):
+        errors.append('the groups group_shards prices are not accepted as listed')
+    swapped = dict(ranges)
+    first, second = 'test:proof/tee@1/2', 'test:proof/tee@2/2'
+    swapped[first], swapped[second] = ranges[second], ranges[first]
+    extra = dict(ranges, **{'test:proof/tee@5/5': (0, 11, 12)})
+    for name, changed in [('swapped groups', swapped), ('an extra group', extra),
+                          ('a missing group', {k: v for k, v in ranges.items() if k != first})]:
+        if not listing_errors(listing(changed)):
+            errors.append('%s in `zig build -l` is not caught' % name)
     return errors
 
 
@@ -761,6 +858,13 @@ def main(args):
         return plan(args[1], args[2], int(args[3]))
     if args == ['check']:
         return check()
+    if args[:1] == ['groups'] and len(args) == 2:
+        errors = listing_errors(read(args[1]))
+        for e in errors:
+            print('ci-shards: ' + e)
+        print('ci-shards: groups: %d listed groups checked against group_shards' %
+              len(priced_groups()), file=sys.stderr)
+        return 1 if errors else 0
     sys.exit(__doc__)
 
 

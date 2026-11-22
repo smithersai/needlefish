@@ -43,7 +43,11 @@ jobs:
         uses: ./.github/actions/zig
       - name: build runner
         if: steps.plan.outputs.count == '1'
-        run: zig build -l -Drequire-io-uring=true >/dev/null
+        # Compiles the build runner; the listing shows build.zig's groups, which ci-shards.py
+        # prices: `groups` fails unless they are the same.
+        run: |
+          zig build -l -Drequire-io-uring=true > "$RUNNER_TEMP/steps.txt"
+          python3 -I etc/scripts/ci-shards.py groups "$RUNNER_TEMP/steps.txt"
       - name: steps
         if: steps.plan.outputs.count == '1'
         env:
@@ -84,7 +88,9 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/zig
       - name: build runner
-        run: zig build -l -Drequire-io-uring=true >/dev/null
+        run: |
+          zig build -l -Drequire-io-uring=true > "$RUNNER_TEMP/steps.txt"
+          python3 -I etc/scripts/ci-shards.py groups "$RUNNER_TEMP/steps.txt"
       - name: steps
         env:
           STEPS: ${{ matrix.steps }}
