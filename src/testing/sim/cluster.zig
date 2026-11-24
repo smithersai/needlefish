@@ -90,7 +90,8 @@ pub const Config = struct {
     disk_fault_ppm: u32 = 100_000,
     downtime_ns_max: u64 = 60 * ns_per_s,
     l1_reorgs_per_minute: u32 = 0,
-    /// Each non-L1 node's clock is offset by up to this much, re-drawn on restart.
+    /// Each non-L1 node's clock is offset by up to this much, re-drawn on restart. At most
+    /// `clock_skew_ns_live_max`.
     clock_skew_ns_max: u64 = 0,
     /// Forged channels an attacker posts to the batch inbox per minute (fault phase).
     spam_per_minute: u32 = 0,
@@ -213,8 +214,26 @@ pub const Config = struct {
         if (config.real_gossip) {
             config.clock_skew_ns_max = @min(config.clock_skew_ns_max, gossip_clock_skew_ns_max);
         }
+        // A 30 s draw is one block time too many for the 60 s production window.
+        config.clock_skew_ns_max = @min(config.clock_skew_ns_max, config.clock_skew_ns_live_max());
         config.validate();
         return config;
+    }
+
+    /// Largest clock skew that still leaves the sequencer a slot between healing and the
+    /// end of production. Liveness needs that block: only new gossip tells a verifier that
+    /// restarted at healing (unsafe head back to its safe head) how far the chain got, and
+    /// the real batcher loads blocks only up to its rollup node's unsafe head, as base/base
+    /// does. A sequencer that crashed late in the fault phase with its clock `skew` ahead
+    /// restarts at healing up to `skew` behind: its next slot comes up to
+    /// `2 * skew + block time` after healing.
+    pub fn clock_skew_ns_live_max(config: Config) u64 {
+        assert(config.fault_end_ns <= config.production_end_ns);
+        const window_ns = config.production_end_ns - config.fault_end_ns;
+        const slack_ns = window_ns -| config.l2_block_time_ns;
+        const skew_ns_max = slack_ns / 2;
+        assert(2 * skew_ns_max <= slack_ns and slack_ns < 2 * (skew_ns_max + 1));
+        return skew_ns_max;
     }
 
     /// Real execution's channels are about four times the model's (incompressible
@@ -235,6 +254,7 @@ pub const Config = struct {
         assert(config.disk_fault_ppm <= 1_000_000);
         assert(config.downtime_ns_max > 0);
         assert(config.clock_skew_ns_max <= config.settle_end_ns - config.production_end_ns);
+        assert(config.clock_skew_ns_max <= config.clock_skew_ns_live_max());
         assert(config.frame_size >= codec.frame_size_min);
         assert(config.frame_size <= codec.frame_size_full);
         assert(config.l1_block_txs_min >= 1);
@@ -1520,13 +1540,42 @@ fn fuzz_cluster(_: void, smith: *std.testing.Smith) anyerror!void {
         config.reorg_tx_loss_ppm = 0;
         config.evict_reorged = false;
     }
+    // Up to 60 s of skew against the 30 s production window; clamped, not drawn smaller,
+    // so saved inputs keep their meaning.
+    config.clock_skew_ns_max = @min(config.clock_skew_ns_max, config.clock_skew_ns_live_max());
     var cluster = try Cluster.init(std.testing.allocator, smith.value(u64), config);
     defer cluster.deinit(std.testing.allocator);
     _ = try cluster.run();
 }
 
+/// One `Smith` value of a saved `--fuzz` input: 8 little-endian bytes.
+fn word(value: u64) [8]u8 {
+    var bytes: [8]u8 = undefined;
+    std.mem.writeInt(u64, &bytes, value, .little);
+    assert(std.mem.readInt(u64, &bytes, .little) == value);
+    return bytes;
+}
+
+/// Nightly fuzz run 45369293255: 52 s of clock skew against the 30 s production window.
+/// The sequencer crashed with its clock 39 s ahead and restarted at healing 29 s behind,
+/// so its next slot came 1.8 s after production ended. Both verifiers restarted at healing
+/// and never heard of a block again; the real batcher, loading up to its rollup node's
+/// unsafe head (0), posted nothing: "batcher did not confirm sequencer head" (0 of 32).
+const fuzz_skew_beyond_window =
+    // Fault end 63 s, latency 25..808 ms, 2 verifiers, drop and duplicate ppm.
+    word(63) ++ word(25) ++ word(2) ++ word(783) ++ word(175_979) ++ word(171_163) ++
+    // Crashes, partitions, disk fault ppm, downtime 54 s, skew 52 s, L1 reorgs, spam.
+    word(10) ++ word(4) ++ word(740_690) ++ word(54) ++ word(52) ++ word(10) ++ word(8) ++
+    // Frame size, L1 batcher txs per block, byzantine, real batcher, model verifier.
+    word(1002) ++ word(2) ++ word(9) ++ word(1) ++ word(0) ++
+    // Evictions, reorg tx loss ppm, model sequencer, sim execution, cluster seed.
+    word(12) ++ word(940_785) ++ word(0) ++ word(0) ++ word(0xc98f_917f_50c7_5fc0);
+
 test "cluster: fuzz configs (extreme fault rates)" {
-    try @import("testing/fuzz").run({}, fuzz_cluster, .{ .iterations = 12 });
+    try @import("testing/fuzz").run({}, fuzz_cluster, .{
+        .iterations = 12,
+        .corpus = &.{&fuzz_skew_beyond_window},
+    });
 }
 
 test "cluster: real sequencer produces the chain to liveness without faults" {

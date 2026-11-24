@@ -440,3 +440,19 @@ provably robust.
   status without a safe head): the service keeps the safe head a configured rollup node
   last reported, and the stall clock runs only while the service holds blocks beyond the
   safe head. Each fix alone passes the seed; unit tests for both fail on the old code.
+- 2026-11-24: nightly fuzz run 45369293255 (`fuzz (4)`, "cluster: fuzz configs (extreme fault
+  rates)", "batcher did not confirm sequencer head", 0 of 32) was an infeasible config, not a
+  component bug. `fuzz_cluster` drew 52 s of clock skew against its 30 s production window.
+  The sequencer crashed with its clock 39 s ahead (next slot at local 66 s) and restarted at
+  healing 29 s behind, so that slot came at 94.8 s, after production ended at 93 s. Both
+  verifiers also restarted at healing (unsafe head back to safe 0, no known sequencer head)
+  and never heard of a block again, and the real batcher, which loads only up to its rollup
+  node's `unsafe_l2` as base/base does, had nothing to post. Rule
+  (`Config.clock_skew_ns_live_max`, asserted in `validate`): `2 * skew + block time <=
+  production_end - fault_end`, so a sequencer restarted at healing still gets one slot to
+  gossip. `fuzz_cluster` (14 s) and `Config.random` (29 s: a 30 s draw was one block time
+  too many) clamp after drawing, so draw streams and saved inputs keep their meaning; the
+  saved input is a corpus entry (`fuzz_skew_beyond_window`) that fails without the clamp.
+  Side finding, not changed: local clocks clamp at 0, so a node whose offset is below minus
+  the global time has a frozen clock and none of its timeouts fire (verifier 3, offset -51 s,
+  never re-synced after missing block 1 in this run).
