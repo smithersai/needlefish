@@ -13,34 +13,39 @@ depend on named steps only (its `ci_steps` and `assert_named_dependencies`), so 
 Groups: a package in build.zig's `test_shards` runs its test binary as N run steps
 (`--shard=K/N`), and for each G of `test_group_counts` up to N, `test:<package>@K/G` (K from 1
 to G) runs the contiguous shards (K-1)*N//G to K*N//G - 1 (`group_shards`). The groups of one G
-run every shard once (build.zig `assert_groups_partition`), so CI may run them, each in its own
-job, in place of `test:<package>`; each such job compiles the binary itself.
+run every shard once (build.zig `assert_groups_partition`). `plan` never deals groups: each job
+that runs one compiles the binary again, and a job's 4 processors run a package's shards
+side by side, so one job that compiles a binary once and runs all its shards beats two that
+compile it twice (etc/ci/README.md). `groups` still checks build.zig's groups.
 
 Costs: etc/ci/costs.tsv, per step, the seconds of its compiles and of its runs (one number per
 shard for a package in `test_shards`): the durations in `zig build <steps> --summary all` logs,
 summed (`costs`). The log prints whole seconds, and minutes for a step of a minute or more
 (read as the minute plus 30 s). A step costs its compile plus its runs; a group costs the
 compile plus its shards' runs. A step missing from the table costs DEFAULT_SECONDS, with a
-warning; it is never dropped.
+warning; it is never dropped. `plan` reads CI_SHARDS_COSTS, a table the nightly workflow
+refreshed from recent green runs, when it names a file that parses, and the committed table
+otherwise. `plan` prices a compile by the backend that runs it (`weighted`): an LLVM compile
+(build.zig `llvm_test_packages` and `optimized_test_packages`) at LLVM_COMPILE_WEIGHT of its
+seconds, any other at SELF_COMPILE_WEIGHT, a run at its seconds.
 
 `shard` deals the steps to COUNT shards: largest cost first, each to the shard with the least
 cost so far (ties: the lowest index), so every job computes the same split.
 
-`plan` keeps the steps a push needs: the packages whose files changed between BASE and HEAD,
-every package that imports one of them (packages.zon), and the tools that import one. It deals
-them to as many shards as they fill at SHARD_SECONDS each, at most LIMIT, and prints them as
-GitHub outputs. A step whose runs cost more than its compile and that costs more than a shard
-carries is split into the fewest groups of one G whose every group fits, or into the groups of
-the largest G when none fits, so a group can still cost more than a shard (`split_steps`); a
-compile-bound step is never split, since each group compiles the binary again. BASE is the tree
-of the last commit CI passed (etc/ci/baseline.sh). An unknown
-BASE, a change to a file in EVERYTHING, or a path the lists below cannot place plans every step;
-a path in NO_STEP_FILES or NO_STEP_DIRECTORIES plans none. Tidy is not planned: it runs on
-every push, in its own job.
+`plan` keeps the steps a push needs: tidy, the packages whose files changed between BASE and
+HEAD, every package that imports one of them (packages.zon), and the tools that import one. It
+deals them to as many shards as they fill at SHARD_SECONDS each, at most LIMIT, and prints them
+as GitHub outputs. BASE is the tree of the last commit CI passed (etc/ci/baseline.sh). An
+unknown BASE, a change to a file in EVERYTHING, or a path the lists below cannot place plans
+every step; a change to CI's own plumbing (CI_FILES, CI_DIRECTORIES) plans CANARY, one cheap
+package that runs shard.sh end to end, since tidy already runs this file's `check`; a path in
+NO_STEP_FILES or NO_STEP_DIRECTORIES plans no step but tidy.
 
 usage: python3 -I etc/scripts/ci-shards.py steps              every CI step, one per line
        python3 -I etc/scripts/ci-shards.py shard INDEX COUNT  shard INDEX's steps (0-based)
        python3 -I etc/scripts/ci-shards.py plan BASE HEAD LIMIT   count= and matrix= outputs
+       python3 -I etc/scripts/ci-shards.py preview LIMIT PATH...  plan a change to PATHs
+                                                     (`-`: every step, as for an unknown BASE)
        python3 -I etc/scripts/ci-shards.py costs LOG...       rewrite etc/ci/costs.tsv from logs
        python3 -I etc/scripts/ci-shards.py check              the shards cover each step once
        python3 -I etc/scripts/ci-shards.py groups LISTING     build.zig's groups are these
@@ -69,14 +74,22 @@ COSTS = 'etc/ci/costs.tsv'
 DEFAULT_SECONDS = 10.0  # a step the table does not list yet
 MIN_SECONDS = 0.1  # the least a measured step costs in the table, so none rounds to 0.0
 MAX_SHARDS = 64  # `check` verifies every count up to this one
-# The cost `plan` puts in one shard before it starts another (a step's compile plus its runs,
-# or a group's). A smaller budget deals a plan to more, shorter jobs, down to its costliest
-# part: in a mid-graph plan test:testing/sim@1/4, 36 s. Each job more is one more wait for a
-# runner. On GitHub's 4-vCPU runners mid-graph pushes took 65 to 86 s at 48 s (6 shards), 56
-# to 61 s at 36 s (10), 47 to 113 s at 30 s (12; three of six over 60 s) and, at 24 s (15),
-# two of three waited 23 and 29 minutes for runners. A plan that the limit caps (most-imported:
-# 16 shards) is dealt to LIMIT shards whatever the budget.
-SHARD_SECONDS = 36.0
+# The weighted cost (`weighted`) `plan` puts in one shard before it starts another. Each job
+# more is one more wait for a runner, and runners are scarce: the smithersai organization runs
+# on GitHub Free, whose 20 concurrent jobs every repository of the organization shares, and on
+# 2026-11-22 from 12:36 to 13:15 UTC smithers held 20 or 21 of them, so a 16-shard run of this
+# workflow started its last shard 29 minutes after its first. Over 397 shard jobs of 40 green
+# runs a job's `steps` took 0.50 s per weighted second plus 6 s at the median CPU model, so a
+# shard of 48 runs for about 30 s. A plan the limit caps is dealt to LIMIT shards whatever the
+# budget.
+SHARD_SECONDS = 48.0
+# What a compile costs per table second, against a run's 1.0 (`weighted`). LLVM compiles one
+# binary on one thread; Zig's own backend spreads one over the job's processors, so its table
+# seconds, measured while a job's other steps compete, overstate what it holds the job for.
+# These weights fit those 397 jobs' durations, scaled per CPU model, with a median error of
+# 13.3%; the unweighted table had 16.6%.
+LLVM_COMPILE_WEIGHT = 1.2
+SELF_COMPILE_WEIGHT = 0.4
 # What a part's chain, its compile plus its slowest run, which no processor of the job shares,
 # weighs against the budget: the summed step seconds of a job were 1.6 times its work at the
 # median over 294 job logs of GitHub's 4-vCPU runners, so a chain of c seconds fills c * 1.6
@@ -85,6 +98,7 @@ SHARD_SECONDS = 36.0
 CHAIN_WEIGHT = 1.6
 CI_STEPS = re.compile(r'^const ci_steps = \[_\]\[\]const u8\{\n(.*?)^\};', re.M | re.S)
 NAME = re.compile(r'\.name = "([^"]+)"')
+NAME_LIST = r'^const %s = \[_\]\[\]const u8\{\n(.*?)^\};'
 TEST_SHARDS = re.compile(r'^const test_shards = \[_\]Shards\{\n(.*?)^\};', re.M | re.S)
 TEST_SHARD = re.compile(r'^    \.\{ \.package = "([^"]+)", \.count = (\d+) \},$', re.M)
 GROUP_COUNTS = re.compile(r'^const test_group_counts = \[_\]u32\{ ([0-9, ]+) \};$', re.M)
@@ -99,18 +113,22 @@ ANSI = re.compile(r'\x1b\[[0-9;]*m')
 NODE = re.compile(r'^(?:\|  |   )*\+- (.*)$')
 MEASURED = re.compile(r'^ci-shards: (\S+) (\d+)s$')
 UNIT_SECONDS = {'ns': 1e-9, 'us': 1e-6, 'ms': 1e-3, 's': 1.0}
-# Paths whose change reruns every step: what the build, the test runner, the toolchain and
-# this plan are made of.
-EVERYTHING = {'build.zig', 'build.zig.zon', 'packages.zon', COSTS, 'etc/ci/shard.sh',
-              'etc/ci/baseline.sh',
-              'etc/scripts/ci-shards.py', 'etc/scripts/packages.py', 'etc/scripts/install-zig.sh',
+# Paths whose change reruns every step: what the build, the test runner and the toolchain are
+# made of. A test binary such a change leaves alone hits the restored compile cache.
+EVERYTHING = {'build.zig', 'build.zig.zon', 'packages.zon', 'etc/scripts/install-zig.sh',
               'src/testing/test_runner.zig'}
-EVERYTHING_DIRECTORIES = ('.github/',)
-# Paths no step reads: a change to one plans no step (tidy, which reads etc/scripts/, runs on
-# every push and checks the Justfile). A path in none of these lists, outside src/ and bin/,
-# plans every step.
+EVERYTHING_DIRECTORIES = ('.github/actions/zig/',)
+# CI's own plumbing: it decides what runs, not what a test does. A change to one plans CANARY:
+# tidy runs `check` (this file's self-tests, every shard count, the Justfile), the plan job
+# runs the planner and baseline.sh, and CANARY runs shard.sh, the build runner and `groups`.
+CI_FILES = {COSTS, 'etc/ci/shard.sh', 'etc/ci/baseline.sh', 'etc/scripts/ci-shards.py',
+            'etc/scripts/packages.py'}
+CI_DIRECTORIES = ('.github/', 'etc/ci/')
+CANARY = 'test:common/rlp'
+# Paths no step reads: a change to one plans no step but tidy (which reads etc/scripts/ and
+# checks the Justfile). A path in none of these lists, outside src/ and bin/, plans every step.
 NO_STEP_FILES = {'.gitignore', 'AGENTS.md', 'CLAUDE.md', 'Justfile', 'LICENSE', 'README.md'}
-NO_STEP_DIRECTORIES = ('docs/', 'etc/')
+NO_STEP_DIRECTORIES = ('docs/', 'etc/', '.smithers/')
 # `just ci` as the Justfile spells it: {recipe: (header, body lines)}. CI runs these as named
 # steps: `tidy` as tidy, `zig build test` as every test:<package> and test:statetest (rerun with
 # -Dtest-debug-info=true when it fails, as etc/ci/shard.sh does), `zig build check` as every
@@ -221,6 +239,47 @@ def read_costs():
     return parse_costs(read(COSTS))
 
 
+def plan_costs(path):
+    """The cost table `plan` deals by: the one at `path` (CI_SHARDS_COSTS, which the nightly
+    workflow refreshes from recent green runs) when it names a file that parses, else the
+    committed one. A refreshed table only moves steps between shards, never drops one."""
+    if path and os.path.isfile(path):
+        try:
+            with open(path, encoding='utf-8') as handle:
+                table = parse_costs(handle.read())
+            print('ci-shards: costs from %s (%d steps)' % (path, len(table)), file=sys.stderr)
+            return table
+        except (AssertionError, ValueError, UnicodeDecodeError) as error:
+            print('ci-shards: warning: %s does not parse (%s); using %s' % (path, error, COSTS),
+                  file=sys.stderr)
+    return read_costs()
+
+
+@functools.cache
+def llvm_steps():
+    """The test:<package> steps whose binary LLVM compiles: build.zig's `llvm_test_packages`
+    and its `optimized_test_packages`, which compile ReleaseSafe."""
+    out, text = set(), read('build.zig')
+    for name in ('llvm_test_packages', 'optimized_test_packages'):
+        match = re.search(NAME_LIST % name, text, re.M | re.S)
+        assert match, 'build.zig has no `const %s = [_][]const u8{ ... };`' % name
+        rows = re.findall(r'^    "([^"]+)",$', match.group(1), re.M)
+        assert rows, '%s: one quoted package per line' % name
+        out |= {'test:' + row for row in rows}
+    return frozenset(out)
+
+
+def weighted(costs):
+    """{step: (compile, runs)} with each compile priced by its backend (LLVM_COMPILE_WEIGHT or
+    SELF_COMPILE_WEIGHT) and runs as they are: what `plan` deals."""
+    llvm, out = llvm_steps(), {}
+    for name, (compile_seconds, runs) in costs.items():
+        weight = LLVM_COMPILE_WEIGHT if name in llvm else SELF_COMPILE_WEIGHT
+        out[name] = (compile_seconds * weight, runs)
+    assert out.keys() == costs.keys()
+    return out
+
+
 def parse_costs(text):
     """{step: (compile seconds, (run seconds, ...))} of a cost table: a line is the step, its
     compile and its runs, comma-separated, one per shard. A cost that is not a finite number of
@@ -326,7 +385,9 @@ def log_costs(path, by_binary, known):
             continue
         text, times = node.group(1), DURATION.findall(node.group(1))
         step = node_step(text, top, by_binary, known)
-        if not times or not step:
+        # A step the restored compile cache answered took no compile and no run: its
+        # milliseconds measure the cache, not the step.
+        if not times or not step or ' cached' in text:
             continue
         value, row = seconds(int(times[-1][0]), times[-1][1]), out.setdefault(step, [0.0, {}])
         if text.startswith('compile '):
@@ -445,8 +506,7 @@ def selftest():
         errors.append('changed_paths does not read %r whole' % path)
     if changed_packages(['"src/common/rlp/x"'], rows) is not None:
         errors.append('a path outside the known places does not plan every step')
-    if changed_packages(['docs/TIGER_STYLE.md'], rows) != (set(), False):
-        errors.append('a docs/ path plans a step')
+    errors += path_selftest(rows)
     zero = {name: (0.0, (0.0,)) for name in steps()}
     for limit in (1, 12):
         shards = plan_shards(zero, limit)
@@ -459,7 +519,7 @@ def selftest():
                 errors.append('a cost of %s is accepted' % bad)
             except AssertionError:
                 pass
-    errors += group_selftest()
+    errors += group_selftest() + cost_selftest()
     added = '    zig build test -Doptimize=ReleaseSafe\n'
     drifted = read('Justfile').replace('ci: tidy test check\n', 'ci: tidy test check\n' + added)
     if not justfile_errors(drifted):
@@ -474,11 +534,89 @@ def selftest():
     return errors
 
 
+# (path, what changed_packages returns for it alone): None plans every step.
+PATH_CASES = [
+    ('docs/TIGER_STYLE.md', (set(), False, False)),
+    ('.smithers/factory.json', (set(), False, False)),
+    ('.smithers/flows/triage.md', (set(), False, False)),
+    ('AGENTS.md', (set(), False, False)),
+    ('etc/devnet/devnet.just', (set(), False, False)),
+    ('etc/scripts/tidy.sh', (set(), False, False)),
+    (COSTS, (set(), False, True)),
+    ('etc/ci/shard.sh', (set(), False, True)),
+    ('etc/ci/baseline.sh', (set(), False, True)),
+    ('etc/ci/README.md', (set(), False, True)),
+    ('etc/scripts/ci-shards.py', (set(), False, True)),
+    ('etc/scripts/packages.py', (set(), False, True)),
+    ('.github/workflows/test.yml', (set(), False, True)),
+    ('.github/workflows/nightly.yml', (set(), False, True)),
+    ('.github/actions/zig/action.yml', None),
+    ('build.zig', None),
+    ('build.zig.zon', None),
+    ('packages.zon', None),
+    ('etc/scripts/install-zig.sh', None),
+    ('src/testing/test_runner.zig', None),
+    ('Makefile', None),  # a path CI cannot place
+    ('src/common/rlp/root.zig', ({'common/rlp'}, False, False)),
+]
+
+
+def path_selftest(rows):
+    """Each path class plans what PATH_CASES says: no step for docs/ and .smithers/, CANARY for
+    CI's plumbing, every step for the build and the toolchain."""
+    errors = []
+    for path, expected in PATH_CASES:
+        got = changed_packages([path], rows)
+        if got != expected:
+            errors.append('%s plans %r, not %r' % (path, got, expected))
+    if CANARY not in steps() or CANARY in test_shards() or CANARY in llvm_steps():
+        errors.append('CANARY %s is not a plain, unsharded, self-hosted step' % CANARY)
+    everything = set(steps()) - {'tidy'}
+    for paths, expected in [(['docs/x.md', '.smithers/home.json'], set()),
+                            ([COSTS, '.github/workflows/test.yml'], {CANARY}),
+                            ([COSTS, 'build.zig'], everything)]:
+        if affected_paths(paths) != expected:
+            errors.append('%s plans %s, not %s' % (paths, sorted(affected_paths(paths)),
+                                                   sorted(expected)))
+    return errors
+
+
+def cost_selftest():
+    """Compiles are priced by backend, a cached node is not measured, and plan_costs falls back
+    to the committed table for a missing or broken refreshed one."""
+    errors, llvm = [], sorted(llvm_steps())
+    if 'test:testing/sim' not in llvm or 'test:infra/tx_manager' not in llvm:
+        errors.append('llvm_steps misses build.zig\'s LLVM or ReleaseSafe test packages')
+    priced = weighted({llvm[0]: (10.0, (1.0,)), CANARY: (10.0, (1.0,))})
+    if priced != {llvm[0]: (10.0 * LLVM_COMPILE_WEIGHT, (1.0,)),
+                  CANARY: (10.0 * SELF_COMPILE_WEIGHT, (1.0,))}:
+        errors.append('weighted does not price a compile by its backend: %r' % priced)
+    lines = ['Build Summary: 2/2 steps succeeded', 'test:common/rlp cached',
+             '+- run test common-rlp cached',
+             '   +- compile test common-rlp debug native cached 76ms MaxRSS:31M', '',
+             'Build Summary: 2/2 steps succeeded', 'test:common/rlp success',
+             '+- run test common-rlp 14 pass (14 total) 3s MaxRSS:2M',
+             '   +- compile test common-rlp debug native success 2s MaxRSS:31M', '']
+    with tempfile.TemporaryDirectory() as root:
+        log, broken = os.path.join(root, 'job.log'), os.path.join(root, 'costs.tsv')
+        with open(log, 'w', encoding='utf-8') as handle:
+            handle.write('\n'.join(lines))
+        measured = log_costs(log, binaries(), set(steps()))
+        if measured != {CANARY: [2.0, {0: 3.0}]}:
+            errors.append('a cached step is measured: %r' % measured)
+        with open(broken, 'w', encoding='utf-8') as handle:
+            handle.write('test:x\tnan\t0\n')
+        with contextlib.redirect_stderr(io.StringIO()):
+            for path in (broken, os.path.join(root, 'missing.tsv'), None):
+                if plan_costs(path) != read_costs():
+                    errors.append('plan_costs(%r) is not the committed table' % path)
+    return errors
+
+
 def group_selftest():
     """The dealer's guarantees for groups: a matrix that skips a group, runs one twice, or runs
-    a step beside its group is caught; a step is split into the fewest groups that fit, and a
-    step that fits, or whose compile costs as much as its runs, is not split; a step whose
-    chain fills a shard gets one to itself."""
+    a step beside its group is caught; plan never splits a step into groups, even one whose
+    runs fill several shards; a step whose chain fills a shard gets one to itself."""
     errors, counts = [], {'test:x': 4, 'tidy': 1}
     whole = ['test:x@1/2', 'test:x@2/2', 'tidy']
     if coverage_errors(whole, counts):
@@ -488,18 +626,10 @@ def group_selftest():
                         ('a group build.zig lacks', ['test:x@1/1', 'tidy'])]:
         if not coverage_errors(names, counts):
             errors.append('%s is not caught' % name)
-    def groups_of(count):
-        return ['test:x@%d/%d' % (group, count) for group in range(1, count + 1)]
-    for cost, target, expected in [
-            ((2.0, (10.0, 10.0, 10.0, 10.0)), 25.0, groups_of(2)),
-            ((2.0, (10.0, 10.0, 10.0, 10.0)), 42.0, ['test:x']),
-            ((30.0, (5.0, 5.0, 5.0, 5.0)), 20.0, ['test:x']),
-            ((20.0, (5.0, 5.0, 5.0, 5.0)), 20.0, ['test:x']),  # compile equal to the runs
-            ((2.0, (10.0,) * 6), 25.0, groups_of(3)),
-            ((2.0, (10.0,) * 8), 25.0, groups_of(4)),
-            ((1.0, (100.0, 0.0, 0.0, 0.0)), 48.0, groups_of(4))]:  # none fits: the largest G
-        if sorted(split_steps({'test:x': cost}, target)) != expected:
-            errors.append('%r at %.0f s does not split into %s' % (cost, target, expected))
+    for runs in [(SHARD_SECONDS,) * 4, (SHARD_SECONDS * 4.0, 0.0, 0.0, 0.0)]:
+        dealt = plan_shards({'test:x': (2.0, runs), 'tidy': (0.0, (2.0,))}, 16)
+        if sorted(name for shard in dealt for name in shard) != ['test:x', 'tidy']:
+            errors.append('a step whose runs fill shards is split: %r' % dealt)
     chain = SHARD_SECONDS / CHAIN_WEIGHT
     long = {'test:long': (0.0, (chain,))}
     long.update({'test:%d' % i: (0.0, (chain / 3.0,)) for i in range(5)})
@@ -681,12 +811,16 @@ def changed_paths(base, head, root=ROOT):
 
 
 def changed_packages(paths, rows):
-    """(packages whose files changed, whether a tool's own file changed), or None: rerun all."""
+    """(packages whose files changed, whether a tool's own file changed, whether CI's plumbing
+    changed), or None: rerun all."""
     rules, tools = package_rules()
-    names, tool_files = set(), False
+    names, tool_files, plumbing = set(), False, False
     for path in paths:
         if path in EVERYTHING or path.startswith(EVERYTHING_DIRECTORIES):
             return None
+        if path in CI_FILES or path.startswith(CI_DIRECTORIES):
+            plumbing = True
+            continue
         if path in NO_STEP_FILES or path.startswith(NO_STEP_DIRECTORIES):
             continue
         if not path.startswith(('src/', 'bin/')):
@@ -701,7 +835,7 @@ def changed_packages(paths, rows):
         if name not in rows:
             return None
         names.add(name)
-    return names, tool_files
+    return names, tool_files, plumbing
 
 
 def importers(names, rows):
@@ -721,39 +855,22 @@ def importers(names, rows):
 
 def affected(base, head):
     """The Zig steps a push from `base` to `head` must run (tidy runs on every push)."""
+    return affected_paths(changed_paths(base, head))
+
+
+def affected_paths(paths):
+    """The Zig steps a change to `paths` must run; every one when `paths` is None."""
     rows, everything = packages(), set(steps()) - {'tidy'}
-    paths = changed_paths(base, head)
     changed = None if paths is None else changed_packages(paths, rows)
     if changed is None:
         return everything
-    names, tool_files = changed
+    names, tool_files, plumbing = changed
     closure = importers(names, rows)
     out = {package_step(name, rows[name][1]) for name in closure}
     out |= {step for step, package in TOOLS.items() if tool_files or package in closure}
+    if plumbing:
+        out.add(CANARY)
     assert out <= everything
-    return out
-
-
-def split_steps(costs, target):
-    """{name: seconds}: each step of `costs` ({step: (compile, runs)}), except that a sharded
-    step whose runs cost more than its compile, and which costs more than `target`, becomes its
-    groups of the fewest G (build.zig `test_group_counts`) whose every group costs at most
-    `target`, or of the largest G when none does. A group costs the compile plus its shards'
-    runs. A compile-bound step stays whole: each group compiles the binary again."""
-    allowed, out = group_counts(), {}
-    for step, (compile_seconds, runs) in sorted(costs.items()):
-        out[step] = compile_seconds + sum(runs)
-        fits = [groups for groups in allowed if groups <= len(runs)]
-        if not fits or sum(runs) <= compile_seconds or out[step] <= target:
-            continue
-        for groups in fits:  # bounded: at most len(allowed) tries
-            parts = {name: part_cost(name, costs) for name in
-                     [group_name(step, group, groups) for group in range(1, groups + 1)]}
-            if max(parts.values()) <= target:
-                break
-        del out[step]
-        out.update(parts)
-    assert out or not costs
     return out
 
 
@@ -813,32 +930,39 @@ def coverage_errors(names, counts):
 
 
 def plan_shards(costs, limit):
-    """The steps of `costs` ({step: (compile, runs)}), split by split_steps, dealt to as many
-    shards as they fill at SHARD_SECONDS each: at least one when there is a step, at most
-    `limit` and at most one per part; none is empty. A step is split to fit what a shard
-    carries: SHARD_SECONDS, or more when the limit caps the count."""
+    """The steps of `costs` ({step: (compile, runs)}), whole, dealt to as many shards as they
+    fill at SHARD_SECONDS each: at least one when there is a step, at most `limit` and at most
+    one per step; none is empty. A step is never split into groups: a job compiles each binary
+    once and runs its shards on all its processors."""
     assert 1 <= limit <= MAX_SHARDS
     if not costs:
         return []
-    whole = sum(total(cost) for cost in costs.values())
-    parts = deal_weights(split_steps(costs, max(SHARD_SECONDS, whole / limit)), costs)
+    parts = deal_weights({name: total(cost) for name, cost in costs.items()}, costs)
     count = math.ceil(sum(parts.values()) / SHARD_SECONDS)
     shards = split(parts, max(1, min(limit, len(parts), count)))[0]
     assert all(shards) and sum(len(shard) for shard in shards) == len(parts)
+    assert not any(GROUP.match(name) for shard in shards for name in shard)
     return shards
 
 
 def plan(base, head, limit):
-    """GitHub outputs: `count`, and `matrix`: the affected steps dealt by plan_shards."""
-    selected = sorted(affected(base, head))
-    costs = costs_of(selected, read_costs())
+    """GitHub outputs: `count`, and `matrix`: tidy and the affected steps, priced by `weighted`
+    and dealt by plan_shards. Tidy makes every plan at least one shard, so a push runs
+    max(1, count) jobs: the plan job runs a plan of one itself."""
+    return plan_steps(affected(base, head), limit)
+
+
+def plan_steps(affected_steps, limit):
+    """`plan`'s outputs for the Zig steps `affected_steps`."""
+    selected = sorted(set(affected_steps) | {'tidy'})
+    costs = weighted(costs_of(selected, plan_costs(os.environ.get('CI_SHARDS_COSTS'))))
     shards = plan_shards(costs, limit)
     include = [{'shard': i, 'steps': ' '.join(s)} for i, s in enumerate(shards)]
     printed = [step for row in include for step in row['steps'].split(' ')]
     counts = {step: len(runs) for step, (_, runs) in costs.items()}
     assert sorted(counts) == selected and not coverage_errors(printed, counts), \
         'the matrix must run each shard of each selected step exactly once'
-    print('ci-shards: plan: %d steps, %.0f s, %d shards' % (
+    print('ci-shards: plan: %d steps, %.0f weighted s, %d shards' % (
         len(costs), sum(total(cost) for cost in costs.values()), len(shards)), file=sys.stderr)
     for index, row in enumerate(shards):
         print('ci-shards: shard %d: %.0f s: %s' % (
@@ -858,6 +982,8 @@ def main(args):
         return costs(args[1:])
     if args[:1] == ['plan'] and len(args) == 4:
         return plan(args[1], args[2], int(args[3]))
+    if args[:1] == ['preview'] and len(args) >= 2:
+        return plan_steps(affected_paths(args[2:] if args[2:] != ['-'] else None), int(args[1]))
     if args == ['check']:
         return check()
     if args[:1] == ['groups'] and len(args) == 2:

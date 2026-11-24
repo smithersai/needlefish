@@ -20,6 +20,10 @@ done
 
 if [ "${#zig_steps[@]}" -gt 0 ]; then
   flags=(--summary all -Drequire-io-uring=true)
+  # CI builds for one CPU model, ZIG_CPU (the workflows set x86_64_v3, which every
+  # GitHub-hosted x86_64 runner supports), not the runner's own: the nightly compile cache
+  # (.github/actions/zig) then matches on every runner, whatever CPU it has.
+  if [ -n "${ZIG_CPU:-}" ]; then flags+=("-Dcpu=$ZIG_CPU"); fi
   # Debug test binaries carry no debug info (build.zig `test_root_module`). A failing run runs
   # again with it, so the log shows file, line and stack, and the shard stays red.
   if ! zig build "${zig_steps[@]}" "${flags[@]}"; then

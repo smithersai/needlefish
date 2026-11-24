@@ -1,0 +1,140 @@
+# The checks test.yml leaves out of the push path, once a day on main (and on demand), and
+# the two caches test.yml reads (etc/ci/README.md).
+#   warm          every Debug step from an empty compile cache, exactly as the shards run
+#                 them: the full suite with no plan and no cached result, then the compile
+#                 cache it leaves, pruned, saved for test.yml's shards; and the cost table
+#                 refreshed from recent green runs, saved for test.yml's plan
+#   release-safe  zig build test -Doptimize=ReleaseSafe
+#   swarm         the simulator swarm: fixed seeds 1 to 500, then 20000 fresh ones per run
+#   fuzz          every std.testing.fuzz target for a bounded run count, and a seeded soak
+#   macos         zig build test on macOS (kqueue rather than io_uring)
+# A failing swarm or soak seed is printed in the log: replay it locally with the same seed.
+name: nightly
+
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  ZIG_CPU: x86_64_v3 # etc/ci/shard.sh; test.yml's shards restore what warm saves for it
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: write # save the caches, delete the older entries
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/zig
+        id: zig
+      - name: build runner
+        run: |
+          zig build -l -Drequire-io-uring=true > "$RUNNER_TEMP/steps.txt"
+          python3 -I etc/scripts/ci-shards.py groups "$RUNNER_TEMP/steps.txt"
+      - name: every step
+        run: |
+          # shellcheck disable=SC2046 # one step name per word
+          bash etc/ci/shard.sh $(python3 -I etc/scripts/ci-shards.py steps | grep -vx tidy)
+      - name: prune local cache
+        id: prune
+        run: bash etc/ci/prune-zig-cache.sh .zig-cache 2048 >> "$GITHUB_OUTPUT"
+      - name: save local cache
+        if: steps.prune.outputs.save == 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .zig-cache
+          key: ${{ steps.zig.outputs.local-cache-prefix }}${{ github.run_id }}
+      - name: delete older local caches
+        if: steps.prune.outputs.save == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREFIX: ${{ steps.zig.outputs.local-cache-prefix }}
+        run: bash etc/ci/prune-caches.sh "$GITHUB_REPOSITORY" "$PREFIX" "$PREFIX$GITHUB_RUN_ID"
+      - name: refresh costs
+        id: costs
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash etc/ci/refresh-costs.sh "$GITHUB_REPOSITORY" "$RUNNER_TEMP/ci-costs" 10
+      - name: save costs
+        if: always() && steps.costs.outputs.saved == 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/ci-costs
+          key: ci-costs-v1-${{ github.run_id }}
+      - name: delete older costs
+        if: always() && steps.costs.outputs.saved == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash etc/ci/prune-caches.sh "$GITHUB_REPOSITORY" ci-costs-v1- "ci-costs-v1-$GITHUB_RUN_ID"
+
+  release-safe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/zig
+      - name: test release-safe
+        run: zig build test --summary all -Doptimize=ReleaseSafe -Drequire-io-uring=true
+
+  swarm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/zig
+      - name: swarm (fixed seeds)
+        run: zig build sim -Doptimize=ReleaseSafe -- swarm 1 500
+      - name: swarm (fresh seeds, reproducible from the log)
+        run: zig build sim -Doptimize=ReleaseSafe -- swarm $((GITHUB_RUN_NUMBER * 100000)) 20000
+
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/zig
+      - name: fuzz
+        run: zig build test --fuzz=200000 -Doptimize=ReleaseSafe -Dtest-shards=false
+      - name: seeded fuzz soak (fresh seed per run, replay with -Dfuzz-seed)
+        run: >-
+          zig build test -Doptimize=ReleaseSafe -Dtest-filter=fuzz -Dfuzz-soak=50
+          "-Dfuzz-seed=$GITHUB_RUN_NUMBER"
+
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: install zig
+        run: |
+          sh etc/scripts/install-zig.sh "$HOME/zig"
+          echo "$HOME/zig" >> "$GITHUB_PATH"
+      - name: test
+        # Debug test binaries carry no debug info (build.zig `test_root_module`). A failing run
+        # runs again with it, so the log shows file, line and stack, and the step stays red.
+        run: |
+          zig build test --summary all || {
+            zig build test --summary all -Dtest-debug-info=true
+            exit 1
+          }

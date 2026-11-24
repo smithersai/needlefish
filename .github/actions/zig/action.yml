@@ -1,24 +1,44 @@
-# Zig 0.17.1 on PATH and Zig's global cache restored, which holds the build runner. The
-# workflow's `zig build -l` step, which compiles the build runner and configures the build,
-# took 1 to 2 s with this cache and 64 to 111 s without it on GitHub-hosted ubuntu-latest
-# runners (4 processors), over the runs the commit messages from "ci: run just ci as 12
-# parallel jobs on GitHub Actions" onward report. Zig compiles the build runner for the
-# native CPU, and runners differ in CPU model and in the features one model exposes, so the
-# cache is kept per model and feature set.
+# Zig 0.17.1 on PATH, Zig's global cache restored, which holds the build runner, and, with
+# `local-cache: restore`, the newest compile cache (.zig-cache) the nightly workflow saved.
+#
+# Global cache: the workflow's `zig build -l` step, which compiles the build runner and
+# configures the build, took 1 to 2 s with this cache and 64 to 111 s without it on
+# GitHub-hosted ubuntu-latest runners (4 processors), over the runs the commit messages from
+# "ci: run just ci as 12 parallel jobs on GitHub Actions" onward report. Zig compiles the build
+# runner for the native CPU, and runners differ in CPU model and in the features one model
+# exposes, so this cache is kept per model and feature set.
+#
+# Local cache: content-addressed. A compile whose inputs (sources, flags, Zig) match a
+# manifest in it is a hit, whatever the files' timestamps, and so is a test run whose binary
+# and arguments match: Zig skips both. Test binaries are built for ZIG_CPU, not the native
+# CPU (etc/ci/shard.sh), so one cache serves every runner. Only the nightly workflow saves it,
+# from an empty cache, so it holds exactly one tree's artifacts; every other job only restores.
 name: zig
-description: Install Zig and restore its global cache for this runner's CPU
+description: Install Zig and restore its caches for this runner
+inputs:
+  local-cache:
+    description: "`restore`: restore the newest nightly .zig-cache; `none`: start empty"
+    default: none
+outputs:
+  local-cache-prefix:
+    description: The key prefix of the nightly .zig-cache entries
+    value: ${{ steps.runner.outputs.local }}
 runs:
   using: composite
   steps:
     - name: runner
       id: runner
       shell: bash
+      env:
+        INSTALL: ${{ hashFiles('etc/scripts/install-zig.sh') }}
       run: |
         echo "nproc: $(nproc)"
         grep -m1 'model name' /proc/cpuinfo
         model=$(grep -m1 'model name' /proc/cpuinfo | sed 's/.*: //' | tr -c 'A-Za-z0-9\n' -)
         flags=$(grep -m1 '^flags' /proc/cpuinfo | sha256sum | cut -c1-12)
         echo "cpu=$model-$flags" | tee -a "$GITHUB_OUTPUT"
+        echo "local=zig-local-v1-$RUNNER_OS-$RUNNER_ARCH-${ZIG_CPU:-native}-${INSTALL:0:16}-" \
+          | tee -a "$GITHUB_OUTPUT"
     - name: restore zig
       id: zig
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -38,3 +58,16 @@ runs:
         path: ~/.cache/zig
         key: zig-global-${{ runner.os }}-${{ steps.runner.outputs.cpu }}-${{ hashFiles('etc/scripts/install-zig.sh', 'build.zig', 'build.zig.zon', 'packages.zon') }}
         restore-keys: zig-global-${{ runner.os }}-${{ steps.runner.outputs.cpu }}-
+    - name: restore zig local cache
+      if: inputs.local-cache == 'restore'
+      # Restore only: the key names this commit, which no entry has, so the newest entry
+      # whose key starts with the prefix is restored, and nothing is saved after the job.
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: .zig-cache
+        key: ${{ steps.runner.outputs.local }}${{ github.sha }}
+        restore-keys: ${{ steps.runner.outputs.local }}
+    - name: local cache size
+      if: inputs.local-cache == 'restore'
+      shell: bash
+      run: du -sh .zig-cache 2>/dev/null || echo "no local cache restored"

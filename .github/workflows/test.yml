@@ -1,24 +1,32 @@
-# `just ci` (tidy, zig build test, zig build check) as parallel jobs. The logic lives in etc/:
-# etc/ci/baseline.sh finds the last green commit, etc/scripts/ci-shards.py plans the steps the
-# push's diff from it affects and deals them to shards by etc/ci/costs.tsv, etc/ci/shard.sh
-# runs a shard. Keep this file thin (AGENTS.md rule 9). A plan that fits one shard runs in the
-# plan job itself; tidy runs beside it. The run's conclusion is the status (etc/ci/README.md).
+# `just ci` (tidy, zig build test, zig build check) on every push to main and every pull
+# request, as at most 6 jobs. The logic lives in etc/ (etc/ci/README.md): etc/ci/baseline.sh
+# finds the last green commit on main, etc/scripts/ci-shards.py plans tidy and the steps the
+# diff from it affects and deals them to shards, etc/ci/shard.sh runs a shard. A plan of one
+# shard (every docs, CI-plumbing or leaf change) runs in the plan job itself: one job. Shards
+# restore the nightly compile cache (nightly.yml); nothing here saves one. Keep this thin
+# (AGENTS.md rule 9). The run's conclusion is the status.
 name: test
 
 on:
   push:
-    branches: [main, "ci-shards/**"]
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
-  group: test-${{ github.ref }}
+  group: test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
 
+env:
+  ZIG_CPU: x86_64_v3 # etc/ci/shard.sh; the nightly compile cache is built for it
+
 jobs:
   plan:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       actions: read # etc/ci/baseline.sh finds the last green run
@@ -29,20 +37,31 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: restore refreshed costs
+        # The cost table nightly.yml measured from recent green runs; the plan falls back to
+        # etc/ci/costs.tsv without it.
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/ci-costs
+          key: ci-costs-v1-${{ github.sha }}
+          restore-keys: ci-costs-v1-
       - name: plan
         id: plan
         env:
           GH_TOKEN: ${{ github.token }}
-          BRANCH: ${{ github.ref_name }}
-        # Against the last commit whose run passed on this branch (etc/ci/baseline.sh says why);
-        # with none, every step.
+          BRANCH: ${{ github.base_ref || github.ref_name }}
+          CI_SHARDS_COSTS: ${{ runner.temp }}/ci-costs/costs.tsv
+        # Against the last commit whose push run passed on main (a pull request: its base
+        # branch); etc/ci/baseline.sh says why. With none, every step.
         run: |
           base=$(bash etc/ci/baseline.sh "$GITHUB_REPOSITORY" "$BRANCH" test.yml)
-          python3 -I etc/scripts/ci-shards.py plan "$base" HEAD 16 >> "$GITHUB_OUTPUT"
+          python3 -I etc/scripts/ci-shards.py plan "$base" HEAD 6 >> "$GITHUB_OUTPUT"
       - if: steps.plan.outputs.count == '1'
         uses: ./.github/actions/zig
       - name: build runner
-        if: steps.plan.outputs.count == '1'
+        if: >-
+          steps.plan.outputs.count == '1' &&
+          fromJSON(steps.plan.outputs.matrix).include[0].steps != 'tidy'
         # Compiles the build runner; the listing shows build.zig's groups, which ci-shards.py
         # prices: `groups` fails unless they are the same.
         run: |
@@ -56,29 +75,12 @@ jobs:
           # shellcheck disable=SC2086 # one step name per word
           bash etc/ci/shard.sh $STEPS
 
-  tidy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: restore zig
-        id: zig
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/zig
-          key: zig-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('etc/scripts/install-zig.sh') }}
-      - name: install zig
-        if: steps.zig.outputs.cache-hit != 'true'
-        run: sh etc/scripts/install-zig.sh "$HOME/zig"
-      - name: tidy
-        run: PATH="$HOME/zig:$PATH" bash etc/scripts/tidy.sh
-
   shard:
     name: shard ${{ matrix.shard }}
     needs: plan
     if: fromJSON(needs.plan.outputs.count) > 1
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
@@ -87,6 +89,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/zig
+        with:
+          local-cache: restore
       - name: build runner
         run: |
           zig build -l -Drequire-io-uring=true > "$RUNNER_TEMP/steps.txt"

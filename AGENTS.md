@@ -9,8 +9,10 @@ Read this whole file before you change anything. These rules are not optional.
 
 ## Hard rules
 
-1. **Push straight to `main`.** No branches on the remote, no pull requests.
-   Your local worktree may sit on any local branch, but you publish with:
+1. **Maintainers push straight to `main`.** No branches on the remote. Only a maintainer
+   (`.smithers/factory.json` `maintainers`) pushes; a contributor or agent hands its change
+   to one, as a patch or a pull request, and never pushes, approves or merges. A maintainer's
+   local worktree may sit on any local branch, but they publish with:
    ```sh
    git fetch origin main && git rebase origin/main
    zig build test && just tidy        # must pass
@@ -48,12 +50,12 @@ Read this whole file before you change anything. These rules are not optional.
    `pub`). Shared files (`build.zig`, `src/base.zig`, `src/*/root.zig`, `Justfile`,
    `README.md`) take small, additive edits; resolve rebase conflicts by keeping both.
 9. **Workflow logic lives in `etc/`; `.github/workflows/` stays thin.** On this repository
-   GitHub Actions runs `.github/workflows/test.yml`: `just ci` as parallel shards on every push
-   to `main`. Its logic is `etc/scripts/ci-shards.py`, `etc/ci/shard.sh` and the cost table
-   `etc/ci/costs.tsv`; change those, not the workflow. An https push token without workflow
-   scope cannot push a change under `.github/workflows/` (GitHub rejects it): such a change
-   goes over ssh, by a maintainer. `etc/ci/ci.yml` (release-safe tests, simulator swarm, fuzz)
-   is a template that is not enabled.
+   GitHub Actions runs `.github/workflows/test.yml`: `just ci` as at most 6 shards on every
+   push to `main` and every pull request; and `.github/workflows/nightly.yml`: ReleaseSafe
+   tests, the simulator swarm, fuzzing, macOS and the CI caches, once a day. Their logic is
+   `etc/scripts/ci-shards.py` and `etc/ci/` (`etc/ci/README.md`); change those, not the
+   workflows. A token without workflow scope cannot push a change under `.github/workflows/`
+   (GitHub rejects it): such a change goes through a maintainer.
 10. **No flashblocks. Native 200 ms blocks.** The project owner decided needlefish does not
    implement flashblocks (no flashblock stream, websocket feed, or pending-flashblock RPC).
    L2 blocks are full blocks built by a regular block builder at Base's native subsecond
