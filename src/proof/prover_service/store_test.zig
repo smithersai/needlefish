@@ -294,10 +294,12 @@ fn check_invariants(store: *Store, workers: []ModelWorker, now_ns: u64) !void {
         try testing.expect(job.retry_count <= store.config.max_proof_retries);
         if (job.state != .claimed) continue;
         try testing.expect(job.lock_id.len > 0 and job.worker_id.len > 0);
-        // A live lease is authorized for exactly one worker.
+        // A live lease is authorized for exactly one worker. Count only the leases on this
+        // job: a worker holding another job's live lease is authorized there, not here.
         var holders: u32 = 0;
         for (workers) |*worker| {
             const lease = worker.view() orelse continue;
+            if (!std.mem.eql(u8, lease.session_id, job.session_id())) continue;
             if (store.authorize(&lease, now_ns).auth == .authorized) holders += 1;
         }
         try testing.expect(holders <= 1);
@@ -305,6 +307,36 @@ fn check_invariants(store: *Store, workers: []ModelWorker, now_ns: u64) !void {
     }
 }
 
+/// One `Smith` value in a corpus entry, which `Smith` replays literally: eight
+/// little-endian bytes.
+fn word(value: u64) [8]u8 {
+    var bytes: [8]u8 = undefined;
+    std.mem.writeInt(u64, &bytes, value, .little);
+    assert(std.mem.readInt(u64, &bytes, .little) == value);
+    assert(bytes.len == @sizeOf(u64));
+    return bytes;
+}
+
+/// One `fuzz_store` step in a corpus entry: a zero `eos` byte (go on), then the worker,
+/// session and operation.
+fn step(worker: u64, session: u64, operation: u64) [25]u8 {
+    assert(worker < 3 and session < sessions.len);
+    assert(operation <= 8);
+    return [_]u8{0} ++ word(worker) ++ word(session) ++ word(operation);
+}
+
+/// Two live leases at once: create s0 and s1 (start 10, no retry), then w0 claims s0 and w1
+/// claims s1. Each lease is authorized for its own job only.
+const two_leases = two_leases: {
+    const create = word(0) ++ word(0);
+    break :two_leases word(0) ++ step(0, 0, 0) ++ create ++ step(0, 1, 0) ++ create ++
+        step(0, 0, 1) ++ step(1, 0, 1);
+};
+
 test "prover service store: fuzz state machine" {
-    try fuzz.run({}, fuzz_store, .{ .iterations = 512, .input_size_max = 512 });
+    try fuzz.run({}, fuzz_store, .{
+        .iterations = 512,
+        .input_size_max = 512,
+        .corpus = &.{&two_leases},
+    });
 }
