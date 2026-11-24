@@ -54,8 +54,8 @@
     },
     {
       "id": "pr-triage",
-      "description": "Triage one needlefish pull request for scope, TigerStyle, zero dependencies, determinism, and test coverage from its diff alone.",
-      "summary": "Triage one pull request from its diff without approving or merging.",
+      "description": "Triage one contributed needlefish patch (a Smithers Change or a GitHub pull request) for scope, TigerStyle, zero dependencies, determinism, and test coverage from its diff alone.",
+      "summary": "Triage one contributed patch from its diff; only a maintainer pushes to main.",
       "featured": true,
       "kind": "mdx",
       "path": ".smithers/flows/pr-triage/flow.mdx",
@@ -146,7 +146,7 @@
   "github": {
     "mirror": "pull",
     "issues": "two-way",
-    "changes": "send-upstream",
+    "changes": "none",
     "maintainers": [
       "roninjin10"
     ]

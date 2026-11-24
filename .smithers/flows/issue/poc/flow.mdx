@@ -25,4 +25,4 @@ Read `AGENTS.md` and `docs/TIGER_STYLE.md` before you edit, and the lane file in
 3. Route any clock, socket, file, or randomness access through `utilities.io` so the simulator can replace it.
 4. Run `zig fmt`, the filtered test, `zig build test`, and `just tidy`. Report each command and its observed result.
 
-Never add a dependency to `build.zig.zon`, link a C library, add flashblocks code, copy non-public material, or commit a secret, home path, or email address. Never disable, skip, or weaken a test. Do not push, post comments, close issues, or merge. Report the changed files, the test results, the invariants you asserted, and what remains before the change lands on `main`.
+Never add a dependency to `build.zig.zon`, link a C library, add flashblocks code, copy non-public material, or commit a secret, home path, or email address. Never disable, skip, or weaken a test. Do not push, open a pull request, post comments, close issues, approve, or merge: only a maintainer verifies the change and pushes it straight to `main`. Report the changed files, the test results, the invariants you asserted, and what the maintainer must check before pushing it.

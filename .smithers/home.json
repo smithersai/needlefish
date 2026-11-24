@@ -52,8 +52,12 @@
               "text": "A unit test, seeded fuzz case, or simulator seed next to the code, red before the fix."
             },
             {
-              "title": "Keep main green",
-              "text": "zig build test and just tidy pass. Zero dependencies, TigerStyle, no flashblocks. A maintainer merges."
+              "title": "Submit a Change",
+              "text": "zig build test and just tidy pass. Zero dependencies, TigerStyle, no flashblocks. checks/review reviews it."
+            },
+            {
+              "title": "A maintainer pushes to main",
+              "text": "Only maintainers push, straight to main. Contributors and agents never push, approve, or merge."
             }
           ]
         },
@@ -94,10 +98,6 @@
             {
               "label": "Issues",
               "url": "https://smithers.sh/smithersai/needlefish/issues"
-            },
-            {
-              "label": "Pull requests",
-              "url": "https://smithers.sh/smithersai/needlefish/pulls"
             },
             {
               "label": "Agent rules (AGENTS.md)",
