@@ -1,0 +1,154 @@
+{
+  "summary": "How smithersai/needlefish reproduces, fixes, and reviews its Zig rewrite of the Base L2 node stack.",
+  "flows": [
+    {
+      "id": "issue/repro",
+      "description": "Validate and minimally reproduce a needlefish bug report with a Zig test, a simulator seed, or a replay window before any fix.",
+      "summary": "Reproduce one issue with a filtered Zig test, a simulator seed, or an offline replay.",
+      "featured": true,
+      "kind": "mdx",
+      "path": ".smithers/flows/issue/repro/flow.mdx",
+      "capabilities": [
+        "fs:read:**",
+        "proc:spawn:rg *",
+        "proc:spawn:zig build test*",
+        "proc:spawn:zig build sim*",
+        "proc:spawn:just test*",
+        "proc:spawn:just sim*",
+        "proc:spawn:just fuzz-soak*",
+        "proc:spawn:just replay-run*"
+      ],
+      "model": "repository/research",
+      "modelInvocable": true,
+      "flows": [],
+      "budget": {
+        "tokens": 48000,
+        "milliseconds": 600000
+      }
+    },
+    {
+      "id": "issue/poc",
+      "description": "Write the failing Zig test or simulator seed and the smallest fix for a maintainer-accepted needlefish issue.",
+      "summary": "Write the failing test and the smallest TigerStyle fix for an accepted issue.",
+      "featured": true,
+      "kind": "mdx",
+      "path": ".smithers/flows/issue/poc/flow.mdx",
+      "capabilities": [
+        "fs:read:**",
+        "fs:write:**",
+        "proc:spawn:rg *",
+        "proc:spawn:zig build*",
+        "proc:spawn:zig fmt*",
+        "proc:spawn:just test*",
+        "proc:spawn:just sim*",
+        "proc:spawn:just fuzz-soak*",
+        "proc:spawn:just tidy"
+      ],
+      "model": "coding/poc",
+      "modelInvocable": true,
+      "flows": [],
+      "budget": {
+        "tokens": 64000,
+        "milliseconds": 900000
+      }
+    },
+    {
+      "id": "pr-triage",
+      "description": "Triage one needlefish pull request for scope, TigerStyle, zero dependencies, determinism, and test coverage from its diff alone.",
+      "summary": "Triage one pull request from its diff without approving or merging.",
+      "featured": true,
+      "kind": "mdx",
+      "path": ".smithers/flows/pr-triage/flow.mdx",
+      "capabilities": [
+        "fs:read:**",
+        "proc:spawn:rg *"
+      ],
+      "model": "repository/research",
+      "modelInvocable": true,
+      "flows": [],
+      "budget": {
+        "tokens": 48000,
+        "milliseconds": 600000
+      }
+    },
+    {
+      "id": "checks/review",
+      "description": "Review a needlefish Change through its TigerStyle, determinism, zero-dependency, and protocol-correctness lenses and return findings bound to its commit.",
+      "summary": "Six-lens review: tests, TigerStyle, determinism, Zig, protocol, policy.",
+      "featured": true,
+      "kind": "mdx",
+      "path": ".smithers/flows/checks/review/flow.mdx",
+      "capabilities": [
+        "fs:read:**"
+      ],
+      "model": null,
+      "modelInvocable": true,
+      "flows": []
+    },
+    {
+      "id": "dst/seed",
+      "description": "Replay a failing deterministic simulation seed, shrink it, and name the component and invariant it breaks.",
+      "summary": "Replay, shrink, and locate one failing simulation seed.",
+      "featured": true,
+      "kind": "mdx",
+      "path": ".smithers/flows/dst/seed/flow.mdx",
+      "capabilities": [
+        "fs:read:**",
+        "proc:spawn:rg *",
+        "proc:spawn:zig build sim*",
+        "proc:spawn:just sim*"
+      ],
+      "model": "repository/research",
+      "modelInvocable": true,
+      "flows": [],
+      "budget": {
+        "tokens": 48000,
+        "milliseconds": 900000
+      }
+    },
+    {
+      "id": "spec/parity",
+      "description": "Compare one needlefish module with its base/base counterpart and the public specs, and list behavior gaps as test cases.",
+      "summary": "List one module's behavior gaps against base/base and the specs.",
+      "featured": true,
+      "kind": "mdx",
+      "path": ".smithers/flows/spec/parity/flow.mdx",
+      "capabilities": [
+        "fs:read:**",
+        "proc:spawn:rg *"
+      ],
+      "model": "repository/research",
+      "modelInvocable": true,
+      "flows": [],
+      "budget": {
+        "tokens": 64000,
+        "milliseconds": 900000
+      }
+    }
+  ],
+  "on": [
+    {
+      "event": "issue.labeled:todo",
+      "flow": "issue/poc",
+      "description": "Write a failing test and fix for every maintainer-accepted TODO"
+    },
+    {
+      "event": "change.opened",
+      "flow": "checks/review",
+      "description": "Review every Change through needlefish's six lenses"
+    },
+    {
+      "event": "change.updated",
+      "flow": "checks/review",
+      "description": "Re-review every updated Change"
+    }
+  ],
+  "github": {
+    "mirror": "pull",
+    "issues": "two-way",
+    "changes": "send-upstream",
+    "maintainers": [
+      "roninjin10"
+    ]
+  }
+}

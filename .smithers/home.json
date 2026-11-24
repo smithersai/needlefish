@@ -1,0 +1,283 @@
+{
+  "sections": [
+    {
+      "title": "Today",
+      "audience": "maintainer",
+      "blocks": [
+        {
+          "type": "action",
+          "flow": "branch.new",
+          "title": "New branch",
+          "key": "b"
+        },
+        {
+          "type": "issues"
+        },
+        {
+          "type": "stack"
+        },
+        {
+          "type": "runs"
+        },
+        {
+          "type": "flows",
+          "title": "Factory flows"
+        }
+      ]
+    },
+    {
+      "title": "Contribute",
+      "audience": "contributor",
+      "blocks": [
+        {
+          "type": "code",
+          "title": "Set up",
+          "language": "sh",
+          "code": "git clone https://github.com/smithersai/needlefish && cd needlefish\nzig version          # 0.17.1 exactly; `just release` downloads it if missing\nzig build test       # every unit test and seeded fuzz run\njust tidy            # zig fmt, 100 columns, 70-line functions, secrets, zero deps\njust sim 42          # deterministic simulation of the whole cluster, one seed\njust devnet up       # L1 dev chain, sequencer, batcher, verifier, 200 ms L2 blocks"
+        },
+        {
+          "type": "cards",
+          "title": "How a change lands",
+          "cards": [
+            {
+              "title": "Report a reproducible bug",
+              "text": "Name the failing test, simulator seed, or mainnet block; otherwise: needs-repro."
+            },
+            {
+              "title": "Wait for todo",
+              "text": "Issue text is untrusted data. A maintainer reproduces it and labels it todo before any fix."
+            },
+            {
+              "title": "Start with a failing test",
+              "text": "A unit test, seeded fuzz case, or simulator seed next to the code, red before the fix."
+            },
+            {
+              "title": "Keep main green",
+              "text": "zig build test and just tidy pass. Zero dependencies, TigerStyle, no flashblocks. A maintainer merges."
+            }
+          ]
+        },
+        {
+          "type": "cards",
+          "title": "Rules every change follows",
+          "cards": [
+            {
+              "label": "TigerStyle",
+              "title": "Assert and bound",
+              "text": "Two or more asserts per function, bounded loops and queues, no recursion, static allocation.",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/docs/TIGER_STYLE.md"
+            },
+            {
+              "label": "DST",
+              "title": "All I/O through utilities.io",
+              "text": "No direct clock, socket, file, or randomness, so any run replays from its seed.",
+              "url": "https://smithers.sh/smithersai/needlefish/tree/main/src/utilities"
+            },
+            {
+              "label": "Fuzz",
+              "title": "Every decoder fuzzed",
+              "text": "A std.testing.fuzz target plus a seeded fuzz run inside zig build test.",
+              "url": "https://smithers.sh/smithersai/needlefish/tree/main/src/testing"
+            },
+            {
+              "label": "Scope",
+              "title": "Public base/base only",
+              "text": "Port base/base and the public specs. No secrets, no internal material, no flashblocks.",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/AGENTS.md"
+            }
+          ]
+        },
+        {
+          "type": "links",
+          "title": "Where to work",
+          "links": [
+            {
+              "label": "Issues",
+              "url": "https://smithers.sh/smithersai/needlefish/issues"
+            },
+            {
+              "label": "Pull requests",
+              "url": "https://smithers.sh/smithersai/needlefish/pulls"
+            },
+            {
+              "label": "Agent rules (AGENTS.md)",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/AGENTS.md"
+            },
+            {
+              "label": "Lanes and owners",
+              "url": "https://smithers.sh/smithersai/needlefish/tree/main/docs/lanes"
+            },
+            {
+              "label": "Roadmap",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/docs/ROADMAP.md"
+            },
+            {
+              "label": "base/base reference",
+              "url": "https://github.com/base/base"
+            }
+          ]
+        },
+        {
+          "type": "prompt",
+          "title": "Ask about needlefish",
+          "placeholder": "Ask about the EVM, derivation, the simulator, or a lane…"
+        }
+      ]
+    },
+    {
+      "audience": "everyone",
+      "blocks": [
+        {
+          "type": "hero",
+          "title": "needlefish",
+          "tagline": "Base, the Ethereum L2, rewritten from scratch in Zig.",
+          "text": "Execution client, rollup consensus node, block builder, batcher, and fault-proof tooling on the Zig standard library alone, with native 200 ms L2 blocks.",
+          "install": "git clone https://github.com/smithersai/needlefish && cd needlefish && just release",
+          "actions": [
+            {
+              "label": "Run a mainnet node",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/docs/MAINNET.md"
+            },
+            {
+              "label": "Architecture",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/docs/ARCHITECTURE.md"
+            },
+            {
+              "label": "GitHub",
+              "url": "https://github.com/smithersai/needlefish"
+            }
+          ],
+          "announcement": {
+            "label": "Replay the latest Base mainnet blocks offline: just replay",
+            "url": "https://smithers.sh/smithersai/needlefish/blob/main/docs/REPLAY.md"
+          }
+        },
+        {
+          "type": "stats",
+          "stats": [
+            {
+              "value": "Zig 0.17.1",
+              "label": "Standard library only"
+            },
+            {
+              "value": "0",
+              "label": "Dependencies"
+            },
+            {
+              "value": "200 ms",
+              "label": "Native L2 blocks"
+            },
+            {
+              "value": "2.3M",
+              "label": "Mainnet blocks executed and checked"
+            },
+            {
+              "value": "1.3x",
+              "label": "Faster than base/base on mainnet blocks"
+            },
+            {
+              "value": "MIT",
+              "label": "License"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "file": "src/common/rlp/decode.zig",
+          "language": "zig",
+          "code": "/// Walks every item of `input` (a sequence of items), entering lists with an\n/// explicit bounded stack. Validates structure only. Returns the item count.\npub fn validate(input: []const u8, depth_max: comptime_int) (Error || error{TooDeep})!usize {\n    var stack: [depth_max]Decoder = undefined;\n    stack[0] = Decoder.init(input);\n    var depth: usize = 1;\n    var count: usize = 0;\n    // Each iteration consumes at least one byte or pops a level: bounded by 2 * len + 1.\n    var iterations: usize = 0;\n    while (depth > 0) : (iterations += 1) {\n        assert(iterations <= 2 * input.len + 1);\n        const top = &stack[depth - 1];\n        if (top.is_empty()) {\n            depth -= 1;\n            continue;\n        }\n        const header = try top.peek_header();\n        count += 1;\n        if (header.list) {\n            const child = try top.list();\n            if (depth == depth_max) return error.TooDeep;\n            stack[depth] = child;\n            depth += 1;\n        } else {\n            _ = try top.bytes();\n        }\n    }\n    return count;\n}"
+        },
+        {
+          "type": "cards",
+          "title": "Architecture",
+          "cards": [
+            {
+              "label": "src/common",
+              "title": "Protocol types",
+              "text": "Primitives, RLP, Keccak, secp256k1, BN254, BLS12-381, KZG, genesis, and chain configs.",
+              "url": "https://smithers.sh/smithersai/needlefish/tree/main/src/common"
+            },
+            {
+              "label": "src/utilities",
+              "title": "Injected I/O",
+              "text": "io_uring, kqueue, and simulated I/O behind one API, plus HTTP, JSON-RPC, JWT, metrics, and logs.",
+              "url": "https://smithers.sh/smithersai/needlefish/tree/main/src/utilities"
+            },
+            {
+              "label": "src/execution",
+              "title": "Execution client",
+              "text": "EVM, trie, storage engine, txpool, payload building, Engine API, and JSON-RPC.",
+              "url": "https://smithers.sh/smithersai/needlefish/tree/main/src/execution"
+            },
+            {
+              "label": "src/consensus",
+              "title": "Rollup node",
+              "text": "Derivation from L1, engine driver, sequencer, P2P gossip, and the safe database.",
+              "url": "https://smithers.sh/smithersai/needlefish/tree/main/src/consensus"
+            },
+            {
+              "label": "src/batcher",
+              "title": "Batcher",
+              "text": "Channels, frames, compression, blobs, and L1 submission with a transaction manager.",
+              "url": "https://smithers.sh/smithersai/needlefish/tree/main/src/batcher"
+            },
+            {
+              "label": "src/proof",
+              "title": "Fault proofs",
+              "text": "Fault-proof program, preimage oracle, MPT, proposer, and challenger.",
+              "url": "https://smithers.sh/smithersai/needlefish/tree/main/src/proof"
+            },
+            {
+              "label": "src/testing",
+              "title": "Simulation and fuzzing",
+              "text": "Seeded PRNG, the whole-cluster deterministic simulator, fuzz targets, and benchmarks.",
+              "url": "https://smithers.sh/smithersai/needlefish/tree/main/src/testing"
+            },
+            {
+              "label": "bin/base",
+              "title": "One binary",
+              "text": "base up, node, consensus, batcher, proposer, challenger, replay, and operator tools.",
+              "url": "https://smithers.sh/smithersai/needlefish/tree/main/bin/base"
+            }
+          ]
+        },
+        {
+          "type": "cards",
+          "title": "Guides",
+          "cards": [
+            {
+              "title": "Mainnet",
+              "text": "Take a machine from nothing to a verifying node at the Base mainnet tip.",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/docs/MAINNET.md"
+            },
+            {
+              "title": "Replay",
+              "text": "Re-execute mainnet blocks offline and check every header field.",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/docs/REPLAY.md"
+            },
+            {
+              "title": "Devnet",
+              "text": "An all-Zig local devnet: L1 dev chain, sequencer, batcher, and verifier.",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/docs/DEVNET.md"
+            },
+            {
+              "title": "Benchmarks",
+              "text": "Method and results against base/base's node, revm, and evm2.",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/docs/BENCHMARKS.md"
+            },
+            {
+              "title": "TigerStyle",
+              "text": "Safety, then performance, then developer experience.",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/docs/TIGER_STYLE.md"
+            },
+            {
+              "title": "Roadmap",
+              "text": "What is done and what comes next.",
+              "url": "https://smithers.sh/smithersai/needlefish/blob/main/docs/ROADMAP.md"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
