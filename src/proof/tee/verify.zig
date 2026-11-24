@@ -159,6 +159,16 @@ test "tee verify: a signed receipt recovers its signer" {
     try testing.expectError(error.InvalidSignature, recover_signer(&result, &fixture.expected));
 }
 
+/// The recovery parity `v` stands for (`crypto.recover_address`): 0 and 27 are one, 1 and 28
+/// the other; any other value is no signature.
+fn v_parity(v: u8) ?u1 {
+    return switch (v) {
+        0, 27 => 0,
+        1, 28 => 1,
+        else => null,
+    };
+}
+
 test "tee verify: fuzz tampered receipts never verify" {
     const Context = struct {
         signer: crypto.Signer,
@@ -168,12 +178,25 @@ test "tee verify: fuzz tampered receipts never verify" {
             var signature = fixture.signature;
             const index = smith.index(crypto.signature_length);
             signature[index] ^= smith.valueRangeAtMost(u8, 1, 255);
+            assert(!std.mem.eql(u8, &signature, &fixture.signature));
             fixture.result.aggregate_proposal.signature = &signature;
             const recovered = recover_signer(&fixture.result, &fixture.expected);
-            try testing.expect(std.meta.isError(recovered));
+            // Moving `v` between 0 and 27 (or 1 and 28) writes the same signature another
+            // way, which still verifies; every other change must not.
+            const v = fixture.signature[crypto.signature_length - 1];
+            const v_tampered = signature[crypto.signature_length - 1];
+            const parity = v_parity(v_tampered);
+            const same_parity = parity != null and parity == v_parity(v);
+            if (index == crypto.signature_length - 1 and same_parity) {
+                try testing.expectEqual(context.signer.address, try recovered);
+            } else {
+                try testing.expect(std.meta.isError(recovered));
+            }
         }
     };
     const key: [32]u8 = @splat(0x33);
     const context: Context = .{ .signer = try crypto.Signer.from_bytes(&key) };
-    try fuzz.run(&context, Context.run, .{ .iterations = 64 });
+    // The input the coverage-guided fuzzer saved: byte 64 (`v`) XOR 27.
+    const v_xor_27 = [_]u8{ 0x40, 0, 0, 0, 0, 0, 0, 0, 0x1b, 0, 0, 0, 0, 0, 0, 0 };
+    try fuzz.run(&context, Context.run, .{ .iterations = 64, .corpus = &.{&v_xor_27} });
 }
