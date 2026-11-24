@@ -84,7 +84,8 @@ jobs:
 
   release-safe:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # 102 minutes in run 45311462122, cancelled at 120 in run 45369293255 (runner speed varies).
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -95,7 +96,8 @@ jobs:
 
   swarm:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # 105 and 98 minutes for 20500 seeds in runs 45311462122 and 45369293255.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
