@@ -12,10 +12,11 @@
 //! signatures) are left null and the executor recovers (and rejects) them inline.
 //!
 //! A futex is a synchronization primitive, not I/O: the calls go straight to the OS
-//! through `std.Io.Threaded`. Without a pool (DST, the simulator) the caller recovers.
+//! (`utilities/futex`). Without a pool (DST, the simulator) the caller recovers.
 
 const std = @import("std");
 const assert = std.debug.assert;
+const futex = @import("utilities/futex");
 const consensus = @import("common/consensus");
 const primitives = @import("common/primitives");
 
@@ -270,17 +271,8 @@ pub fn recover(
     pipeline.finish();
 }
 
-fn futex_io() std.Io {
-    return std.Io.Threaded.global_single_threaded.io();
-}
-
-fn futex_wait(word: *const std.atomic.Value(u32), expected: u32) void {
-    futex_io().futexWaitUncancelable(u32, &word.raw, expected);
-}
-
-fn futex_wake(word: *const std.atomic.Value(u32), waiters_max: u32) void {
-    futex_io().futexWake(u32, &word.raw, waiters_max);
-}
+const futex_wait = futex.wait;
+const futex_wake = futex.wake;
 
 fn recover_range(raws: []const []const u8, out: []?Address, recoverer: consensus.Recoverer) void {
     assert(raws.len == out.len);

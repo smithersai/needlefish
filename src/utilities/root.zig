@@ -21,6 +21,7 @@ pub const balance_monitor = @import("utilities/balance_monitor");
 pub const l1_head = @import("utilities/l1_head");
 pub const upgrade_signal = @import("utilities/upgrade_signal");
 pub const lazy_alloc = @import("utilities/lazy_alloc");
+pub const futex = @import("utilities/futex");
 
 test {
     std.testing.refAllDecls(@This());

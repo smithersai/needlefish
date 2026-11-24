@@ -171,6 +171,7 @@ test:testing/prng	0.6	0.0
 test:testing/sim	18.0	7.0,3.0,1.0,7.0,6.0,4.0,0.0,0.0,2.0,3.0,1.0,2.0,6.0,0.3,4.0,2.0
 test:utilities/balance_monitor	0.6	0.0
 test:utilities/cli	0.6	0.0
+test:utilities/futex	0.5	0.0
 test:utilities/health	0.4	0.0
 test:utilities/http	0.6	0.3
 test:utilities/io	0.5	0.4

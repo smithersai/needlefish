@@ -1361,6 +1361,7 @@
             "execution/txpool",
             "testing/bench",
             "testing/prng",
+            "utilities/futex",
             "utilities/http",
             "utilities/json",
             "utilities/lazy_alloc",
@@ -1445,6 +1446,7 @@
             "common/crypto",
             "common/rlp",
             "testing/prng",
+            "utilities/futex",
             "utilities/lazy_alloc",
         },
     },
@@ -2032,6 +2034,7 @@
         .deps = .{
             "utilities/balance_monitor",
             "utilities/cli",
+            "utilities/futex",
             "utilities/health",
             "utilities/http",
             "utilities/io",
@@ -2062,6 +2065,7 @@
         },
     },
     .{ .name = "utilities/cli", .deps = .{"testing/prng"} },
+    .{ .name = "utilities/futex", .deps = .{} },
     .{ .name = "utilities/health", .deps = .{ "utilities/http", "utilities/json" } },
     .{
         .name = "utilities/http",

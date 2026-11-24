@@ -18,11 +18,12 @@
 //! split and any thread count.
 //!
 //! A futex is a synchronization primitive, not I/O: the futex calls go straight to the OS
-//! through `std.Io.Threaded` (they ignore its state). With zero threads nothing here runs,
-//! which is how DST and the simulator use it.
+//! (`utilities/futex`). With zero threads nothing here runs, which is how DST and the
+//! simulator use it.
 
 const std = @import("std");
 const assert = std.debug.assert;
+const futex = @import("utilities/futex");
 
 /// Upper bound on worker threads.
 pub const threads_max = 16;
@@ -146,14 +147,5 @@ pub const RehashPool = struct {
     }
 };
 
-fn futex_io() std.Io {
-    return std.Io.Threaded.global_single_threaded.io();
-}
-
-fn futex_wait(word: *const std.atomic.Value(u32), expected: u32) void {
-    futex_io().futexWaitUncancelable(u32, &word.raw, expected);
-}
-
-fn futex_wake(word: *const std.atomic.Value(u32), waiters_max: u32) void {
-    futex_io().futexWake(u32, &word.raw, waiters_max);
-}
+const futex_wait = futex.wait;
+const futex_wake = futex.wake;

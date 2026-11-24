@@ -2,7 +2,7 @@
 //! `-Dtest-shards=false` gives every binary Zig's default runner instead).
 //!
 //! This is Zig 0.17.1's default test runner (lib/compiler/test_runner.zig; MIT License,
-//! Copyright (c) Zig contributors) plus two changes. First, one argument, `--shard=K/N`: run
+//! Copyright (c) Zig contributors) plus three changes. First, one argument, `--shard=K/N`: run
 //! only the tests whose full name hashes to shard K of N (FNV-1a 64 of the name, modulo N).
 //! build.zig compiles a slow package's tests once and runs that binary N times in parallel,
 //! one shard each, so the run costs its slowest shard instead of the sum of every test. A
@@ -15,6 +15,9 @@
 //! error.<Name>` to stderr, then its error return trace if it has one. The default runner
 //! prints only the trace, and the build runner shows a failed test's stderr, so a test binary
 //! without debug info (no trace) reported only "failed without output".
+//!
+//! Third, a binary without debug info runs on `StderrIo`, not `std.Io.Threaded` (`lean_io`):
+//! an empty ReleaseSafe test binary then compiles in 1.0 s instead of 3.5 s.
 //!
 //! Not fuzzing. The build runner keeps fuzzing state per run step (a rebuild in fuzz mode,
 //! its workers, the cache files it recovers a crashing input from), and shards of one binary
@@ -58,7 +61,197 @@ var stdin_buffer: [4096]u8 = undefined;
 var stdout_buffer: [4096]u8 = undefined;
 var stdin_reader: Io.File.Reader = undefined;
 var stdout_writer: Io.File.Writer = undefined;
-const runner_threaded_io: Io = Io.Threaded.global_single_threaded.io();
+/// The runner's `Io`, and through `std_options_debug_io` the `Io` of `std.debug` (print,
+/// panic messages, error return traces). See `lean_io`.
+const runner_io: Io = if (lean_io) StderrIo.io else Io.Threaded.global_single_threaded.io();
+
+/// A binary stripped of debug info (every Debug test binary unless -Dtest-debug-info=true;
+/// see build.zig `test_root_module`) gives its runner and `std.debug` the small `StderrIo`
+/// instead of `std.Io.Threaded`. Naming `Threaded.io()` pulls Threaded's whole vtable (file
+/// systems, processes, DNS, sockets) into the binary: about 80k of an empty test binary's
+/// 96k lines of LLVM IR, a third of the compile of a ReleaseSafe test binary that tests KZG
+/// (batcher/txmgr). A binary whose code names Threaded (`std.testing.io`, say) still compiles
+/// it; worker pools use `utilities/futex` instead. A binary with debug info keeps Threaded,
+/// which opens the executable to print file:line and stack traces; `StderrIo` cannot.
+const lean_io = builtin.strip_debug_info and builtin.os.tag != .windows;
+
+pub const std_options_debug_io: Io = runner_io;
+pub const std_options_debug_threaded_io: ?*Io.Threaded =
+    if (lean_io) null else Io.Threaded.global_single_threaded;
+
+/// An `Io` that reads and writes open files (the build runner's stdin and stdout, stderr) and
+/// locks stderr for `std.debug`; everything else is `std.Io.failing`. It never cancels, so
+/// cancel protection is a no-op, and it does no terminal detection: stderr has no color.
+const StderrIo = struct {
+    const io: Io = .{ .userdata = null, .vtable = &vtable };
+
+    const vtable: Io.VTable = vtable: {
+        var table = Io.failing.vtable.*;
+        table.swapCancelProtection = swap_cancel_protection;
+        table.checkCancel = check_cancel;
+        table.operate = operate;
+        table.lockStderr = lock_stderr;
+        table.tryLockStderr = try_lock_stderr;
+        table.unlockStderr = unlock_stderr;
+        break :vtable table;
+    };
+
+    /// The id of the thread that holds stderr, plus one; 0 when no thread holds it.
+    var stderr_owner: std.atomic.Value(u64) = .init(0);
+    /// How many times the owner locked stderr (`std.debug` locks it recursively).
+    var stderr_lock_count: u32 = 0;
+    var stderr_writer: Io.File.Writer = .{
+        .io = io,
+        .interface = Io.File.Writer.initInterface(&.{}),
+        .file = .stderr(),
+        .mode = .streaming,
+    };
+
+    fn swap_cancel_protection(
+        userdata: ?*anyopaque,
+        new: Io.CancelProtection,
+    ) Io.CancelProtection {
+        assert(userdata == null);
+        _ = new;
+        return .unblocked;
+    }
+
+    fn check_cancel(userdata: ?*anyopaque) Io.Cancelable!void {
+        assert(userdata == null);
+    }
+
+    fn operate(userdata: ?*anyopaque, operation: Io.Operation) Io.Cancelable!Io.Operation.Result {
+        assert(userdata == null);
+        return switch (operation) {
+            .file_read_streaming => |o| .{ .file_read_streaming = read(o.file, o.data) },
+            .file_write_streaming => |o| .{
+                .file_write_streaming = write(o.file, o.header, o.data, o.splat),
+            },
+            else => Io.failingOperate(userdata, operation),
+        };
+    }
+
+    /// Reads into the first non-empty buffer of `data`.
+    fn read(file: Io.File, data: []const []u8) Io.Operation.FileReadStreaming.Error!usize {
+        const buffer = for (data) |buffer| {
+            if (buffer.len > 0) break buffer;
+        } else return 0;
+        assert(buffer.len > 0);
+        while (true) {
+            const rc = std.posix.system.read(file.handle, buffer.ptr, buffer.len);
+            switch (std.posix.errno(rc)) {
+                .SUCCESS => {
+                    const count: usize = @intCast(rc);
+                    assert(count <= buffer.len);
+                    if (count == 0) return error.EndOfStream;
+                    return count;
+                },
+                .INTR => continue,
+                .AGAIN => return error.WouldBlock,
+                .BADF => return error.NotOpenForReading,
+                .IO => return error.InputOutput,
+                .ISDIR => return error.IsDir,
+                .CONNRESET => return error.ConnectionResetByPeer,
+                else => |err| return std.posix.unexpectedErrno(err),
+            }
+        }
+    }
+
+    /// Writes the first non-empty piece of `header`, `data` and `splat` times the last of
+    /// `data`, so it returns how many bytes of those it consumed, as `Io.Writer.drain` does.
+    fn write(
+        file: Io.File,
+        header: []const u8,
+        data: []const []const u8,
+        splat: usize,
+    ) Io.Operation.FileWriteStreaming.Error!usize {
+        assert(data.len > 0);
+        const pattern = data[data.len - 1];
+        const bytes = bytes: {
+            if (header.len > 0) break :bytes header;
+            for (data[0 .. data.len - 1]) |piece| {
+                if (piece.len > 0) break :bytes piece;
+            }
+            if (splat > 0 and pattern.len > 0) break :bytes pattern;
+            return 0;
+        };
+        assert(bytes.len > 0);
+        while (true) {
+            const rc = std.posix.system.write(file.handle, bytes.ptr, bytes.len);
+            switch (std.posix.errno(rc)) {
+                .SUCCESS => {
+                    const count: usize = @intCast(rc);
+                    assert(count <= bytes.len);
+                    return count;
+                },
+                .INTR => continue,
+                .AGAIN => return error.WouldBlock,
+                .BADF => return error.NotOpenForWriting,
+                .PIPE => return error.BrokenPipe,
+                .IO => return error.InputOutput,
+                .NOSPC => return error.NoSpaceLeft,
+                .DQUOT => return error.DiskQuota,
+                .FBIG => return error.FileTooBig,
+                else => |err| return std.posix.unexpectedErrno(err),
+            }
+        }
+    }
+
+    fn current_owner() u64 {
+        const owner = @as(u64, std.Thread.getCurrentId()) +% 1;
+        assert(owner != 0);
+        return owner;
+    }
+
+    fn lock_stderr(
+        userdata: ?*anyopaque,
+        terminal_mode: ?Io.Terminal.Mode,
+    ) Io.Cancelable!Io.LockedStderr {
+        assert(userdata == null);
+        const owner = current_owner();
+        if (stderr_owner.load(.acquire) != owner) {
+            while (stderr_owner.cmpxchgWeak(0, owner, .acquire, .monotonic) != null) {
+                std.Thread.yield() catch std.atomic.spinLoopHint();
+            }
+            assert(stderr_lock_count == 0);
+        }
+        return locked(terminal_mode);
+    }
+
+    fn try_lock_stderr(
+        userdata: ?*anyopaque,
+        terminal_mode: ?Io.Terminal.Mode,
+    ) Io.Cancelable!?Io.LockedStderr {
+        assert(userdata == null);
+        const owner = current_owner();
+        if (stderr_owner.load(.acquire) != owner) {
+            if (stderr_owner.cmpxchgStrong(0, owner, .acquire, .monotonic) != null) return null;
+            assert(stderr_lock_count == 0);
+        }
+        return locked(terminal_mode);
+    }
+
+    fn locked(terminal_mode: ?Io.Terminal.Mode) Io.LockedStderr {
+        assert(stderr_owner.load(.monotonic) == current_owner());
+        stderr_lock_count += 1;
+        return .{
+            .file_writer = &stderr_writer,
+            .terminal_mode = terminal_mode orelse .no_color,
+        };
+    }
+
+    fn unlock_stderr(userdata: ?*anyopaque) void {
+        assert(userdata == null);
+        assert(stderr_owner.load(.monotonic) == current_owner());
+        assert(stderr_lock_count > 0);
+        if (stderr_writer.err == null) stderr_writer.interface.flush() catch {};
+        stderr_writer.err = null;
+        stderr_writer.interface.end = 0;
+        stderr_writer.interface.buffer = &.{};
+        stderr_lock_count -= 1;
+        if (stderr_lock_count == 0) stderr_owner.store(0, .release);
+    }
+};
 
 /// Indexes into `builtin.test_functions` of this run's tests, in binary order; allocated once
 /// at startup.
@@ -153,8 +346,8 @@ pub fn main(init: std.process.Init.Minimal) void {
 }
 
 fn main_server(init: std.process.Init.Minimal) !void {
-    stdin_reader = .initStreaming(.stdin(), runner_threaded_io, &stdin_buffer);
-    stdout_writer = .initStreaming(.stdout(), runner_threaded_io, &stdout_buffer);
+    stdin_reader = .initStreaming(.stdin(), runner_io, &stdin_buffer);
+    stdout_writer = .initStreaming(.stdout(), runner_io, &stdout_buffer);
     var server: std.zig.Server = .{
         .in = &stdin_reader.interface,
         .out = &stdout_writer.interface,
@@ -274,11 +467,13 @@ const Counts = struct {
 
 fn main_terminal(init: std.process.Init.Minimal) void {
     var counts: Counts = .{};
-    const root_node = std.Progress.start(runner_threaded_io, .{
+    // `StderrIo` cannot draw progress or detect a terminal: it prints each test's line.
+    const root_node = std.Progress.start(runner_io, .{
         .root_name = "Test",
         .estimated_total_items = shard_tests.len,
+        .disable_printing = lean_io,
     });
-    const have_tty = Io.File.stderr().isTty(runner_threaded_io) catch false;
+    const have_tty = !lean_io and (Io.File.stderr().isTty(runner_io) catch false);
 
     for (shard_tests, 0..) |test_index, position| {
         run_terminal_test(init, &counts, root_node, have_tty, test_index, position);

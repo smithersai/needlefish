@@ -16,6 +16,9 @@
 //!   zig build check:common/rlp compile one package's test binary without running it
 //!   zig build test:common/crypto@2/4  run the second quarter of a sharded package's shards
 //!                          (`test_group_counts`), so CI jobs can share one package
+//!   zig build test-bin:testing/sim  install one package's test binary, the one test:testing/sim
+//!                          runs, as zig-out/test/testing-sim: a CI job can compile it once and
+//!                          run each shard elsewhere as `testing-sim --shard=K/N` (no Zig needed)
 //!   `test` and `check` depend only on named steps (`ci_steps`), so CI can run them in parts
 //!   -Dtest-debug-info      Debug test binaries keep their debug info (see `test_root_module`):
 //!                          a failing test then prints file:line and its stack and error
@@ -404,9 +407,13 @@ fn add_package_tests(
         const compile_step = b.step(b.fmt("check:{s}", .{package.name}), compile_description);
         compile_step.dependOn(&unit_tests.step);
         check_step.dependOn(compile_step);
-        install_step.dependOn(&b.addInstallArtifact(unit_tests, .{
+        const install = b.addInstallArtifact(unit_tests, .{
             .dest_dir = .{ .override = .{ .custom = "test" } },
-        }).step);
+        });
+        install_step.dependOn(&install.step);
+        const install_name = b.fmt("test-bin:{s}", .{package.name});
+        const install_description = b.fmt("Install the {s} test binary in zig-out/test", .{name});
+        b.step(install_name, install_description).dependOn(&install.step);
     }
 }
 
