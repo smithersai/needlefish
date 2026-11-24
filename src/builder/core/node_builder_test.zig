@@ -223,6 +223,41 @@ test "node builder: an unresolved job expires and getPayload fails" {
     try testing.expectError(error.UnknownPayload, result);
 }
 
+test "node builder: getPayload after the head left the job's parent re-executes it" {
+    // `node builder: fuzz` regression: the import vouched the sealed block's senders for the
+    // parent re-executed on the way too, which failed the executor's sender-count assert.
+    const harness = try Harness.create();
+    defer harness.destroy();
+    var buffers: [3][256]u8 = undefined;
+    try harness.submit_pool(&buffers);
+    // Empty siblings on genesis, sealed at once.
+    var attributes = fixture.attributes_l2(2, 1);
+    attributes.no_tx_pool = true;
+    const left_id = (try harness.forkchoice_updated(genesis(harness), &attributes)).payload_id;
+    const left = (try harness.get_payload(left_id.?, 2)).block_hash;
+    attributes.suggested_fee_recipient.bytes[0] = 2;
+    const right_id = (try harness.forkchoice_updated(genesis(harness), &attributes)).payload_id;
+    const right = (try harness.get_payload(right_id.?, 2)).block_hash;
+    try testing.expect(!std.mem.eql(u8, &left.bytes, &right.bytes));
+    // A job on `left` that the timer fills from the pool; then the head moves to `right`.
+    attributes.timestamp = 3;
+    attributes.no_tx_pool = false;
+    const updated = try harness.forkchoice_updated(left, &attributes);
+    harness.world.run_for_ns(ns_per_ms);
+    try testing.expectEqual(@as(u64, 3), harness.service().metrics.blocks_sealed.get());
+    _ = try harness.forkchoice_updated(right, null);
+    try testing.expectEqualSlices(u8, &right.bytes, &harness.node.chain.state_hash);
+    // The import moves the state back to `left`, re-executing it with its own senders.
+    const built = try harness.get_payload(updated.payload_id.?, attributes.timestamp);
+    var list: [64][]const u8 = undefined;
+    const transactions = try block_transactions(harness.node, built.block_hash, &list);
+    try testing.expectEqual(@as(usize, 3), transactions.len);
+    const header = harness.node.chain.header(built.block_hash.bytes).?;
+    try testing.expectEqualSlices(u8, &left.bytes, &header.parent_hash.bytes);
+    const head = try harness.forkchoice_updated(built.block_hash, null);
+    try testing.expectEqual(types.Status.valid, head.payload_status.status);
+}
+
 const Model = struct {
     id: payload.PayloadId,
     parent: B256,

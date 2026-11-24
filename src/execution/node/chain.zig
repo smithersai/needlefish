@@ -512,6 +512,10 @@ pub const Chain = struct {
             .execution_requests = if (sealed.header.requests_hash != null) requests else null,
         };
         const known = chain.store.ref(sealed.block_hash.bytes) != null;
+        // The given senders are this block's only: reach the parent's state first, so a block
+        // re-executed on the way (the state moved off the parent since the seal) recovers
+        // its own.
+        if (!known) chain.move_state(sealed.header.parent_hash.bytes) catch return null;
         if (sealed.senders.len == sealed.transactions.len and sealed.senders.len > 0) {
             chain.executor.given_senders = sealed.senders;
         }
@@ -928,6 +932,8 @@ pub const Chain = struct {
     fn reexecute(chain: *Chain, hash: Hash) Error!void {
         var stored = chain.record(hash) orelse return error.StateUnavailable;
         assert(std.mem.eql(u8, &stored.header.parent_hash.bytes, &chain.state_hash));
+        // A stored block recovers its own senders; given ones belong to the block imported.
+        assert(chain.executor.given_senders == null);
         var count: usize = 0;
         while (!stored.transactions.is_empty()) : (count += 1) {
             if (count == chain.transactions_buffer.len) return error.TooManyTransactions;
