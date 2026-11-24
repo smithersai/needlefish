@@ -99,14 +99,19 @@ pub const RegistrationTaskSet = struct {
         return true;
     }
 
-    /// Consume a finished task's result, keyed by signer as in base/base.
+    /// Consume a finished task's result, keyed by signer as in base/base. `signer` may
+    /// point into `pending()`, as in a drain loop.
     pub fn complete(
         set: *RegistrationTaskSet,
         signer: *const types.Address,
         outcome: Outcome,
     ) void {
+        // base/base keys the removal by an owned `Address`. Copy the key: `remove_at`
+        // shifts the table, so a key read from `pending()` would name the next task.
+        const key: types.Address = signer.*;
         set.metrics.completed += 1;
-        const removed = set.remove_at(set.find(signer));
+        const removed = set.remove_at(set.find(&key));
+        assert(removed == null or std.mem.eql(u8, &removed.?.signer, &key));
         const was_cancelled = if (removed) |entry| entry.cancelled else false;
         switch (outcome) {
             .succeeded => if (was_cancelled) {
@@ -119,7 +124,7 @@ pub const RegistrationTaskSet = struct {
                 set.metrics.processing_errors += 1;
             },
         }
-        assert(set.find(signer) == null);
+        assert(set.find(&key) == null);
     }
 
     /// A task that panicked or was aborted: remove it by task id.
@@ -208,6 +213,22 @@ test "registrar tasks: repeated cancel counts one cancellation" {
     try testing.expect(!tasks.cancel(&signer));
     tasks.begin_drain();
     try testing.expectEqual(@as(u64, 1), tasks.metrics.cancelled);
+}
+
+test "registrar tasks: complete keyed by a pending entry's own signer" {
+    // A drain loop reports `pending()[0]`: the key points into the table that the removal
+    // shifts, so the next task's signer lands under it (fuzz seeds 0xda69c84, 0xa03ebec4).
+    var tasks: RegistrationTaskSet = .{};
+    const a: types.Address = @splat(1);
+    const b: types.Address = @splat(2);
+    _ = try tasks.spawn(a, "x");
+    _ = try tasks.spawn(b, "y");
+    tasks.complete(&tasks.pending()[0].signer, .succeeded);
+    try testing.expectEqual(@as(usize, 1), tasks.pending().len);
+    try testing.expectEqualSlices(u8, &b, &tasks.pending()[0].signer);
+    try testing.expectEqual(@as(u64, 1), tasks.metrics.outcome_succeeded);
+    tasks.complete(&tasks.pending()[0].signer, .failed);
+    try testing.expectEqual(@as(usize, 0), tasks.pending().len);
 }
 
 test "registrar tasks: outcomes, join errors, and capacity" {
