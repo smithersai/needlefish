@@ -806,10 +806,11 @@ FUZZ_TARGET = re.compile(r'\b(?:testing\.fuzz|fuzz\.run|fuzz\.run_bytes)\(')
 FUZZ_TEST = re.compile(r'^test "[^"]*fuzz', re.M | re.I)
 # Inputs per coverage-guided target (`--fuzz=RUNS` counts each target's inputs). 20000 is more
 # than a soak's 50 x 256 seeded inputs; the slowest binaries take under 300 inputs a second on
-# a 4-processor box, so fewer keeps their fuzz phase near 20 minutes.
+# a 4-processor box, so fewer keeps their fuzz phase near 20 minutes. testing/sim's
+# `cluster: fuzz configs` runs a whole cluster per input, about 2 a second on a box.
 FUZZ_RUNS_DEFAULT = 20000
 FUZZ_RUNS = {'test:execution/node': 2000, 'test:execution/rpc': 5000,
-             'test:execution/db': 5000}
+             'test:execution/db': 5000, 'test:testing/sim': 2000}
 
 
 def fuzz_weights():

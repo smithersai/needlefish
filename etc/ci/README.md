@@ -65,7 +65,8 @@ require `done`.
 packages with a coverage-guided target (`testing.fuzz(`, `fuzz.run(`, `fuzz.run_bytes(`) and
 those whose only fuzz tests are seeded by their ReleaseSafe compile seconds (`fuzz-costs.tsv`),
 which puts at most two of the 6 GB, 6 to 8 minute compiles in one `zig build`. Each target gets 20000 inputs (FUZZ_RUNS: 2000
-for execution/node, 5000 for execution/rpc and execution/db, under 300 inputs a second), after
+for execution/node and testing/sim, 5000 for execution/rpc and execution/db: execution/node takes
+28 inputs a second, the simulator's cluster target about 2), after
 its package's tests ran once with the seeded soak (`-Dfuzz-soak=50 -Dfuzz-seed=RUN`); the
 seeded-only packages run the soak alone. A failing job uploads the input Zig saved.
 
