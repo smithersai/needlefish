@@ -750,7 +750,8 @@ pub fn TrieType(comptime config: Config) type {
         }
 
         /// One pending range of a `build_sorted` walk: keys `[low, high)` share their first
-        /// `depth` nibbles and their trie goes into `slot`.
+        /// `depth` nibbles and their trie goes into `slot`. A one-key range below a branch on
+        /// the last nibble has `depth == path_max`: its leaf has an empty path.
         const BuildTask = struct { low: u32, high: u32, depth: u32, slot: *NodeIndex };
 
         /// Pending ranges of a `build_sorted` walk, at most: a branch pops one range and
@@ -801,7 +802,7 @@ pub fn TrieType(comptime config: Config) type {
             stack_len: u32,
         ) Error!u32 {
             assert(task.high > task.low);
-            assert(task.depth < path_max);
+            assert(task.depth <= path_max);
             const first = source.key(task.low);
             const path = Nibbles.from_bytes(first);
             assert(path.slice().len == path_max);
@@ -812,6 +813,8 @@ pub fn TrieType(comptime config: Config) type {
                 task.slot.* = self.new_leaf(path.slice()[task.depth..], value);
                 return stack_len;
             }
+            // Two distinct keys of one length differ before the end: they need a branch.
+            assert(task.depth < path_max);
             const last = source.key(task.high - 1);
             var common = task.depth;
             while (key_nibble(first, common) == key_nibble(last, common)) common += 1;

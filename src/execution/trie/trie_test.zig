@@ -557,6 +557,26 @@ fn expect_build_matches_inserts(built: *Trie, inserted: *Trie, entries: []const 
     }
 }
 
+test "trie: build_sorted of keys that differ only in the last nibble" {
+    // The deepest branch sits at nibble 63, so its leaves start at depth `path_max` with
+    // empty paths, as `put` splits them. Tail 0x10 adds a leaf with a one-nibble path.
+    var built = try Trie.init(testing.allocator, 16);
+    defer built.deinit(testing.allocator);
+    var inserted = try Trie.init(testing.allocator, 16);
+    defer inserted.deinit(testing.allocator);
+    const tails = [_]u8{ 0x00, 0x01, 0x10 };
+    var entries: [tails.len]Entry = undefined;
+    for (&entries, tails, 0..) |*entry, tail, index| {
+        entry.* = .{ .key = @splat(0x5a), .value = @splat(0x42), .value_len = 0 };
+        entry.key[31] = tail;
+        entry.value_len = @intCast(1 + 15 * index);
+    }
+    try expect_build_matches_inserts(&built, &inserted, &entries);
+    try testing.expectEqual(builder_root(&entries), built.root_hash());
+    // An extension, branches at nibbles 62 and 63, and three leaves.
+    try testing.expectEqual(@as(u32, 6), built.node_count());
+}
+
 test "trie: seeded differential of build_sorted against inserts" {
     var prng = Prng.init(0xb0_1d);
     var built = try Trie.init(testing.allocator, 2048);
