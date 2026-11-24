@@ -14,7 +14,8 @@ pub const ProviderError = error{
     /// The data is not available yet (fetch in flight, or not yet produced). Retry.
     NotAvailable,
     /// The block or receipt is unknown to the provider. Treated as temporary, like a
-    /// provider that is behind the chain head.
+    /// provider that is behind the chain head; derivation's L1 lookups by hash turn it into
+    /// `BlockNotFound` (`hash_lookup`).
     NotFound,
     /// The beacon node permanently lacks the blobs (missed or orphaned slot).
     BlobsUnavailable,
@@ -43,6 +44,8 @@ pub const Error = ProviderError || error{
     NextL1BlockHashMismatch,
     BlobsUnderFill,
     BlobsOverFill,
+    /// An L1 block the pipeline asked for by hash is unknown: an L1 reorg removed it.
+    BlockNotFound,
     // Critical.
     MissingOrigin,
     ChannelProviderEmpty,
@@ -75,6 +78,7 @@ pub fn kind(err: Error) Kind {
         error.BlobsUnavailable,
         error.BlobsUnderFill,
         error.BlobsOverFill,
+        error.BlockNotFound,
         => .reset,
         error.OutOfMemory,
         error.Pruned,
@@ -90,6 +94,16 @@ pub fn kind(err: Error) Kind {
     };
 }
 
+/// The error of an L1 lookup by hash. A block the pipeline names by hash came from an
+/// earlier lookup, so the provider not knowing it means an L1 reorg removed it, and asking
+/// again cannot succeed: the pipeline resets. A lookup by number that misses stays
+/// temporary (the block is not produced yet). Mirrors base/base
+/// `crates/consensus/providers/src/chain_provider.rs` (`BlockNotFound` of a hash is a
+/// reset, of a number temporary).
+pub fn hash_lookup(err: ProviderError) Error {
+    return if (err == error.NotFound) error.BlockNotFound else err;
+}
+
 test "errors: kinds" {
     try std.testing.expectEqual(Kind.temporary, kind(error.Eof));
     try std.testing.expectEqual(Kind.temporary, kind(error.NotAvailable));
@@ -97,4 +111,12 @@ test "errors: kinds" {
     try std.testing.expectEqual(Kind.reset, kind(error.HoloceneActivation));
     try std.testing.expectEqual(Kind.critical, kind(error.OutOfMemory));
     assert(kind(error.MissingOrigin) == .critical);
+}
+
+test "errors: an L1 lookup by hash that misses resets, one in flight retries" {
+    try std.testing.expectEqual(error.BlockNotFound, hash_lookup(error.NotFound));
+    try std.testing.expectEqual(Kind.reset, kind(hash_lookup(error.NotFound)));
+    try std.testing.expectEqual(error.NotAvailable, hash_lookup(error.NotAvailable));
+    try std.testing.expectEqual(Kind.temporary, kind(hash_lookup(error.NotAvailable)));
+    try std.testing.expectEqual(Kind.temporary, kind(error.NotFound));
 }

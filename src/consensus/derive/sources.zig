@@ -127,7 +127,8 @@ pub const DataSource = struct {
         batcher_address: Address,
     ) Error!void {
         assert(source.items.items.len == 0);
-        const transactions = try chain.l1_transactions_by_hash(block.hash);
+        const transactions = chain.l1_transactions_by_hash(block.hash) catch |err|
+            return errors.hash_lookup(err);
         errdefer source.clear();
         for (transactions) |tx| {
             if (!source.accepts(tx, batcher_address)) continue;
@@ -144,7 +145,8 @@ pub const DataSource = struct {
         batcher_address: Address,
     ) Error!void {
         assert(source.items.items.len == 0);
-        const transactions = try chain.l1_transactions_by_hash(block.hash);
+        const transactions = chain.l1_transactions_by_hash(block.hash) catch |err|
+            return errors.hash_lookup(err);
         var hashes: std.ArrayList(B256) = .empty;
         defer hashes.deinit(source.allocator);
         // Collect the blob hashes first: the blob fetch may fail temporarily, and nothing is
@@ -226,6 +228,21 @@ test "sources: calldata filters by inbox, sender, and type" {
     try testing.expectError(error.Eof, next_of(&source, &chain));
     source.clear();
     try expect_next(&source, &chain, chain.blocks[1], "one");
+}
+
+test "sources: a block an L1 reorg removed resets the pipeline, not retried forever" {
+    var chain = TestChain.init(2, 0, 12);
+    const rollup: RollupConfig = .{ .batch_inbox_address = inbox };
+    var source = DataSource.init(testing.allocator, &rollup);
+    defer source.deinit();
+    var orphaned = chain.blocks[1];
+    orphaned.hash.bytes[31] ^= 0xff; // The provider no longer knows this hash.
+    const result = source.next(&chain, &chain, orphaned, batcher);
+    try testing.expectError(error.BlockNotFound, result);
+    try testing.expectEqual(errors.Kind.reset, errors.kind(error.BlockNotFound));
+    // A fetch in flight stays temporary.
+    chain.unavailable_from = 1;
+    try testing.expectError(error.NotAvailable, next_of(&source, &chain));
 }
 
 var test_blobs: [3]blob.Blob = undefined;

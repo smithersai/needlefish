@@ -33,7 +33,8 @@
 //!     is one block time after its parent, and has a monotone, final L1 origin within the
 //!     sequencer drift; it never equivocates or rewinds (across restarts too), its gossip
 //!     is its recorded chain, and after healing it produces on time and its safe head
-//!     reaches its unsafe head
+//!     reaches every block whose batch data its confirmation-depth L1 view has held for a
+//!     whole L1 block time (its unsafe head, unless the batcher confirmed it at the deadline)
 //!   - real gossip (`Config.real_gossip`, the consensus lane's p2p service on every
 //!     sequencer and verifier node, see `real_gossip.zig`): every block a node's service
 //!     validates and hands out is the sequencer's block at that height, and after healing
@@ -58,9 +59,8 @@ const NodeId = network_module.NodeId;
 
 pub const verifier_count_max = network_module.node_count_max - nodes.node_verifier_first;
 pub const step_ns: u64 = 10 * std.time.ns_per_ms;
-/// Largest clock skew with real gossip: two clocks then differ by at most 4 s, inside the
-/// gossip validation window (5 s into the future).
-pub const gossip_clock_skew_ns_max: u64 = 2 * std.time.ns_per_s;
+/// Largest clock skew with real gossip (`real_gossip.clock_skew_ns_max`).
+pub const gossip_clock_skew_ns_max: u64 = real_gossip.clock_skew_ns_max;
 const ns_per_s = std.time.ns_per_s;
 
 /// Byzantine channels use mid-size frames: a few frames each, so shuffling matters but
@@ -1107,7 +1107,7 @@ pub const Cluster = struct {
 
     /// After healing the real sequencer is up and linked for the rest of production, so it
     /// must catch up with its clock (minus the largest skew), and its own derivation must
-    /// confirm its whole chain.
+    /// confirm every block whose batch data it has seen for at least one L1 block time.
     fn check_real_sequencer_liveness(cluster: *Cluster) Failure!void {
         const sequencer = cluster.real_sequencer orelse return;
         const node = nodes.node_sequencer;
@@ -1120,9 +1120,28 @@ pub const Cluster = struct {
                 return cluster.fail("real sequencer did not produce on time", node);
             }
         }
-        if (sequencer.safe_number() != cluster.sequencer.head) {
+        const safe = sequencer.safe_number();
+        assert(safe <= cluster.sequencer.head);
+        if (safe < cluster.real_sequencer_derivable()) {
             return cluster.fail("real sequencer safe head lags", node);
         }
+    }
+
+    /// The highest block the real sequencer's derivation must have confirmed by now. Its L1
+    /// view stops `l1_reorg_depth_max` blocks below the head (`real_sequencer.zig`), so the
+    /// batch data in L1 block `head - depth` became visible only when `head` was mined, at
+    /// the deadline when the batcher lands its last batch late. One block lower, the data
+    /// has been visible for a whole L1 block time: every block the batcher confirmed by that
+    /// L1 block must be safe. When the batcher confirmed early (most seeds) this is the head.
+    fn real_sequencer_derivable(cluster: *const Cluster) u64 {
+        const head = cluster.sequencer.head;
+        const visible = cluster.l1.head -| (nodes.l1_reorg_depth_max + 1);
+        // `confirmed_at` holds what canonical L1 confirmed up to `visible` only once the
+        // batcher has processed it (its cursor is past it); otherwise ask for the head.
+        if (cluster.batcher.follower.cursor <= visible) return head;
+        const derivable = cluster.batcher.confirmed_at[visible];
+        assert(derivable <= head);
+        return derivable;
     }
 
     fn fail(cluster: *const Cluster, reason: []const u8, node: NodeId) Failure {

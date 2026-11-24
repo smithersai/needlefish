@@ -258,12 +258,14 @@ pub const AttributesBuilder = struct {
         assert(user_deposits.items.len == 0);
         const rollup = builder.rollup;
         if (l2_parent.l1_origin.number != epoch.number) {
-            const header = try chain.l1_header_by_hash(epoch.hash);
+            const header = chain.l1_header_by_hash(epoch.hash) catch |err|
+                return errors.hash_lookup(err);
             if (!l2_parent.l1_origin.hash.eql(header.parent_hash)) {
                 return error.EpochParentMismatch;
             }
             // Receipts stay valid only until the next provider call: consume them now.
-            const receipts: []const Receipt = try chain.l1_receipts_by_hash(epoch.hash);
+            const receipts: []const Receipt = chain.l1_receipts_by_hash(epoch.hash) catch |err|
+                return errors.hash_lookup(err);
             try builder.derive_deposits(epoch.hash, receipts, user_deposits);
             const ecotone = rollup.is_feature_active(.blob_aware_l1_fees, header.timestamp);
             // Malformed updates are skipped (base/base logs and continues).
@@ -271,7 +273,8 @@ pub const AttributesBuilder = struct {
             return .{ .header = header, .sequence_number = 0 };
         }
         if (!l2_parent.l1_origin.hash.eql(epoch.hash)) return error.L1OriginMismatch;
-        const header = try chain.l1_header_by_hash(epoch.hash);
+        const header = chain.l1_header_by_hash(epoch.hash) catch |err|
+            return errors.hash_lookup(err);
         const sequence_number = std.math.add(u64, l2_parent.sequence_number, 1) catch {
             return error.AttributesBuilder;
         };

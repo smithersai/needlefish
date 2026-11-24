@@ -392,3 +392,40 @@ provably robust.
   With the gate the sim skips blocks older than 55 s on the sequencer's clock and peers
   catch up through `sync_request`. Options for the owner: do not gossip blocks already
   outside the window (sequencer side), or decay like op-node.
+- 2026-11-24: first nightly swarm (run 45311462122, seeds 100000..119999) failed 6 of 20000,
+  all liveness; two harness bugs, both pinned in `sim/swarm.zig:regressions`.
+  (1) Seeds 108912, 112656, 116325, 116604, 119024 ("real sequencer safe head lags" by 1 to
+  20): reorgs on a congested L1 (minimized: 2-3 reorgs/min, 2-4 batcher txs per block,
+  256-byte frames) hold the model batcher's confirmations near 0 until healing; it then
+  confirms 16 blocks per L1 block and lands the last batch in L1 block 78 of 81. Block 81 is
+  mined at 960 s, the last step, so the real sequencer's depth-3 L1 view sees block 78 only
+  then; its safe head equalled the batcher's confirmation at L1 block 77 in all five. The
+  check now asks for every block confirmed by L1 block `head - depth - 1`
+  (`Cluster.real_sequencer_derivable`), the head whenever the batcher confirmed earlier.
+  (2) Seed 104226 ("real gossip head lags"): the stale gate's 5 s margin ignored a stall. A
+  partition held a block published under 55 s old for up to `stall_timeout_ns` (10 s); at
+  healing it reached verifier 1 past 60 s from the sequencer and from verifier 2 in the same
+  validation, and the one `timestamp_past` rejection penalized both senders (scores -92.9
+  and -111.0 against -40), so verifier 1 heard no one again. The margin is now one hop's
+  worst delivery: stall timeout + latency + 5 retransmits + two clock skews (~15.5 s).
+  For the owner's `BUG(p2p)` decision: not gossiping blocks outside the window (sequencer
+  side) does not stop this; a node cut off for under 10 s still graylists every peer that
+  relays it a block its buffers held past the window. op-node-style decay does.
+  A sweep of the next night's seeds (200000..219999) found two more classes.
+  (3) Seeds 213290, 215032 ("real verifier safe head lags", origin stuck at L1 block 41 /
+  50): an L1 reorg orphaned the derivation origin before it advanced; the sim's L1 serves
+  canonical blocks only, so looking it up by hash missed, and `NotFound` was temporary for
+  every lookup: the pipeline retried until the deadline. base/base maps a miss by hash to a
+  reset (`crates/consensus/providers/src/chain_provider.rs`: "a hash-based lookup returning
+  not-found means the block was reorged out"; by number it stays temporary). Derivation's
+  L1 lookups by hash (data source, traversal receipts, attributes' epoch header and
+  receipts) now return `error.BlockNotFound`, a reset (`derive/errors.zig` `hash_lookup`).
+  The node's RPC provider reports `NotFound` only when the L1 node answered null, and
+  `NotAvailable` while a fetch is in flight, so a fetch never resets. base/base also
+  resets on L2 misses (by number and by hash); needlefish keeps those temporary for now.
+  (4) Open: seed 213675 ("batcher did not confirm sequencer head", 203 of 331): the real
+  batcher on a congested L1 (2 batcher txs per block, 256-byte frames, 2 reorgs/min,
+  4 partitions/min); the minimizer keeps every fault. Not throughput: the model batcher's
+  confirmed head stays at 161 from L1 block 33 to 72 while the real batcher lands 2 to 8
+  transactions in nearly every block (398 sent, 65 step errors), far longer than the 6-block
+  channel timeout. Not yet diagnosed; the batcher lane's next lead.

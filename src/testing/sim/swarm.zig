@@ -130,6 +130,98 @@ pub const regressions = [_]Regression{
         .l1_reorgs_per_minute = 2,
         .clock_skew_ns_max = 0,
     } },
+    // Reorgs on a congested L1 hold the batcher back until healing; its last batch lands in
+    // L1 block head - 3, which the real sequencer's confirmation-depth view sees only at
+    // the deadline. Liveness asked its safe head for that batch too.
+    .{ .seed = 108912, .config = .{
+        .verifier_count = 5,
+        .network = .{
+            .latency_ns_min = 1000000,
+            .latency_ns_max = 1000000,
+            .drop_ppm = 264761,
+            .duplicate_ppm = 0,
+            .capacity = 4096,
+        },
+        .l2_block_time_ns = 2000000000,
+        .l1_block_time_ns = 12000000000,
+        .fault_end_ns = 600000000000,
+        .production_end_ns = 660000000000,
+        .settle_end_ns = 960000000000,
+        .crashes_per_minute = 0,
+        .partitions_per_minute = 2,
+        .disk_fault_ppm = 0,
+        .downtime_ns_max = 76000000000,
+        .l1_reorgs_per_minute = 3,
+        .clock_skew_ns_max = 0,
+        .frame_size = 256,
+        .l1_block_txs_min = 2,
+        .real_verifier = true,
+        .real_sequencer = true,
+    } },
+    // A partition stalled a block the sequencer published under 55 s old (the stale gate's
+    // limit); at healing it reached a verifier past the 60 s window from the sequencer and
+    // the other verifier at once, and the one rejection graylisted both (`BUG(p2p)`). The
+    // gate's margin now covers a stall.
+    .{ .seed = 104226, .config = .{
+        .verifier_count = 2,
+        .network = .{
+            .latency_ns_min = 48000000,
+            .latency_ns_max = 355000000,
+            .drop_ppm = 88569,
+            .duplicate_ppm = 193439,
+            .capacity = 4096,
+        },
+        .l2_block_time_ns = 2000000000,
+        .l1_block_time_ns = 12000000000,
+        .fault_end_ns = 600000000000,
+        .production_end_ns = 660000000000,
+        .settle_end_ns = 960000000000,
+        .crashes_per_minute = 6,
+        .partitions_per_minute = 2,
+        .disk_fault_ppm = 234626,
+        .downtime_ns_max = 82000000000,
+        .l1_reorgs_per_minute = 1,
+        .clock_skew_ns_max = 2000000000,
+        .spam_per_minute = 1,
+        .real_batcher = true,
+        .mempool_evictions_per_minute = 5,
+        .frame_size = 2047,
+        .l1_block_txs_min = 8,
+        .admin_ops_per_minute = 2,
+        .real_sequencer = true,
+        .real_execution = true,
+        .real_gossip = true,
+    } },
+    // An L1 reorg orphaned the real verifier's derivation origin (L1 block 50) before it
+    // advanced; looking the block up by hash missed (`NotFound`, temporary) at every retry
+    // until the deadline. A miss by hash now resets (`derive/errors.zig` `hash_lookup`).
+    .{ .seed = 215032, .config = .{
+        .verifier_count = 4,
+        .network = .{
+            .latency_ns_min = 34000000,
+            .latency_ns_max = 303000000,
+            .drop_ppm = 0,
+            .duplicate_ppm = 44755,
+            .capacity = 4096,
+        },
+        .l2_block_time_ns = 2000000000,
+        .l1_block_time_ns = 12000000000,
+        .fault_end_ns = 600000000000,
+        .production_end_ns = 660000000000,
+        .settle_end_ns = 960000000000,
+        .crashes_per_minute = 2,
+        .partitions_per_minute = 3,
+        .disk_fault_ppm = 147585,
+        .downtime_ns_max = 24000000000,
+        .l1_reorgs_per_minute = 3,
+        .clock_skew_ns_max = 2000000000,
+        .mempool_evictions_per_minute = 5,
+        .reorg_tx_loss_ppm = 479927,
+        .frame_size = 256,
+        .byzantine_per_minute = 5,
+        .real_verifier = true,
+        .real_sequencer = true,
+    } },
 };
 
 /// Print `config` as a Zig `Regression` literal for `regressions`.

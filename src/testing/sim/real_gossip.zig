@@ -64,6 +64,9 @@ pub const retransmit_ns = 200 * ns_per_ms;
 /// Gossip validation's timestamp window around the receiver's clock.
 pub const timestamp_future_max_ns = validity.timestamp_future_max_seconds * ns_per_s;
 pub const timestamp_age_max_ns = validity.timestamp_age_max_seconds * ns_per_s;
+/// Largest clock skew with real gossip: two clocks then differ by at most 4 s, inside the
+/// gossip validation window (5 s into the future).
+pub const clock_skew_ns_max: u64 = 2 * ns_per_s;
 /// The sequencer's block signing key (the rollup's unsafe block signer).
 pub const sequencer_key: [32]u8 = @splat(0x05);
 
@@ -395,12 +398,26 @@ pub const RealGossip = struct {
     }
 
     /// Whether a block with `timestamp_s` is already past the gossip age window on the
-    /// sequencer's clock, less a margin for delivery latency.
+    /// sequencer's clock, less a margin for one hop's delivery (`stale_margin_ns`).
     pub fn stale(gossip: *const RealGossip, world: *const World, timestamp_s: u64) bool {
-        const margin_ns = 5 * ns_per_s;
-        comptime assert(timestamp_age_max_ns > margin_ns);
+        const margin_ns = gossip.stale_margin_ns();
+        assert(timestamp_age_max_ns > margin_ns);
         const age_max_ns = timestamp_age_max_ns - margin_ns;
         return timestamp_s * ns_per_s + age_max_ns < gossip.unix_ns(world, 0);
+    }
+
+    /// The longest a published block can take to reach a peer, as that peer's clock sees
+    /// it: a partition stalls the connection for up to `stall_timeout_ns` before it resets
+    /// (frames sent before then arrive when it heals), plus the link's latency, a few
+    /// retransmits, and the receiver's clock running up to two skews ahead. A block older
+    /// than the window less this reaches a peer, and every relay that sends it on, as
+    /// `timestamp_past`; one rejection graylists all of them for hours (`BUG(p2p)`).
+    fn stale_margin_ns(gossip: *const RealGossip) u64 {
+        const retransmits_ns = 5 * retransmit_ns;
+        const margin_ns = stall_timeout_ns + gossip.latency_ns_max + retransmits_ns +
+            2 * clock_skew_ns_max;
+        assert(margin_ns >= stall_timeout_ns);
+        return margin_ns;
     }
 
     /// The next validated block `peer` received, valid until the next call.

@@ -48,7 +48,8 @@ pub const Traversal = struct {
         assert(block.number < std.math.maxInt(u64));
         const next = try chain.l1_block_info_by_number(block.number + 1);
         if (!block.hash.eql(next.parent_hash)) return error.ReorgDetected;
-        const receipts = try chain.l1_receipts_by_hash(next.hash);
+        const receipts = chain.l1_receipts_by_hash(next.hash) catch |err|
+            return errors.hash_lookup(err);
         const ecotone_active = traversal.rollup.is_feature_active(
             .blob_aware_l1_fees,
             next.timestamp,
