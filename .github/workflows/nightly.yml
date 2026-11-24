@@ -6,7 +6,9 @@
 #                 refreshed from recent green runs, saved for test.yml's plan
 #   release-safe  zig build test -Doptimize=ReleaseSafe
 #   swarm         the simulator swarm: fixed seeds 1 to 500, then 20000 fresh ones per run
-#   fuzz          every std.testing.fuzz target for a bounded run count, and a seeded soak
+#   fuzz          every coverage-guided fuzz target for a bounded input count, and the seeded
+#                 soak, as 6 jobs (etc/ci/fuzz.sh): --fuzz builds each binary twice in
+#                 ReleaseSafe, and one ReleaseSafe build of every package takes 1.5 hours
 #   macos         zig build test on macOS (kqueue rather than io_uring)
 # A failing swarm or soak seed is printed in the log: replay it locally with the same seed.
 name: nightly
@@ -106,18 +108,25 @@ jobs:
 
   fuzz:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [0, 1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: ./.github/actions/zig
-      - name: fuzz
-        run: zig build test --fuzz=200000 -Doptimize=ReleaseSafe -Dtest-shards=false
-      - name: seeded fuzz soak (fresh seed per run, replay with -Dfuzz-seed)
-        run: >-
-          zig build test -Doptimize=ReleaseSafe -Dtest-filter=fuzz -Dfuzz-soak=50
-          "-Dfuzz-seed=$GITHUB_RUN_NUMBER"
+      - name: fuzz and seeded soak (fresh seed per run, replay with -Dfuzz-seed)
+        run: bash etc/ci/fuzz.sh ${{ matrix.group }} 6 "$GITHUB_RUN_NUMBER"
+      - name: save the failing fuzz input
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz-crash-${{ matrix.group }}
+          path: .zig-cache/f/crash
+          if-no-files-found: ignore
 
   macos:
     runs-on: macos-latest

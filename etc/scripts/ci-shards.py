@@ -49,6 +49,16 @@ usage: python3 -I etc/scripts/ci-shards.py steps              every CI step, one
        python3 -I etc/scripts/ci-shards.py costs LOG...       rewrite etc/ci/costs.tsv from logs
        python3 -I etc/scripts/ci-shards.py check              the shards cover each step once
        python3 -I etc/scripts/ci-shards.py groups LISTING     build.zig's groups are these
+       python3 -I etc/scripts/ci-shards.py fuzz INDEX COUNT   fuzz group INDEX (0-based)
+
+`fuzz` prints fuzz group INDEX of COUNT (the nightly `fuzz` matrix, etc/ci/fuzz.sh): lines
+`RUNS STEP...`, the test:<package> steps of the packages with a coverage-guided target
+(`testing.fuzz(`, or `fuzz.run(`/`fuzz.run_bytes(` of src/testing/fuzz.zig) to fuzz for RUNS
+inputs per target (FUZZ_RUNS), and a line `soak STEP...`, the packages whose only fuzz tests
+are seeded. Steps are dealt by the source bytes each package compiles, its own and every
+package it imports: `--fuzz` builds every binary twice in ReleaseSafe, once instrumented, and
+those compiles scale with the code compiled, not with the Debug costs in COSTS (a 5 s Debug
+compile took 8 minutes in ReleaseSafe on the runners).
 
 `groups` reads LISTING, the output of `zig build -l`, where each group's description names its
 shards, and fails unless build.zig declares exactly the groups `group_shards` prices: each side
@@ -56,6 +66,7 @@ proves its own partition, and only this comparison catches two groups whose rang
 swapped. A CI job that runs Zig runs it (`zig build -l` is how it compiles the build runner);
 `check` cannot, since tidy's job has no build runner and compiling one takes a minute.
 """
+import collections
 import contextlib
 import functools
 import io
@@ -755,6 +766,7 @@ def check():
         if sorted(dealt) != everything:
             errors.append('%d shards: steps skipped or dealt twice' % count)
     errors += group_errors(costs)
+    errors += fuzz_errors()
     for e in errors:
         print('ci-shards: ' + e)
     return 1 if errors else 0
@@ -784,6 +796,93 @@ def shard(index, count):
           (index, count, len(shards[index]), loads[index], sum(loads)), file=sys.stderr)
     print('\n'.join(shards[index]))
     return 0
+
+
+FUZZ_TARGET = re.compile(r'\b(?:testing\.fuzz|fuzz\.run|fuzz\.run_bytes)\(')
+FUZZ_TEST = re.compile(r'^test "[^"]*fuzz', re.M | re.I)
+# Inputs per coverage-guided target (`--fuzz=RUNS` counts each target's inputs). 20000 is more
+# than a soak's 50 x 256 seeded inputs; the slowest binaries take under 300 inputs a second on
+# a 4-processor box, so fewer keeps their fuzz phase near 20 minutes.
+FUZZ_RUNS_DEFAULT = 20000
+FUZZ_RUNS = {'test:execution/node': 2000, 'test:execution/rpc': 5000,
+             'test:execution/db': 5000}
+
+
+def fuzz_weights():
+    """({test:<package>: source bytes it compiles}, the steps with a coverage-guided target)
+    of each package with a fuzz target or a test named for fuzzing (comment lines aside).
+    Tool files belong to no package's test binary."""
+    rules, _ = package_rules()
+    texts, tools, _ = rules.read_sources()
+    rows, sizes, targets, seeded = packages(), collections.Counter(), set(), set()
+    for path, text in texts.items():
+        if path in tools:
+            continue
+        name = rules.package_of(path)
+        sizes[name] += len(text)
+        code = rules.COMMENT.sub('', text)
+        if FUZZ_TARGET.search(code):
+            targets.add(name)
+        elif FUZZ_TEST.search(code):
+            seeded.add(name)
+    names = targets | seeded
+    assert names <= set(rows), 'fuzz: packages.zon lacks %s' % sorted(names - set(rows))
+    out = {}
+    for name in names:
+        closure = {name}
+        stack = [name]
+        while stack:  # bounded: each package enters `closure` once
+            for dep in rows[stack.pop()][0]:
+                if dep in rows and dep not in closure:
+                    closure.add(dep)
+                    stack.append(dep)
+        out['test:' + name] = float(sum(sizes[n] for n in closure))
+    return out, {'test:' + name for name in targets}
+
+
+def fuzz_lines(group, targets):
+    """A group's `RUNS STEP...` lines (fewest runs first) and its `soak STEP...` line."""
+    by_runs = collections.defaultdict(list)
+    for step in sorted(group):
+        by_runs[FUZZ_RUNS.get(step, FUZZ_RUNS_DEFAULT) if step in targets else 'soak'].append(step)
+    keys = sorted((k for k in by_runs if k != 'soak')) + (['soak'] if 'soak' in by_runs else [])
+    return ['%s %s' % (key, ' '.join(by_runs[key])) for key in keys]
+
+
+def fuzz_group(index, count):
+    assert 0 <= index < count <= MAX_SHARDS, 'fuzz INDEX COUNT: 0 <= INDEX < COUNT <= 64'
+    weights, targets = fuzz_weights()
+    groups, loads = split(weights, count)
+    print('ci-shards: fuzz %d/%d: %d of %d steps, %.1f of %.1f MB compiled' %
+          (index, count, len(groups[index]), len(weights), loads[index] / 1e6,
+           sum(loads) / 1e6), file=sys.stderr)
+    print('\n'.join(fuzz_lines(groups[index], targets)))
+    return 0
+
+
+def fuzz_errors():
+    """Every fuzz step is a CI test step, FUZZ_RUNS names fuzz targets, the list is not empty,
+    and for every count the groups hold each fuzz step once and none is empty while another
+    holds two; each group's lines name each of its steps once."""
+    errors, everything = [], set(steps())
+    weights, targets = fuzz_weights()
+    if not targets:
+        errors.append('fuzz: no package holds a coverage-guided fuzz target')
+    unknown = sorted(set(weights) - everything)
+    if unknown:
+        errors.append('fuzz: not CI test steps: %s' % ' '.join(unknown))
+    stale = sorted(set(FUZZ_RUNS) - targets)
+    if stale:
+        errors.append('fuzz: FUZZ_RUNS names steps without a fuzz target: %s' % ' '.join(stale))
+    for count in range(1, min(MAX_SHARDS, len(weights)) + 1):
+        groups, _ = split(weights, count)
+        dealt = [step for group in groups for step in group]
+        if sorted(dealt) != sorted(weights) or not all(groups):
+            errors.append('fuzz: %d groups skip, repeat or leave out a step' % count)
+        listed = [s for g in groups for line in fuzz_lines(g, targets) for s in line.split()[1:]]
+        if sorted(listed) != sorted(weights):
+            errors.append('fuzz: %d groups\' lines skip or repeat a step' % count)
+    return errors
 
 
 def package_rules():
@@ -986,6 +1085,8 @@ def main(args):
         return plan_steps(affected_paths(args[2:] if args[2:] != ['-'] else None), int(args[1]))
     if args == ['check']:
         return check()
+    if args[:1] == ['fuzz'] and len(args) == 3:
+        return fuzz_group(int(args[1]), int(args[2]))
     if args[:1] == ['groups'] and len(args) == 2:
         errors = listing_errors(read(args[1]))
         for e in errors:

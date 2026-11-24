@@ -59,6 +59,28 @@ can be required. To require a check, add a job `done` with `needs: [plan, shard]
 `if: always()` that fails unless `plan` succeeded and `shard` succeeded or was skipped, and
 require `done`.
 
+## nightly.yml fuzz
+
+`fuzz` runs as 6 jobs, `etc/ci/fuzz.sh GROUP 6 RUN`. `ci-shards.py fuzz GROUP 6` deals the
+packages with a coverage-guided target (`testing.fuzz(`, `fuzz.run(`, `fuzz.run_bytes(`) and
+those whose only fuzz tests are seeded by the source bytes each compiles, at most two of the
+6 GB ReleaseSafe compiles to one `zig build`. Each target gets 20000 inputs (FUZZ_RUNS: 2000
+for execution/node, 5000 for execution/rpc and execution/db, under 300 inputs a second), after
+its package's tests ran once with the seeded soak (`-Dfuzz-soak=50 -Dfuzz-seed=RUN`); the
+seeded-only packages run the soak alone. A failing job uploads the input Zig saved.
+
+Why: the first nightly ran `zig build test --fuzz=200000` and then the soak over `zig build
+test` as one job, which printed nothing for 120 minutes and was cancelled (run 45311462122).
+`--fuzz` builds every test binary in ReleaseSafe, runs every test with the shards off, builds
+each fuzzed binary again instrumented (all of one `zig build` at once, 6 GB each for the
+heaviest), and then fuzzes each target for N inputs: execution/node takes 28 inputs a second,
+so N = 200000 alone is about 30 hours. The release-safe job's one ReleaseSafe build and
+sharded run of every package took 102 minutes. Measured on a 4-processor box, 2026-11-24.
+
+Zig 0.17.1 exits 0 when a fuzz process fails, so `fuzz.sh` fails the job when the log says
+`input saved to`. src/testing/fuzz.zig skips its seeded driver in the instrumented build
+(`builtin.fuzz`): the fuzzer runs a test again for every batch, and the soak already ran.
+
 ## Caches
 
 - Compile cache (`.zig-cache`, `.github/actions/zig` `local-cache: restore`). Zig's cache is
@@ -86,7 +108,8 @@ The workflows are thin; the logic lives here and in `etc/scripts/`:
   the shards cover every step exactly once and that the Justfile's `ci`, `tidy`, `test` and
   `check` recipes still say what the shards run and that its settings and module lines are the
   pinned ones (`check`, run by `just tidy`), and that the groups `zig build -l` lists are the
-  ones it knows (`groups LISTING`, run by each job that runs Zig steps).
+  ones it knows (`groups LISTING`, run by each job that runs Zig steps). `fuzz INDEX COUNT`
+  lists a nightly fuzz group's steps; `check` also proves the groups hold each fuzz step once.
   The workflow runs the same commands as `just ci` but does not run `just`, so it does not
   prove that the Justfile or the module it loads parses.
 - `baseline.sh` prints the last green commit of the branch: the plan's BASE.
@@ -95,6 +118,7 @@ The workflows are thin; the logic lives here and in `etc/scripts/`:
   overrides it in CI; refresh the committed one after a large change to the suite: save the
   job logs of a green run and run `python3 -I etc/scripts/ci-shards.py costs <logs>`.
 - `shard.sh` runs one shard's steps.
+- `fuzz.sh` runs one `fuzz` job of the nightly workflow (above).
 - `prune-zig-cache.sh`, `prune-caches.sh` and `refresh-costs.sh` keep the two caches.
 
 A push that changes `.github/workflows/` needs a token with workflow scope (or ssh); an

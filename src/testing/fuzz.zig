@@ -15,6 +15,7 @@
 //! Byte-oriented decoders can use `run_bytes` with a `fn (ctx, []const u8) !void`.
 
 const std = @import("std");
+const builtin = @import("builtin");
 const assert = std.debug.assert;
 const Smith = std.testing.Smith;
 const Prng = @import("testing/prng").Prng;
@@ -53,13 +54,16 @@ pub fn iteration_seed(seed: u64, iteration: u32) u64 {
     return hasher.final();
 }
 
-/// Run `test_one` under the seeded driver, then under `std.testing.fuzz`.
+/// Run `test_one` under the seeded driver, then under `std.testing.fuzz`. The instrumented
+/// build `--fuzz` makes (`builtin.fuzz`) skips the seeded driver: the fuzzer runs the test
+/// again for every batch of inputs, and `--fuzz` already ran the uninstrumented build's tests,
+/// seeded driver and `-Dfuzz-soak` included, before fuzzing.
 pub fn run(
     context: anytype,
     comptime test_one: fn (@TypeOf(context), *Smith) anyerror!void,
     options: Options,
 ) !void {
-    try run_seeded(context, test_one, options);
+    if (!builtin.fuzz) try run_seeded(context, test_one, options);
     if (options.coverage) {
         try std.testing.fuzz(context, test_one, .{ .corpus = options.corpus });
     }
