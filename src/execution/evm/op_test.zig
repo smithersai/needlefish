@@ -359,6 +359,7 @@ const native_targets = [_]Address{
 };
 
 fn fuzz_native(h: *Harness, smith: *testing.Smith) anyerror!void {
+    defer h.database.clear();
     var prng = Prng.init(smith.value(u64));
     const upgrades = [_]op_stack.Upgrade{ .beryl, .cobalt, .denim };
     const upgrade = upgrades[prng.below(upgrades.len)];

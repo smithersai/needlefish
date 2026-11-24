@@ -13,6 +13,11 @@
 //!   fn fuzz_decode(_: void, smith: *std.testing.Smith) !void { ... }
 //!
 //! Byte-oriented decoders can use `run_bytes` with a `fn (ctx, []const u8) !void`.
+//!
+//! Each input owns its memory. Under `--fuzz`, `std.testing.fuzz` gives every input a fresh
+//! `std.testing.allocator` and fails the input on any allocation still live at its end, so
+//! a context (a test harness, say) must not keep testing-allocator memory from one input to
+//! the next. The seeded driver checks every input the same way.
 
 const std = @import("std");
 const builtin = @import("builtin");
@@ -78,9 +83,16 @@ pub fn run_seeded(
     assert(options.input_size_max <= input_size_limit);
     assert(options.iterations > 0 or options.corpus.len > 0);
 
-    for (options.corpus) |input| {
+    for (options.corpus, 0..) |input, index| {
         var smith: Smith = .{ .in = input };
-        try test_one(context, &smith);
+        run_input(context, test_one, &smith, true) catch |err| {
+            std.debug.print(
+                "fuzz: failure corpus={d} input_len={d} error={s}\n",
+                .{ index, input.len, @errorName(err) },
+            );
+            if (err == error.FuzzInputLeaked) panic_leaked();
+            return err;
+        };
     }
 
     var buffer: [input_size_limit]u8 = undefined;
@@ -94,14 +106,52 @@ pub fn run_seeded(
         const input = generate(&buffer, seed, options.input_size_max);
         assert(input.len <= options.input_size_max);
         var smith: Smith = .{ .in = input };
-        test_one(context, &smith) catch |err| {
+        run_input(context, test_one, &smith, true) catch |err| {
             std.debug.print(
                 "fuzz: failure seed=0x{x} iteration={d} input_len={d} error={s}\n",
                 .{ base_seed, iteration, input.len, @errorName(err) },
             );
+            if (err == error.FuzzInputLeaked) panic_leaked();
             return err;
         };
     }
+}
+
+/// The allocator options `std.testing.fuzz` gives each coverage-guided input
+/// (lib/compiler/test_runner.zig). The canary differs from the test runner's, so freeing
+/// memory allocated before the input panics as a foreign free, as it does under `--fuzz`.
+const input_allocator_options: std.heap.SafeAllocator.Options = .{
+    .canary = 0xcacce5e0,
+    .check_write_after_free = true,
+};
+
+/// A leak check has freed the input's memory, which the context may still point at: returning
+/// would let the test tear the context down through dangling pointers and crash there, far from
+/// the cause. `std.testing.fuzz` exits the process at this point.
+fn panic_leaked() noreturn {
+    @panic("fuzz: the input kept std.testing.allocator memory past its end; free each " ++
+        "input's allocations before it returns (src/testing/fuzz.zig)");
+}
+
+/// Run one input under a fresh `std.testing.allocator`, as `std.testing.fuzz` runs each
+/// coverage-guided input, and fail with `error.FuzzInputLeaked` when the input leaves any
+/// allocation live. `log_leaks` logs each leak with its allocation stack (an error log, which
+/// fails the test by itself). After an error the input's allocator stays mapped, unchecked,
+/// like `std.testing.fuzz`, which exits the process there.
+fn run_input(
+    context: anytype,
+    comptime test_one: fn (@TypeOf(context), *Smith) anyerror!void,
+    smith: *Smith,
+    log_leaks: bool,
+) !void {
+    const outer = std.testing.allocator_instance;
+    assert(outer.canary != input_allocator_options.canary); // Inputs do not nest.
+    defer std.testing.allocator_instance = outer;
+    std.testing.allocator_instance = .init(std.heap.page_allocator, input_allocator_options);
+    try test_one(context, smith);
+    // The input must not swap the testing allocator itself.
+    assert(std.testing.allocator_instance.canary == input_allocator_options.canary);
+    if (std.testing.allocator_instance.deinitLog(log_leaks) > 0) return error.FuzzInputLeaked;
 }
 
 /// Byte-oriented convenience: `test_bytes` receives the raw fuzz input.
@@ -242,6 +292,40 @@ test "fuzz: seeded driver is deterministic" {
     try run_bytes(&b, count_bytes, options);
     try std.testing.expectEqual(1 + 64 * soak_factor, a.calls);
     try std.testing.expectEqual(a.bytes, b.bytes);
+}
+
+const Keeper = struct {
+    kept: ?[]u8 = null,
+    inputs: u32 = 0,
+};
+
+fn keep_first(keeper: *Keeper, _: *Smith) anyerror!void {
+    keeper.inputs += 1;
+    if (keeper.kept == null) keeper.kept = try std.testing.allocator.alloc(u8, 53);
+}
+
+fn allocate_and_free(keeper: *Keeper, _: *Smith) anyerror!void {
+    keeper.inputs += 1;
+    const bytes = try std.testing.allocator.alloc(u8, 53);
+    std.testing.allocator.free(bytes);
+}
+
+test "fuzz: an input that keeps testing-allocator memory past its end fails" {
+    var keeper: Keeper = .{};
+    var smith: Smith = .{ .in = "" };
+    const result = run_input(&keeper, keep_first, &smith, false);
+    try std.testing.expectError(error.FuzzInputLeaked, result);
+    // The input's allocator freed what it kept: `keeper.kept` dangles and is never read.
+    try std.testing.expect(keeper.kept != null);
+    try std.testing.expectEqual(@as(u32, 1), keeper.inputs);
+}
+
+test "fuzz: seeded inputs that free their memory pass beside outer allocations" {
+    const outer = try std.testing.allocator.alloc(u8, 8);
+    defer std.testing.allocator.free(outer);
+    var keeper: Keeper = .{};
+    try run_seeded(&keeper, allocate_and_free, .{ .iterations = 8, .corpus = &.{"abc"} });
+    try std.testing.expectEqual(1 + 8 * soak_factor, keeper.inputs);
 }
 
 fn smith_values(_: void, smith: *Smith) anyerror!void {

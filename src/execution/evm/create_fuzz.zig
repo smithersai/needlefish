@@ -136,6 +136,7 @@ fn check(h: *Harness, case: Case, init_buffer: []u8) !void {
 }
 
 fn fuzz_create(h: *Harness, bytes: []const u8) !void {
+    defer h.database.clear();
     var seed: [8]u8 = @splat(0);
     @memcpy(seed[0..@min(bytes.len, 8)], bytes[0..@min(bytes.len, 8)]);
     var prng = Prng.init(std.mem.readInt(u64, &seed, .little));

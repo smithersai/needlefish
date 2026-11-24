@@ -33,6 +33,18 @@ pub const MemoryDatabase = struct {
         database.* = undefined;
     }
 
+    /// Remove every account, slot, code, and block hash and free their memory, leaving the
+    /// database as `init` made it. A fuzz input that populates a shared database clears it
+    /// before returning: under `--fuzz` each input runs on its own `std.testing.allocator`
+    /// and fails on memory still live at its end (src/testing/fuzz.zig).
+    pub fn clear(database: *MemoryDatabase) void {
+        const allocator = database.allocator;
+        database.deinit();
+        database.* = init(allocator);
+        assert(database.accounts.count() == 0);
+        assert(database.codes.count() == 0);
+    }
+
     /// Insert or replace an account; `code` is copied and indexed by its hash.
     pub fn put_account(
         database: *MemoryDatabase,

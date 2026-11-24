@@ -101,6 +101,7 @@ fn run_once(h: *Harness, fork: Fork, code: []const u8) !Observed {
 }
 
 fn fuzz_transact(h: *Harness, smith: *Smith) anyerror!void {
+    defer h.database.clear();
     const seed = smith.value(u64);
     const fork = forks[seed % forks.len];
     var buffer: [code_size_max]u8 = undefined;

@@ -149,6 +149,7 @@ fn check(h: *Harness, opcode: u8, a: u256, b: u256, c: u256) !void {
 }
 
 fn fuzz_arithmetic(h: *Harness, bytes: []const u8) !void {
+    defer h.database.clear();
     var seed: [8]u8 = @splat(0);
     const take = @min(bytes.len, 8);
     @memcpy(seed[0..take], bytes[0..take]);
