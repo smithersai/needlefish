@@ -134,6 +134,7 @@ pub fn build_on(
 // ------------------------------------------------------------------------ tests
 
 const testing = std.testing;
+const fuzz = @import("testing/fuzz");
 const TestChain = @import("consensus/derive").test_chain.TestChain;
 const L1BlobSchedule = protocol.l1_info.L1BlobSchedule;
 
@@ -248,21 +249,31 @@ test "sequencer build: seeded fuzz never builds on an unrelated origin" {
 }
 
 fn fuzz_pool_enabled(_: void, smith: *std.testing.Smith) anyerror!void {
-    var bytes: [24]u8 = undefined;
+    // Under `--fuzz` `slice` fills only the length it returns; zero the rest, as a replay does.
+    var bytes: [24]u8 = @splat(0);
     _ = smith.slice(&bytes);
     var rollup: RollupConfig = .{ .block_time = 2, .max_sequencer_drift = 600 };
-    rollup.upgrades.set(.holocene, std.mem.readInt(u32, bytes[0..4], .little));
+    const holocene_time: u64 = std.mem.readInt(u32, bytes[0..4], .little);
+    rollup.upgrades.set(.holocene, holocene_time);
     const origin_time: u64 = std.mem.readInt(u32, bytes[4..8], .little);
     const parent_time: u64 = std.mem.readInt(u32, bytes[8..12], .little);
     const time = parent_time + (bytes[12] % 4);
+    const recovery_mode = bytes[13] & 1 == 1;
     const origin: BlockInfo = .{ .number = 1, .timestamp = origin_time };
-    const enabled = pool_enabled(&rollup, bytes[13] & 1 == 1, origin, parent_time, time);
-    if (enabled) {
-        try testing.expect(bytes[13] & 1 == 0);
-        try testing.expect(time <= origin_time + 600);
-    }
+    const enabled = pool_enabled(&rollup, recovery_mode, origin, parent_time, time);
+    // Holocene implies Fjord, which fixes the drift at 1800 s, and every pool-gated upgrade
+    // up to Holocene, so only the Holocene activation block is an upgrade block.
+    const drift: u64 = if (origin_time >= holocene_time) 1800 else 600;
+    const upgrade_block = parent_time < holocene_time and holocene_time <= time;
+    const expected = !recovery_mode and time <= origin_time + drift and !upgrade_block;
+    try testing.expectEqual(expected, enabled);
 }
 
 test "sequencer build: fuzz pool gating" {
-    try testing.fuzz({}, fuzz_pool_enabled, .{});
+    // Regression: a `--fuzz` crash. Its slice filled 6 bytes and left the rest as the 0xaa
+    // ReleaseSafe writes to undefined memory: Holocene at 0x4772d446, the L1 origin after it at
+    // 0xaaaaa480 (Fjord drift, 1800 s), and the block 1580 s past the origin.
+    const crash = "\x18\x00\x00\x00" ++ "\x46\xd4\x72\x47\x80\xa4" ++
+        "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa";
+    try fuzz.run({}, fuzz_pool_enabled, .{ .corpus = &.{crash} });
 }

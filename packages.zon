@@ -1180,6 +1180,7 @@
         .deps = .{
             "consensus/derive",
             "consensus/protocol",
+            "testing/fuzz",
             "testing/prng",
         },
     },
