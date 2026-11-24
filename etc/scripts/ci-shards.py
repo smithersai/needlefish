@@ -50,15 +50,18 @@ usage: python3 -I etc/scripts/ci-shards.py steps              every CI step, one
        python3 -I etc/scripts/ci-shards.py check              the shards cover each step once
        python3 -I etc/scripts/ci-shards.py groups LISTING     build.zig's groups are these
        python3 -I etc/scripts/ci-shards.py fuzz INDEX COUNT   fuzz group INDEX (0-based)
+       python3 -I etc/scripts/ci-shards.py fuzz-costs LOG...  rewrite etc/ci/fuzz-costs.tsv
 
 `fuzz` prints fuzz group INDEX of COUNT (the nightly `fuzz` matrix, etc/ci/fuzz.sh): lines
 `RUNS STEP...`, the test:<package> steps of the packages with a coverage-guided target
 (`testing.fuzz(`, or `fuzz.run(`/`fuzz.run_bytes(` of src/testing/fuzz.zig) to fuzz for RUNS
 inputs per target (FUZZ_RUNS), and a line `soak STEP...`, the packages whose only fuzz tests
-are seeded. Steps are dealt by the source bytes each package compiles, its own and every
-package it imports: `--fuzz` builds every binary twice in ReleaseSafe, once instrumented, and
-those compiles scale with the code compiled, not with the Debug costs in COSTS (a 5 s Debug
-compile took 8 minutes in ReleaseSafe on the runners).
+are seeded. Steps are dealt by their ReleaseSafe compile seconds (FUZZ_COSTS, written by
+`fuzz-costs` from a `zig build test -Doptimize=ReleaseSafe --summary all` log such as the
+nightly `release-safe` job's): `--fuzz` builds every binary twice in ReleaseSafe, once
+instrumented, and those compiles are most of a group's time. They do not follow the Debug
+costs in COSTS or the code compiled: execution/rpc takes 5 s in Debug and 510 s in
+ReleaseSafe, `testing` compiles more source than execution/node and takes a sixth as long.
 
 `groups` reads LISTING, the output of `zig build -l`, where each group's description names its
 shards, and fails unless build.zig declares exactly the groups `group_shards` prices: each side
@@ -82,6 +85,7 @@ import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 COSTS = 'etc/ci/costs.tsv'
+FUZZ_COSTS = 'etc/ci/fuzz-costs.tsv'
 DEFAULT_SECONDS = 10.0  # a step the table does not list yet
 MIN_SECONDS = 0.1  # the least a measured step costs in the table, so none rounds to 0.0
 MAX_SHARDS = 64  # `check` verifies every count up to this one
@@ -809,35 +813,58 @@ FUZZ_RUNS = {'test:execution/node': 2000, 'test:execution/rpc': 5000,
 
 
 def fuzz_weights():
-    """({test:<package>: source bytes it compiles}, the steps with a coverage-guided target)
-    of each package with a fuzz target or a test named for fuzzing (comment lines aside).
-    Tool files belong to no package's test binary."""
+    """({test:<package>: ReleaseSafe compile seconds}, the steps with a coverage-guided target)
+    of each package with a fuzz target or a test named for fuzzing (comment lines aside). A
+    step FUZZ_COSTS lacks costs DEFAULT_SECONDS. Tool files belong to no package's test binary."""
     rules, _ = package_rules()
     texts, tools, _ = rules.read_sources()
-    rows, sizes, targets, seeded = packages(), collections.Counter(), set(), set()
+    rows, targets, seeded = packages(), set(), set()
     for path, text in texts.items():
         if path in tools:
             continue
-        name = rules.package_of(path)
-        sizes[name] += len(text)
         code = rules.COMMENT.sub('', text)
         if FUZZ_TARGET.search(code):
-            targets.add(name)
+            targets.add(rules.package_of(path))
         elif FUZZ_TEST.search(code):
-            seeded.add(name)
+            seeded.add(rules.package_of(path))
     names = targets | seeded
     assert names <= set(rows), 'fuzz: packages.zon lacks %s' % sorted(names - set(rows))
-    out = {}
-    for name in names:
-        closure = {name}
-        stack = [name]
-        while stack:  # bounded: each package enters `closure` once
-            for dep in rows[stack.pop()][0]:
-                if dep in rows and dep not in closure:
-                    closure.add(dep)
-                    stack.append(dep)
-        out['test:' + name] = float(sum(sizes[n] for n in closure))
+    table = read_fuzz_costs()
+    out = {'test:' + name: table.get('test:' + name, DEFAULT_SECONDS) for name in names}
     return out, {'test:' + name for name in targets}
+
+
+def read_fuzz_costs():
+    """{step: ReleaseSafe compile seconds} of FUZZ_COSTS: lines `STEP<TAB>SECONDS`."""
+    out = {}
+    for line in read(FUZZ_COSTS).splitlines():
+        if not line or line.startswith('#'):
+            continue
+        step, value = line.split('\t')
+        seconds_value = float(value)
+        assert math.isfinite(seconds_value) and seconds_value >= 0, 'fuzz-costs: bad %r' % line
+        out[step] = seconds_value
+    return out
+
+
+def fuzz_costs(logs):
+    """Rewrite FUZZ_COSTS: each step's compile seconds, the median over the logs that measure
+    it; a step no log measures keeps its old value."""
+    known, by_binary, samples = set(steps()), binaries(), {}
+    for path in logs:
+        for step, (compile_seconds, _) in log_costs(path, by_binary, known).items():
+            if compile_seconds:
+                samples.setdefault(step, []).append(compile_seconds)
+    table = {step: value for step, value in read_fuzz_costs().items() if step in known}
+    table.update({step: statistics.median(values) for step, values in samples.items()})
+    lines = ['# CI step, then the seconds of its ReleaseSafe test-binary compile, the median over',
+             '# `zig build ... -Doptimize=ReleaseSafe --summary all` logs (ci-shards.py fuzz-costs',
+             '# LOG...). The nightly fuzz groups are dealt by them (ci-shards.py fuzz).']
+    lines += ['%s\t%.0f' % (step, table[step]) for step in sorted(table)]
+    with open(os.path.join(ROOT, FUZZ_COSTS), 'w', encoding='utf-8') as handle:
+        handle.write('\n'.join(lines) + '\n')
+    print('ci-shards: %d steps measured in %d logs' % (len(samples), len(logs)))
+    return 0
 
 
 def fuzz_lines(group, targets):
@@ -853,9 +880,9 @@ def fuzz_group(index, count):
     assert 0 <= index < count <= MAX_SHARDS, 'fuzz INDEX COUNT: 0 <= INDEX < COUNT <= 64'
     weights, targets = fuzz_weights()
     groups, loads = split(weights, count)
-    print('ci-shards: fuzz %d/%d: %d of %d steps, %.1f of %.1f MB compiled' %
-          (index, count, len(groups[index]), len(weights), loads[index] / 1e6,
-           sum(loads) / 1e6), file=sys.stderr)
+    print('ci-shards: fuzz %d/%d: %d of %d steps, %.0f of %.0f s of ReleaseSafe compiles' %
+          (index, count, len(groups[index]), len(weights), loads[index], sum(loads)),
+          file=sys.stderr)
     print('\n'.join(fuzz_lines(groups[index], targets)))
     return 0
 
@@ -1087,6 +1114,8 @@ def main(args):
         return check()
     if args[:1] == ['fuzz'] and len(args) == 3:
         return fuzz_group(int(args[1]), int(args[2]))
+    if args[:1] == ['fuzz-costs'] and len(args) >= 2:
+        return fuzz_costs(args[1:])
     if args[:1] == ['groups'] and len(args) == 2:
         errors = listing_errors(read(args[1]))
         for e in errors:

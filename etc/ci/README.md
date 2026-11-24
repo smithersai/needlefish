@@ -63,8 +63,8 @@ require `done`.
 
 `fuzz` runs as 6 jobs, `etc/ci/fuzz.sh GROUP 6 RUN`. `ci-shards.py fuzz GROUP 6` deals the
 packages with a coverage-guided target (`testing.fuzz(`, `fuzz.run(`, `fuzz.run_bytes(`) and
-those whose only fuzz tests are seeded by the source bytes each compiles, at most two of the
-6 GB ReleaseSafe compiles to one `zig build`. Each target gets 20000 inputs (FUZZ_RUNS: 2000
+those whose only fuzz tests are seeded by their ReleaseSafe compile seconds (`fuzz-costs.tsv`),
+which puts at most two of the 6 GB, 6 to 8 minute compiles in one `zig build`. Each target gets 20000 inputs (FUZZ_RUNS: 2000
 for execution/node, 5000 for execution/rpc and execution/db, under 300 inputs a second), after
 its package's tests ran once with the seeded soak (`-Dfuzz-soak=50 -Dfuzz-seed=RUN`); the
 seeded-only packages run the soak alone. A failing job uploads the input Zig saved.
@@ -119,6 +119,9 @@ The workflows are thin; the logic lives here and in `etc/scripts/`:
   job logs of a green run and run `python3 -I etc/scripts/ci-shards.py costs <logs>`.
 - `shard.sh` runs one shard's steps.
 - `fuzz.sh` runs one `fuzz` job of the nightly workflow (above).
+- `fuzz-costs.tsv` holds each step's ReleaseSafe compile seconds, which deal the fuzz groups;
+  refresh it from a green nightly's `release-safe` job log:
+  `python3 -I etc/scripts/ci-shards.py fuzz-costs <log>`.
 - `prune-zig-cache.sh`, `prune-caches.sh` and `refresh-costs.sh` keep the two caches.
 
 A push that changes `.github/workflows/` needs a token with workflow scope (or ssh); an
