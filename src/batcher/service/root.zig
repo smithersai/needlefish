@@ -6,7 +6,8 @@
 //! Safe-head handling follows op-batcher: blocks load from `safe_l2 + 1` on start or
 //! after a reset, and a safe head that overtakes our loaded range (another batcher,
 //! or a restart) resets the channel state. Without a rollup node (`optimism_syncStatus`
-//! unavailable) the L2 EL head is used as the unsafe head and the safe head is 0.
+//! unavailable) the L2 EL head is used as the unsafe head and the safe head is 0; a
+//! configured rollup node that stops answering keeps the safe head it last reported.
 
 const std = @import("std");
 const assert = std.debug.assert;
@@ -52,7 +53,8 @@ pub const Heads = struct {
     l1: u64,
     safe_l2: u64,
     unsafe_l2: u64,
-    /// False when no rollup node answered and `safe_l2` is a placeholder 0.
+    /// False when no rollup node answered this step. `safe_l2` is then the last safe head
+    /// a configured rollup node reported, or a placeholder 0 when none ever answered.
     safe_known: bool = false,
     /// The rollup node's finalized L2 head; null when unknown or not reported.
     finalized_l2: ?u64 = null,
@@ -99,6 +101,8 @@ pub const Service = struct {
     repost_floor: ?u64 = null,
     /// Highest safe head seen while re-posting.
     repost_through: u64 = 0,
+    /// The safe head the rollup node last reported, kept while it does not answer.
+    safe_reported: ?u64 = null,
 
     pub fn init(allocator: std.mem.Allocator, config: Config, channel_id_seed: [16]u8) !Service {
         assert(config.blocks_per_step_max > 0);
@@ -134,6 +138,7 @@ pub const Service = struct {
     pub fn step(service: *Service, clients: Clients, now_ms: u64) Error!Report {
         var report: Report = .{};
         report.heads = try read_heads(clients);
+        service.keep_safe_head(clients, &report.heads);
         service.channels.on_l1_head(report.heads.l1);
         report.stopped = service.stopped;
         report.da_backlog_bytes = service.backlog.backlog_bytes(
@@ -238,16 +243,35 @@ pub const Service = struct {
         };
     }
 
-    /// Resets when the safe head stalls behind blocks we already loaded.
+    /// A configured rollup node that did not answer keeps the safe head it last reported,
+    /// as base/base keeps its last derivation status: the placeholder 0 would make the next
+    /// reset (an admin start, a re-post) load the whole chain again from genesis.
+    fn keep_safe_head(service: *Service, clients: Clients, heads: *Heads) void {
+        if (heads.safe_known) {
+            service.safe_reported = heads.safe_l2;
+            return;
+        }
+        assert(heads.safe_l2 == 0);
+        if (clients.rollup == null) return;
+        heads.safe_l2 = service.safe_reported orelse 0;
+        assert(!heads.safe_known);
+    }
+
+    /// Resets when the safe head stalls behind blocks we already loaded. The stall clock
+    /// runs only while we hold blocks beyond the safe head: a re-post of blocks it already
+    /// covers, or a stop, cannot advance it, so it must not count toward a stall and reset
+    /// the re-post the moment it reaches new blocks.
     fn watch_safe_head(service: *Service, heads: Heads, report: *Report) void {
-        if (heads.safe_l2 > service.safe_seen or service.safe_seen_at_l1 == 0) {
+        const next = service.channels.next_block_number() orelse heads.safe_l2 + 1;
+        const holds_beyond_safe = next > heads.safe_l2 + 1;
+        if (heads.safe_l2 > service.safe_seen or service.safe_seen_at_l1 == 0 or
+            !holds_beyond_safe)
+        {
             service.safe_seen = @max(service.safe_seen, heads.safe_l2);
             service.safe_seen_at_l1 = heads.l1;
             return;
         }
         if (service.stall_l1_blocks == 0) return;
-        const next = service.channels.next_block_number() orelse return;
-        if (next <= heads.safe_l2 + 1) return;
         if (heads.l1 < service.safe_seen_at_l1 + service.stall_l1_blocks) return;
         service.channels.reset();
         // Txs carrying the abandoned channels go too; the next submit refetches the
@@ -401,6 +425,8 @@ const FakeChains = struct {
     /// `miner_setMaxDASize` calls on L2: the last pushed max block size.
     da_limit_pushes: u32 = 0,
     da_max_block_size: u64 = 0,
+    /// The rollup node is unreachable: `optimism_syncStatus` fails in transport.
+    rollup_down: bool = false,
 
     const Role = struct { chains: *FakeChains, is_l1: bool };
 
@@ -408,6 +434,9 @@ const FakeChains = struct {
         const role: *Role = @ptrCast(@alignCast(context));
         const id = between(body, "\"id\":", ",");
         const method = between(body, "\"method\":\"", "\"");
+        if (role.chains.rollup_down and std.mem.eql(u8, method, "optimism_syncStatus")) {
+            return error.TransportFailed;
+        }
         var result_buffer: [1024]u8 = undefined;
         const result = role.chains.answer(role.is_l1, method, body, &result_buffer) catch
             return error.ResponseTooLarge;
@@ -871,4 +900,108 @@ test "service: a reorg that un-mines confirmed batch txs re-posts below the safe
         try testing.expectEqual(@as(u32, 0), report.blocks_loaded);
         chains.l1_head += 1;
     }
+}
+
+/// The service the safe-head tests share: 1000-byte frames, channels closed on the next
+/// L1 block.
+fn test_service(stall_l1_blocks: u64, channel_id_seed: u8) !Service {
+    const batcher = accounts.derive_dev(@backingInt(accounts.Role.batcher));
+    return Service.init(testing.allocator, .{
+        .channels = .{
+            .channel = .{ .frame_size_max = 1000, .input_bytes_max = 64 * 1024 },
+            .max_channel_duration_l1_blocks = 1,
+            .batch_bytes_max = 4096,
+        },
+        .txs = .{
+            .chain_id = 900,
+            .private_key = batcher.private_key,
+            .from = batcher.address,
+            .to = .{ .bytes = @splat(0xff) },
+            .tx_data_bytes_max = 1024,
+        },
+        .source = .{ .tx_count_max = 8, .tx_bytes_max = 4096, .input_bytes_max = 1024 },
+        .stall_l1_blocks = stall_l1_blocks,
+    }, @splat(channel_id_seed));
+}
+
+test "service: an unreachable rollup node keeps its last safe head" {
+    var chains: FakeChains = .{ .l2_head = 6, .safe_l2 = 4 };
+    const info: l1_info.L1BlockInfo = .{ .format = .jovian, .number = 90, .sequence_number = 0 };
+    var calldata: [l1_info.calldata_length_max]u8 = undefined;
+    const hex = std.fmt.bufPrint(&chains.info_hex, "{x}", .{info.encode_calldata(&calldata)}) catch
+        unreachable;
+    chains.info_hex_length = hex.len;
+    var l1_role: FakeChains.Role = .{ .chains = &chains, .is_l1 = true };
+    var l2_role: FakeChains.Role = .{ .chains = &chains, .is_l1 = false };
+    const limits: rpc.Limits = .{ .response_bytes_max = 16384, .parse_bytes_max = 256 * 1024 };
+    const l1_transport: rpc.Transport = .{ .context = &l1_role, .send_fn = FakeChains.send };
+    const l2_transport: rpc.Transport = .{ .context = &l2_role, .send_fn = FakeChains.send };
+    var l1 = try rpc.Client.init(testing.allocator, l1_transport, limits);
+    defer l1.deinit(testing.allocator);
+    var l2 = try rpc.Client.init(testing.allocator, l2_transport, limits);
+    defer l2.deinit(testing.allocator);
+    var service = try test_service(0, 6);
+    defer service.deinit(testing.allocator);
+    const clients: Clients = .{ .l1 = &l1, .l2 = &l2, .rollup = &l2 };
+    var report = try service.step(clients, 0);
+    try testing.expect(report.heads.safe_known);
+    try testing.expectEqual(@as(u32, 2), report.blocks_loaded);
+    // The rollup node stops answering, and an admin stop and start drops the loaded blocks.
+    chains.rollup_down = true;
+    service.stop();
+    service.start();
+    chains.l1_head += 1;
+    report = try service.step(clients, 2000);
+    try testing.expect(!report.heads.safe_known);
+    try testing.expectEqual(@as(u64, 4), report.heads.safe_l2);
+    // Blocks 5..6 load again, not the whole chain from genesis.
+    try testing.expectEqual(@as(u32, 2), report.blocks_loaded);
+    try testing.expectEqual(@as(?u64, 7), service.channels.next_block_number());
+}
+
+test "service: a re-post of blocks the safe head covers is no stall" {
+    var chains: FakeChains = .{ .l2_head = 12 };
+    const info: l1_info.L1BlockInfo = .{ .format = .jovian, .number = 90, .sequence_number = 0 };
+    var calldata: [l1_info.calldata_length_max]u8 = undefined;
+    const hex = std.fmt.bufPrint(&chains.info_hex, "{x}", .{info.encode_calldata(&calldata)}) catch
+        unreachable;
+    chains.info_hex_length = hex.len;
+    var l1_role: FakeChains.Role = .{ .chains = &chains, .is_l1 = true };
+    var l2_role: FakeChains.Role = .{ .chains = &chains, .is_l1 = false };
+    const limits: rpc.Limits = .{ .response_bytes_max = 16384, .parse_bytes_max = 256 * 1024 };
+    const l1_transport: rpc.Transport = .{ .context = &l1_role, .send_fn = FakeChains.send };
+    const l2_transport: rpc.Transport = .{ .context = &l2_role, .send_fn = FakeChains.send };
+    var l1 = try rpc.Client.init(testing.allocator, l1_transport, limits);
+    defer l1.deinit(testing.allocator);
+    var l2 = try rpc.Client.init(testing.allocator, l2_transport, limits);
+    defer l2.deinit(testing.allocator);
+    var service = try test_service(5, 7);
+    defer service.deinit(testing.allocator);
+    const clients: Clients = .{ .l1 = &l1, .l2 = &l2, .rollup = &l2 };
+    // Blocks 1..12 go out in one channel and are mined; the rollup node derives them.
+    var round: u64 = 0;
+    while (round < 3) : (round += 1) {
+        _ = try service.step(clients, round * 2000);
+        chains.l1_head += 1;
+    }
+    try testing.expectEqual(@as(u32, 0), service.txs.pending_count());
+    chains.safe_l2 = 12;
+    // A reorg loses the txs. One block per step, the re-post of 1..12 outlasts the stall
+    // limit while the sequencer moves on to 16.
+    chains.mined_nonce = 0;
+    chains.l2_head = 16;
+    service.blocks_per_step_max = 1;
+    var reposts: u32 = 0;
+    var steps_beyond_safe: u32 = 0;
+    while (steps_beyond_safe < 3) : (round += 1) {
+        try testing.expect(round < 64);
+        const report = try service.step(clients, round * 2000);
+        reposts += report.reposts;
+        // Every reset is a re-post's; reaching block 13 does not count as a stall.
+        try testing.expectEqual(report.reposts, report.resets);
+        const next = service.channels.next_block_number() orelse 0;
+        steps_beyond_safe += @intFromBool(next > 13);
+        chains.l1_head += 1;
+    }
+    try testing.expect(reposts > 0);
 }

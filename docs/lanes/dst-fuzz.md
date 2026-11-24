@@ -423,9 +423,20 @@ provably robust.
   The node's RPC provider reports `NotFound` only when the L1 node answered null, and
   `NotAvailable` while a fetch is in flight, so a fetch never resets. base/base also
   resets on L2 misses (by number and by hash); needlefish keeps those temporary for now.
-  (4) Open: seed 213675 ("batcher did not confirm sequencer head", 203 of 331): the real
-  batcher on a congested L1 (2 batcher txs per block, 256-byte frames, 2 reorgs/min,
-  4 partitions/min); the minimizer keeps every fault. Not throughput: the model batcher's
-  confirmed head stays at 161 from L1 block 33 to 72 while the real batcher lands 2 to 8
-  transactions in nearly every block (398 sent, 65 step errors), far longer than the 6-block
-  channel timeout. Not yet diagnosed; the batcher lane's next lead.
+  (4) Seed 213675 ("batcher did not confirm sequencer head", 203 of 331): a real batcher
+  bug, two defects in `batcher/service`, now pinned in `regressions`. The run has 4 admin
+  ops/min (`print_config` omits them). A trace of the service per step and of every L1
+  block's batcher txs showed: (a) partitions cut the batcher from its rollup node from L1
+  block 28 to 35; `read_heads` then reports safe 0 (a placeholder), and an admin start at
+  L1 block 33 reset the channels, so the service loaded from block 1 and re-posted the
+  chain from genesis (nonces 43..50, blocks 1..56). (b) A depth-3 reorg at L1 block 38
+  un-mined nonces 48..58; txmgr reported the lowest lost tag, 36, and `repost_from(36)`
+  re-posted 36..161, which canonical L1 already held. On 2-8 txs per block with 256-byte
+  frames that takes about 10 L1 blocks, the stall limit, and the stall clock had run
+  since the safe head last rose, so `watch_safe_head` reset the service the step it first
+  loaded block 162 (L1 blocks 54, 64, 74). The open channel held 162, so the re-post floor
+  stayed at 36 and the next pass started over: a livelock that only luck broke at L1 74.
+  Fixes (base/base keeps its last derivation status when a poll fails and never acts on a
+  status without a safe head): the service keeps the safe head a configured rollup node
+  last reported, and the stall clock runs only while the service holds blocks beyond the
+  safe head. Each fix alone passes the seed; unit tests for both fail on the old code.

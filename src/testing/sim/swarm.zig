@@ -222,6 +222,39 @@ pub const regressions = [_]Regression{
         .real_verifier = true,
         .real_sequencer = true,
     } },
+    // An admin start while the rollup node was unreachable read its safe head as 0, so the
+    // real batcher re-posted from block 1; a reorg then un-mined those txs, and the re-post
+    // of blocks 36..161 outlasted the stall limit, which reset it each time it reached 162.
+    // The batcher now keeps the last reported safe head and runs the stall clock only while
+    // it holds blocks beyond it.
+    .{ .seed = 213675, .config = .{
+        .verifier_count = 3,
+        .network = .{
+            .latency_ns_min = 1000000,
+            .latency_ns_max = 56000000,
+            .drop_ppm = 0,
+            .duplicate_ppm = 179959,
+            .capacity = 4096,
+        },
+        .l2_block_time_ns = 2000000000,
+        .l1_block_time_ns = 12000000000,
+        .fault_end_ns = 600000000000,
+        .production_end_ns = 660000000000,
+        .settle_end_ns = 960000000000,
+        .crashes_per_minute = 0,
+        .partitions_per_minute = 4,
+        .disk_fault_ppm = 0,
+        .downtime_ns_max = 63000000000,
+        .l1_reorgs_per_minute = 2,
+        .clock_skew_ns_max = 6000000000,
+        .real_batcher = true,
+        .mempool_evictions_per_minute = 5,
+        .reorg_tx_loss_ppm = 52972,
+        .frame_size = 256,
+        .l1_block_txs_min = 2,
+        .admin_ops_per_minute = 4,
+        .byzantine_per_minute = 1,
+    } },
 };
 
 /// Print `config` as a Zig `Regression` literal for `regressions`.

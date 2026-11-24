@@ -294,3 +294,14 @@ Owns `src/batcher/*`, `bin/batcher`, `etc/devnet/`, `docs/DEVNET.md`, and the
   so a loopback test with a scripted server covers it.
 
 - 2026-11-05: paused for replay focus. Open: the sim BUG(batcher) gate (nf-consensus's fixes leave ungated 992, 2258 and 2622 failing; triage them with nf-consensus, then drop the gate).
+- 2026-11-24: sim seed 213675 (dst-fuzz notes, item 4) found two service defects. (1) A
+  configured rollup node that did not answer `optimism_syncStatus` read as safe head 0, so
+  any reset while it was down (an admin start here) loaded from block 1 and re-posted the
+  chain. The service now keeps the safe head the rollup node last reported (`safe_reported`),
+  as base/base keeps its last derivation status. Until the first answer it is still 0, while
+  base/base retries that first status before it starts (our `--wait-node-sync` is opt-in):
+  open for this lane. (2) The stall
+  watchdog counted L1 blocks spent re-posting blocks the safe head already covered, so a
+  re-post longer than `stall_l1_blocks` was reset the step it reached new blocks and, with
+  the floor still set, started over. The stall clock now runs only while the service holds
+  blocks beyond the safe head.
