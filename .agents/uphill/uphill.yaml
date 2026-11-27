@@ -1,0 +1,85 @@
+# .agents/uphill/uphill.yaml — Continuous metrics for needlefish (Zig Base L2 node stack).
+
+footprint:
+  title: Footprint
+  description: Keep every Base L2 Zig package focused, bounded in size, and strictly zero-dependency.
+  run: bun .agents/uphill/metrics/footprint.ts
+  # Non-test line count per Zig package under src/ and bin/. Target of 1200 keeps packages cohesive and auditable.
+  package-prod-lines:
+    poor: 4000
+    description: Keep each Zig package cohesive and bounded in production line count; decompose overgrown packages along protocol boundaries.
+  # Total Zig source bytes per package. Target of 48 kB tracks package surface area alongside line count.
+  package-bytes:
+    poor: 160kB
+    description: Keep each Zig package compact and avoid duplicating protocol or state-machine code across layers.
+  # Tripwire: external Zig dependencies declared in build.zig.zon (must remain 0 per AGENTS.md rule 4).
+  zig-dependencies:
+    description: Keep build.zig.zon completely free of external dependencies (Zig standard library only).
+
+style:
+  title: Style & TigerStyle
+  description: "Enforce needlefish TigerStyle limits from AGENTS.md: zig fmt, <=100 cols, <=70-line fns, and >=2.0 asserts/fn."
+  run: bun .agents/uphill/metrics/style.ts
+  # Every Zig package must pass `zig fmt --check`.
+  zig-fmt:
+    description: Format all Zig source files and manifests with `zig fmt`.
+  # Every Zig function must stay at or under 70 lines, checked by etc/scripts/fn-length.awk (TigerStyle).
+  fn-length:
+    description: Keep every Zig function at or under 70 lines (TigerStyle rule); split state transitions into small helpers.
+  # Every Zig line (excluding multiline string literals) must stay at or under 100 columns.
+  line-length:
+    description: Wrap Zig lines at or under 100 columns (TigerStyle rule in etc/scripts/tidy.sh).
+  # Runtime `assert(` calls per 100 non-test functions per src/ package. Target 200 equals >= 2.00 asserts per function (AGENTS.md).
+  asserts-per-100-fns:
+    better: higher
+    poor: 40
+    description: Assert preconditions, postconditions, and invariants aiming for >= 2 asserts per function (200 per 100 fns, TigerStyle).
+
+correctness:
+  title: Correctness
+  description: Enforce acyclic package imports, CI shard completeness, zero external deps, no flashblocks, and proved unreachable paths.
+  run: bun .agents/uphill/metrics/correctness.ts
+  # Package import graph must be acyclic and packages.zon in sync (`python3 -I etc/scripts/packages.py check`).
+  package-graph:
+    description: Keep cross-package imports acyclic and regenerate `packages.zon` with `python3 -I etc/scripts/packages.py convert`.
+  # Every CI test/check step must appear in exactly one shard (`python3 -I etc/scripts/ci-shards.py check`).
+  ci-shards:
+    description: Keep `etc/scripts/ci-shards.py` covering every CI step across all shard counts.
+  # build.zig.zon must declare zero external dependencies (AGENTS.md rule 4).
+  zero-dependencies:
+    description: Never add external package dependencies to `build.zig.zon`.
+  # Every `@panic` or `catch unreachable` in production code must carry an explicit proof comment (AGENTS.md TigerStyle).
+  no-unproved-panic:
+    description: Return explicit Zig errors, or document every `catch unreachable` with an adjacent proof comment.
+  # No unresolved TODO/FIXME/XXX/HACK markers left in production code.
+  no-todo:
+    description: Resolve TODO/FIXME markers instead of leaving them in production Zig packages.
+  # No flashblocks code may exist anywhere in src/ (AGENTS.md rule 10: native 200 ms blocks only).
+  no-flashblocks:
+    description: Do not add flashblocks code; needlefish implements native 200 ms L2 blocks only.
+
+testing:
+  title: Testing
+  description: Measure unit test depth and fuzz/DST harness presence across every Base L2 package.
+  run: bun .agents/uphill/metrics/testing.ts
+  # Count of inline `test "..."` blocks per src/ Zig package. Target of 25 drives deep unit coverage per package.
+  unit-tests:
+    better: higher
+    poor: 5
+    description: Maintain thorough inline unit tests covering happy paths, boundaries, and error cases in every src/ package.
+  # Each src/ package should include a `std.testing.fuzz` or seeded deterministic fuzz test.
+  fuzz-presence:
+    description: Pair parsers, decoders, and state machines in every src/ package with `std.testing.fuzz` or seeded `Prng` fuzz tests.
+
+documentation:
+  title: Documentation
+  description: Track public Zig API doc-comment coverage and ensure all repository Markdown links resolve.
+  run: bun .agents/uphill/metrics/documentation.ts
+  # Share (%) of top-level `pub fn` and `pub const` declarations per src/ package with `///` doc comments.
+  pub-doc-coverage:
+    better: higher
+    poor: 20
+    description: Document public Zig functions and constants with `///` doc comments (target >= 80%).
+  # All relative file links in README.md, AGENTS.md, and docs/**/*.md must resolve to existing files.
+  markdown-links:
+    description: Keep all relative links in README.md, AGENTS.md, and docs/ valid.

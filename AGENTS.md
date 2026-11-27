@@ -1,5 +1,7 @@
 # AGENTS.md — needlefish
 
+Follow the [Uphill rules](.agents/uphill/rules.md), which `uphill rules --write` rewrites from each metric's description: @.agents/uphill/rules.md
+
 needlefish is a from-scratch Zig rewrite of the public [base/base](https://github.com/base/base)
 repository (the Base L2 node stack: execution, consensus, batcher, proofs, tooling).
 Zero dependencies, TigerStyle, deterministic simulation testing (DST), heavy fuzzing,

@@ -12,3 +12,4 @@ zig-pkg/
 .claude/
 .DS_Store
 __pycache__/
+.uphill/
